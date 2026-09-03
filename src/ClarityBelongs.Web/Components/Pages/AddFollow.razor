@@ -7,13 +7,15 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Add Follow</PageTitle>
+<PageTitle>Watch Something</PageTitle>
 
-<div class="shell narrow-shell">
-    <header class="hero compact-hero">
-        <div class="eyebrow">ADD FOLLOW</div>
-        <h1>What should Clarity watch?</h1>
-        <p>Pick a monitor, tell us the public target, and Clarity will start building history.</p>
+<div class="shell watch-shell">
+    <header class="hero watch-hero">
+        <div>
+            <div class="eyebrow">WATCH SOMETHING</div>
+            <h1>What should Clarity keep an eye on?</h1>
+            <p>Start with one thing you care about. Clarity can watch a single signal or set up a useful group of related checks for you.</p>
+        </div>
     </header>
 
     @if (Account is null || Membership is null)
@@ -22,75 +24,214 @@
     }
     else
     {
-        <section class="setup-note plan-notice">
-            <strong>@Membership.Plan.Name plan · @Membership.ActiveFollowCount / @Membership.Plan.MaxActiveFollows follows used</strong>
-            <span>Fastest available cadence: @FormatCadence(Membership.Plan.MinimumCadenceMinutes). <a href="/pricing">Compare plans</a>.</span>
+        <section class="watch-plan-strip">
+            <div>
+                <strong>@Membership.Plan.Name plan</strong>
+                <span>@Membership.ActiveFollowCount / @Membership.Plan.MaxActiveFollows follows used</span>
+            </div>
+            <div>
+                <span>Fastest check: @FormatCadence(Membership.Plan.MinimumCadenceMinutes)</span>
+                <a href="/pricing">Compare plans</a>
+            </div>
         </section>
 
-        <section class="panel">
-            <EditForm Model="Form" OnValidSubmit="CreateAsync">
-                <DataAnnotationsValidator />
-
-                <label class="field">
-                    <span>Monitor</span>
-                    <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
-                        @foreach (var product in Catalog.GetAll())
-                        {
-                            <option value="@product.Slug">@product.Name</option>
-                        }
-                    </select>
-                </label>
-
-                @if (Product is not null)
-                {
-                    <div class="setup-note">
-                        <strong>@Product.ShortDescription</strong>
-                        <span>@Product.HelpText</span>
-                    </div>
-
-                    <label class="field">
-                        <span>Name</span>
-                        <input @bind="Form.Name" placeholder="A name you will recognize" />
-                    </label>
-
-                    <label class="field">
-                        <span>@Product.TargetLabel</span>
-                        <input @bind="Form.Target" placeholder="@Product.TargetPlaceholder" />
-                    </label>
-
-                    <div class="form-grid">
-                        <label class="field">
-                            <span>Check every</span>
-                            <select @bind="Form.CadenceMinutes">
-                                @foreach (var cadence in AvailableCadences)
-                                {
-                                    <option value="@cadence">@FormatCadence(cadence)</option>
-                                }
-                            </select>
-                        </label>
-
-                        <label class="field">
-                            <span>Importance</span>
-                            <select @bind="Form.Importance">
-                                <option>Low</option>
-                                <option>Normal</option>
-                                <option>High</option>
-                                <option>Critical</option>
-                            </select>
-                        </label>
-                    </div>
-
-                    @if (!string.IsNullOrWhiteSpace(Error))
+        @if (CreatedNames.Count > 0)
+        {
+            <section class="watch-success panel">
+                <div class="eyebrow">WATCHING</div>
+                <h2>@SuccessTitle</h2>
+                <p>@SuccessMessage</p>
+                <div class="created-chip-row">
+                    @foreach (var name in CreatedNames)
                     {
-                        <div class="error-card">@Error</div>
+                        <span class="created-chip">✓ @name</span>
                     }
+                </div>
+                <div class="action-row">
+                    <a class="button" href="/my-clarity">Go to My Clarity</a>
+                    <button class="button secondary" type="button" @onclick="ResetAfterCreate">Watch something else</button>
+                </div>
 
-                    <button class="button" type="submit" disabled="@Saving">
-                        @(Saving ? "Starting..." : "Start following")
-                    </button>
+                @if (Recommendations.Count > 0)
+                {
+                    <div class="recommendation-block">
+                        <div class="eyebrow">ALSO USEFUL</div>
+                        <h3>Related things you may want to watch</h3>
+                        <div class="recommendation-grid">
+                            @foreach (var recommendation in Recommendations)
+                            {
+                                <a class="recommendation-card" href="@RecommendationHref(recommendation)">
+                                    <strong>@recommendation.Name</strong>
+                                    <span>@recommendation.ShortDescription</span>
+                                    <small>Add this next →</small>
+                                </a>
+                            }
+                        </div>
+                    </div>
                 }
-            </EditForm>
-        </section>
+            </section>
+        }
+        else
+        {
+            <div class="watch-mode-switch" role="tablist" aria-label="Watch setup type">
+                <button type="button" class="@(PackMode ? string.Empty : "active")" @onclick="UseSingleMode">
+                    <span>Single watch</span>
+                    <small>Choose one monitor</small>
+                </button>
+                <button type="button" class="@(PackMode ? "active" : string.Empty)" @onclick="UsePackMode">
+                    <span>Website pack</span>
+                    <small>Set up 5 useful checks together</small>
+                </button>
+            </div>
+
+            @if (PackMode)
+            {
+                <section class="watch-workspace">
+                    <div class="watch-main-card panel">
+                        <div class="watch-card-heading">
+                            <span class="watch-icon">◎</span>
+                            <div>
+                                <div class="eyebrow">WEBSITE ESSENTIALS</div>
+                                <h2>Watch a site as one thing</h2>
+                                <p>Give Clarity one website. We’ll create the core checks that make sense together.</p>
+                            </div>
+                        </div>
+
+                        <label class="field prominent-field">
+                            <span>Website or domain</span>
+                            <input @bind="PackTarget" placeholder="https://softwarebelongs.com" />
+                        </label>
+
+                        <div class="pack-monitor-list">
+                            @foreach (var item in WebsitePackProducts)
+                            {
+                                <div class="pack-monitor-row">
+                                    <span class="pack-check">✓</span>
+                                    <div>
+                                        <strong>@item.Name</strong>
+                                        <small>@item.ShortDescription</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(Error))
+                        {
+                            <div class="error-card">@Error</div>
+                        }
+
+                        <button class="button watch-primary-button" type="button" disabled="@Saving" @onclick="CreateWebsitePackAsync">
+                            @(Saving ? "Setting up watches..." : "Watch this website")
+                        </button>
+                    </div>
+
+                    <aside class="watch-summary-card">
+                        <div class="eyebrow">WHAT YOU GET</div>
+                        <h3>One site, five useful signals.</h3>
+                        <p>Each check keeps its own history and alerts, but they all appear together in My Clarity.</p>
+                        <div class="watch-summary-stat">
+                            <strong>5</strong>
+                            <span>follows created</span>
+                        </div>
+                        <div class="watch-summary-stat">
+                            <strong>@FormatCadence(Membership.Plan.MinimumCadenceMinutes)</strong>
+                            <span>fastest available cadence</span>
+                        </div>
+                    </aside>
+                </section>
+            }
+            else
+            {
+                <section class="watch-workspace">
+                    <div class="watch-main-card panel">
+                        <EditForm Model="Form" OnValidSubmit="CreateAsync">
+                            <DataAnnotationsValidator />
+
+                            <div class="watch-card-heading">
+                                <span class="watch-icon">+</span>
+                                <div>
+                                    <div class="eyebrow">SINGLE WATCH</div>
+                                    <h2>Choose what matters</h2>
+                                    <p>Pick a monitor, give it the public target, and Clarity will start building history.</p>
+                                </div>
+                            </div>
+
+                            <label class="field">
+                                <span>Monitor</span>
+                                <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
+                                    @foreach (var family in Catalog.GetAll().GroupBy(x => x.Family).OrderBy(x => x.Key))
+                                    {
+                                        <optgroup label="@family.Key">
+                                            @foreach (var product in family.OrderBy(x => x.Name))
+                                            {
+                                                <option value="@product.Slug">@product.Name</option>
+                                            }
+                                        </optgroup>
+                                    }
+                                </select>
+                            </label>
+
+                            @if (Product is not null)
+                            {
+                                <div class="selected-monitor-card">
+                                    <div class="eyebrow">@Product.Family.ToUpperInvariant()</div>
+                                    <strong>@Product.ShortDescription</strong>
+                                    <span>@Product.HelpText</span>
+                                </div>
+
+                                <label class="field">
+                                    <span>Name</span>
+                                    <input @bind="Form.Name" placeholder="A name you will recognize" />
+                                </label>
+
+                                <label class="field prominent-field">
+                                    <span>@Product.TargetLabel</span>
+                                    <input @bind="Form.Target" placeholder="@Product.TargetPlaceholder" />
+                                </label>
+
+                                <div class="form-grid">
+                                    <label class="field">
+                                        <span>Check every</span>
+                                        <select @bind="Form.CadenceMinutes">
+                                            @foreach (var cadence in AvailableCadences)
+                                            {
+                                                <option value="@cadence">@FormatCadence(cadence)</option>
+                                            }
+                                        </select>
+                                    </label>
+
+                                    <label class="field">
+                                        <span>Importance</span>
+                                        <select @bind="Form.Importance">
+                                            <option>Low</option>
+                                            <option>Normal</option>
+                                            <option>High</option>
+                                            <option>Critical</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(Error))
+                                {
+                                    <div class="error-card">@Error</div>
+                                }
+
+                                <button class="button watch-primary-button" type="submit" disabled="@Saving">
+                                    @(Saving ? "Starting..." : "Start watching")
+                                </button>
+                            }
+                        </EditForm>
+                    </div>
+
+                    <aside class="watch-summary-card">
+                        <div class="eyebrow">TIP</div>
+                        <h3>Not sure which monitor to choose?</h3>
+                        <p>If you are watching a website you own or care about, the Website pack is usually the easiest place to start.</p>
+                        <button class="text-button watch-link-button" type="button" @onclick="UsePackMode">Use Website pack →</button>
+                    </aside>
+                </section>
+            }
+        }
     }
 </div>
 
@@ -98,17 +239,42 @@
     [SupplyParameterFromQuery(Name = "product")]
     public string? ProductQuery { get; set; }
 
+    [SupplyParameterFromQuery(Name = "target")]
+    public string? TargetQuery { get; set; }
+
     private static readonly int[] CadenceChoices = [5, 15, 60, 360, 720, 1440, 10080];
-    private AddFollowForm Form { get; } = new();
-    private ClarityProduct? Product => Catalog.GetBySlug(Form.ProductSlug);
+    private static readonly string[] WebsitePackSlugs =
+    [
+        "website-uptime",
+        "website-change",
+        "ssl-expiration",
+        "domain-expiration",
+        "dns-change"
+    ];
+
+    private readonly AddFollowForm Form = new();
     private AccountSession? Account { get; set; }
     private MembershipSummary? Membership { get; set; }
     private string? Error { get; set; }
     private bool Saving { get; set; }
+    private bool PackMode { get; set; }
+    private string PackTarget { get; set; } = string.Empty;
+    private List<string> CreatedNames { get; } = [];
+    private List<ClarityProduct> Recommendations { get; } = [];
+    private string SuccessTitle { get; set; } = "Clarity is watching.";
+    private string SuccessMessage { get; set; } = "Your first check is queued and history will build from here.";
+
+    private ClarityProduct? Product => Catalog.GetBySlug(Form.ProductSlug);
 
     private IEnumerable<int> AvailableCadences => Membership is null
         ? CadenceChoices
         : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
+
+    private IReadOnlyList<ClarityProduct> WebsitePackProducts => WebsitePackSlugs
+        .Select(Catalog.GetBySlug)
+        .Where(x => x is not null)
+        .Cast<ClarityProduct>()
+        .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,9 +284,26 @@
             Account.WorkspaceId);
 
         Form.ProductSlug = Catalog.GetBySlug(ProductQuery)?.Slug
-            ?? Catalog.GetAll().First().Slug;
+            ?? "website-change";
+        Form.Target = TargetQuery ?? string.Empty;
+        PackTarget = TargetQuery ?? string.Empty;
 
         ApplyProduct();
+    }
+
+    private void UseSingleMode()
+    {
+        PackMode = false;
+        Error = null;
+    }
+
+    private void UsePackMode()
+    {
+        PackMode = true;
+        Error = null;
+
+        if (string.IsNullOrWhiteSpace(PackTarget))
+            PackTarget = Form.Target;
     }
 
     private void ApplyProduct()
@@ -154,7 +337,7 @@
         if (string.IsNullOrWhiteSpace(Form.Name)
             || string.IsNullOrWhiteSpace(Form.Target))
         {
-            Error = "Give this follow a name and enter the target to watch.";
+            Error = "Give this watch a name and enter the target to watch.";
             return;
         }
 
@@ -163,27 +346,201 @@
 
         try
         {
-            var followId = await Follows.CreateAsync(
+            await Follows.CreateAsync(
                 Account.UserId,
                 Account.WorkspaceId,
-                new CreateFollowInput(
+                BuildInput(
+                    product,
                     Form.Name,
                     Form.Target,
-                    product.TargetType,
-                    product.MonitorType,
-                    product.AdapterType,
-                    product.SourceConfigurationJson,
-                    Form.Importance,
                     Form.CadenceMinutes,
-                    product.DefaultAlertRule));
+                    Form.Importance));
 
-            Navigation.NavigateTo($"/follows/{followId}");
+            CreatedNames.Clear();
+            CreatedNames.Add(product.Name);
+            SuccessTitle = $"Now watching {Form.Name}.";
+            SuccessMessage = "Clarity has queued the first observation. Add a related watch or head to My Clarity.";
+            LoadRecommendations(product.Slug);
         }
         catch (Exception ex)
         {
             Error = ex.Message;
+        }
+        finally
+        {
             Saving = false;
         }
+    }
+
+    private async Task CreateWebsitePackAsync()
+    {
+        if (Account is null || Membership is null)
+            return;
+
+        if (!TryNormalizeWebsite(PackTarget, out var websiteUrl, out var host))
+        {
+            Error = "Enter a public website or domain, for example https://softwarebelongs.com.";
+            return;
+        }
+
+        var products = WebsitePackProducts;
+        var remaining = Membership.Plan.MaxActiveFollows - Membership.ActiveFollowCount;
+
+        if (remaining < products.Count)
+        {
+            Error = $"This pack needs {products.Count} available follows. Your plan currently has {remaining} remaining.";
+            return;
+        }
+
+        Saving = true;
+        Error = null;
+        CreatedNames.Clear();
+
+        try
+        {
+            foreach (var product in products)
+            {
+                var target = product.Slug switch
+                {
+                    "domain-expiration" => host,
+                    "dns-change" => host,
+                    _ => websiteUrl
+                };
+
+                await Follows.CreateAsync(
+                    Account.UserId,
+                    Account.WorkspaceId,
+                    BuildInput(
+                        product,
+                        product.Name,
+                        target,
+                        Math.Max(
+                            product.DefaultCadenceMinutes,
+                            Membership.Plan.MinimumCadenceMinutes),
+                        product.DefaultImportance));
+
+                CreatedNames.Add(product.Name);
+            }
+
+            SuccessTitle = $"{host} is covered.";
+            SuccessMessage = "Clarity created the Website Essentials pack and queued the first observations.";
+            Recommendations.Clear();
+
+            foreach (var slug in new[] { "nameserver-change", "sitemap-change", "robots-change" })
+            {
+                var recommendation = Catalog.GetBySlug(slug);
+
+                if (recommendation is not null)
+                    Recommendations.Add(recommendation);
+            }
+
+            Form.Target = websiteUrl;
+        }
+        catch (Exception ex)
+        {
+            Error = CreatedNames.Count == 0
+                ? ex.Message
+                : $"Created {CreatedNames.Count} watches before setup stopped: {ex.Message}";
+        }
+        finally
+        {
+            Saving = false;
+        }
+    }
+
+    private CreateFollowInput BuildInput(
+        ClarityProduct product,
+        string name,
+        string target,
+        int cadence,
+        string importance)
+    {
+        return new CreateFollowInput(
+            name,
+            target,
+            product.TargetType,
+            product.MonitorType,
+            product.AdapterType,
+            product.SourceConfigurationJson,
+            importance,
+            cadence,
+            product.DefaultAlertRule);
+    }
+
+    private void LoadRecommendations(string slug)
+    {
+        Recommendations.Clear();
+
+        var slugs = slug switch
+        {
+            "website-uptime" => new[] { "website-change", "ssl-expiration", "dns-change" },
+            "website-change" => new[] { "website-uptime", "ssl-expiration", "domain-expiration" },
+            "ssl-expiration" => new[] { "website-uptime", "domain-expiration", "dns-change" },
+            "domain-expiration" => new[] { "ssl-expiration", "dns-change", "nameserver-change" },
+            "dns-change" => new[] { "nameserver-change", "ssl-expiration", "website-uptime" },
+            "product-price" => new[] { "restock-availability", "sale-price-history" },
+            "grant-opportunity" => new[] { "deadline-change", "public-notice" },
+            _ => Product is null
+                ? []
+                : Catalog.GetAll()
+                    .Where(x => x.Family == Product.Family && x.Slug != Product.Slug)
+                    .Take(3)
+                    .Select(x => x.Slug)
+                    .ToArray()
+        };
+
+        foreach (var recommendationSlug in slugs)
+        {
+            var recommendation = Catalog.GetBySlug(recommendationSlug);
+
+            if (recommendation is not null)
+                Recommendations.Add(recommendation);
+        }
+    }
+
+    private string RecommendationHref(ClarityProduct product)
+    {
+        var target = string.IsNullOrWhiteSpace(Form.Target)
+            ? PackTarget
+            : Form.Target;
+
+        return $"/add?product={Uri.EscapeDataString(product.Slug)}&target={Uri.EscapeDataString(target)}";
+    }
+
+    private void ResetAfterCreate()
+    {
+        CreatedNames.Clear();
+        Recommendations.Clear();
+        Error = null;
+        PackMode = false;
+    }
+
+    private static bool TryNormalizeWebsite(
+        string raw,
+        out string websiteUrl,
+        out string host)
+    {
+        websiteUrl = string.Empty;
+        host = string.Empty;
+
+        var value = raw.Trim();
+
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        if (!value.Contains("://", StringComparison.Ordinal))
+            value = $"https://{value}";
+
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            || string.IsNullOrWhiteSpace(uri.Host))
+        {
+            return false;
+        }
+
+        host = uri.Host;
+        websiteUrl = $"{uri.Scheme}://{uri.Authority}";
+        return true;
     }
 
     private static string FormatCadence(int minutes)
