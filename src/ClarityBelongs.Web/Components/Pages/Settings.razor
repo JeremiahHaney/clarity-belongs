@@ -1,0 +1,84 @@
+@page "/settings"
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject IClarityEmailSender EmailSender
+@rendermode InteractiveServer
+
+<PageTitle>Clarity Settings</PageTitle>
+
+<div class="shell narrow-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">SETTINGS</div>
+        <h1>How should Clarity reach you?</h1>
+        <p>In-app alerts are always recorded. Email is sent when a real address and an SMTP provider are configured.</p>
+    </header>
+
+    <section class="panel">
+        @if (User is null)
+        {
+            <p>Loading settings...</p>
+        }
+        else
+        {
+            <label class="field">
+                <span>Email address</span>
+                <input @bind="Email" type="email" placeholder="you@example.com" />
+            </label>
+
+            <div class="setup-note">
+                <strong>Email delivery: @(EmailSender.IsEnabled ? "Provider configured" : "Provider not configured")</strong>
+                <span>
+                    @(EmailSender.IsEnabled
+                        ? "Clarity will deliver pending email alerts to the address above."
+                        : "Set the Email section in appsettings or environment configuration before production email can send.")
+                </span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <div class="setup-note">@Message</div>
+            }
+
+            <button class="button" @onclick="SaveAsync">Save settings</button>
+        }
+    </section>
+
+    <section class="panel">
+        <h2>Alert behavior</h2>
+        <p>Clarity currently creates both an in-app alert and an email delivery record for meaningful changes, failures, recoveries, and SSL/domain expiration thresholds.</p>
+        <p class="muted">Expiration reminders are deduplicated at 30, 14, 7, and 1 day so the same threshold does not keep emailing you.</p>
+    </section>
+</div>
+
+@code {
+    private AppUser? User { get; set; }
+    private string Email { get; set; } = string.Empty;
+    private string? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await Db.Users
+            .OrderBy(x => x.Id)
+            .FirstOrDefaultAsync();
+
+        Email = User?.Email ?? string.Empty;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (User is null)
+            return;
+
+        var value = Email.Trim();
+
+        if (string.IsNullOrWhiteSpace(value)
+            || !value.Contains('@'))
+        {
+            Message = "Enter a valid email address.";
+            return;
+        }
+
+        User.Email = value;
+        await Db.SaveChangesAsync();
+        Message = "Notification email saved.";
+    }
+}
