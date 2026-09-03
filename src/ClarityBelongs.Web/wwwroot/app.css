@@ -274,10 +274,15 @@ p {
     margin-top: 6px;
 }
 
-.product-grid {
+.product-grid,
+.compare-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+}
+
+.compare-grid {
+    align-items: start;
 }
 
 .product-card {
@@ -400,6 +405,20 @@ select {
     padding-right: 4px;
 }
 
+.evidence-panel pre {
+    margin: 14px 0 0;
+    padding: 14px;
+    max-height: 540px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border-radius: 10px;
+    background: #f6f7f9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 code {
     background: #f0f2f4;
     border-radius: 6px;
@@ -410,6 +429,7 @@ code {
     .summary-grid,
     .summary-grid.four,
     .product-grid,
+    .compare-grid,
     .form-grid {
         grid-template-columns: 1fr;
     }
