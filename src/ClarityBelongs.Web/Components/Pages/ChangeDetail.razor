@@ -1,0 +1,111 @@
+@page "/follows/{FollowId:long}/changes/{ChangeId:long}"
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject FollowManagementService Follows
+@rendermode InteractiveServer
+
+<PageTitle>Change evidence</PageTitle>
+
+<div class="shell">
+    @if (Change is null || Follow is null)
+    {
+        <section class="panel">
+            <p>Loading change evidence...</p>
+        </section>
+    }
+    else
+    {
+        <header class="hero compact-hero detail-hero">
+            <div>
+                <div class="eyebrow">CHANGE EVIDENCE</div>
+                <h1>@Change.Title</h1>
+                <p>@Follow.Name · @Change.DetectedAtUtc.ToLocalTime().ToString("g")</p>
+            </div>
+            <a class="button secondary" href="/follows/@FollowId">Back to follow</a>
+        </header>
+
+        <section class="panel">
+            <div class="change-topline">
+                <strong>@Change.ChangeType</strong>
+                <span class="badge">@Change.Severity</span>
+            </div>
+            <p>@Change.Summary</p>
+        </section>
+
+        <section class="compare-grid">
+            <article class="panel evidence-panel">
+                <div class="eyebrow">BEFORE</div>
+                <pre>@Pretty(Change.BeforeJson)</pre>
+            </article>
+            <article class="panel evidence-panel">
+                <div class="eyebrow">AFTER</div>
+                <pre>@Pretty(Change.AfterJson)</pre>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Why this exists</h2>
+            <p class="muted">Clarity keeps the observed before/after evidence so an alert can be explained later instead of disappearing after the notification.</p>
+            @if (!Acknowledged)
+            {
+                <button class="button secondary" @onclick="AcknowledgeAsync">Mark reviewed</button>
+            }
+            else
+            {
+                <span class="badge">Reviewed</span>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public long FollowId { get; set; }
+
+    [Parameter]
+    public long ChangeId { get; set; }
+
+    private Follow? Follow { get; set; }
+    private Change? Change { get; set; }
+    private bool Acknowledged { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Follow = await Db.Follows
+            .FirstOrDefaultAsync(x => x.Id == FollowId);
+
+        Change = await Db.Changes
+            .FirstOrDefaultAsync(x => x.Id == ChangeId);
+
+        var link = await Db.FollowChanges
+            .FirstOrDefaultAsync(x => x.FollowId == FollowId && x.ChangeId == ChangeId);
+
+        Acknowledged = link?.IsAcknowledged ?? false;
+    }
+
+    private async Task AcknowledgeAsync()
+    {
+        await Follows.AcknowledgeAsync(FollowId, ChangeId);
+        Acknowledged = true;
+    }
+
+    private static string Pretty(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return "No evidence captured.";
+
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(json);
+            return System.Text.Json.JsonSerializer.Serialize(
+                document.RootElement,
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return json;
+        }
+    }
+}
