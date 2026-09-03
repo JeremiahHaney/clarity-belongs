@@ -3,23 +3,68 @@
 <PageTitle>Clarity Belongs - Know what changed</PageTitle>
 
 <div class="shell public-shell">
-    <section class="public-hero">
-        <div class="eyebrow">CLARITY BELONGS</div>
-        <h1>Stop checking. Know what changed.</h1>
-        <p class="public-lead">Clarity watches the things you care about, keeps the history, and tells you when something worth knowing changes.</p>
-        <div class="action-row public-actions">
-            <AuthorizeView>
-                <Authorized>
-                    <a class="button" href="/my-clarity">Open My Clarity</a>
-                    <a class="button secondary" href="/add">Add a follow</a>
-                </Authorized>
-                <NotAuthorized>
-                    <a class="button" href="/signup">Start free</a>
-                    <a class="button secondary" href="/products">See what Clarity can watch</a>
-                </NotAuthorized>
-            </AuthorizeView>
+    <section class="public-hero public-hero-grid">
+        <div class="hero-copy">
+            <div class="eyebrow">CLARITY BELONGS</div>
+            <h1>Stop checking. Know what changed.</h1>
+            <p class="public-lead">Clarity watches the things you care about, keeps the history, and tells you when something worth knowing changes.</p>
+            <div class="action-row public-actions">
+                <AuthorizeView>
+                    <Authorized>
+                        <a class="button" href="/my-clarity">Open My Clarity</a>
+                        <a class="button secondary" href="/add">Add a follow</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="button" href="/signup">Start free</a>
+                        <a class="button secondary" href="/products">See what Clarity can watch</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+            <p class="microcopy">No card required for the Free plan.</p>
         </div>
-        <p class="microcopy">No card required for the Free plan.</p>
+
+        <div class="hero-visual" aria-label="Example Clarity activity">
+            <div class="hero-visual-topline">
+                <span class="status-dot"></span>
+                <span>Watching 5 things</span>
+                <span class="hero-live-pill">Live</span>
+            </div>
+            <div class="hero-watch-card hero-watch-card-featured">
+                <div class="watch-icon">↗</div>
+                <div>
+                    <small>Website change</small>
+                    <strong>Pricing page updated</strong>
+                    <span>Before / after saved</span>
+                </div>
+                <span class="watch-state changed">Changed</span>
+            </div>
+            <div class="hero-watch-card">
+                <div class="watch-icon">✓</div>
+                <div>
+                    <small>Website uptime</small>
+                    <strong>softwarebelongs.com</strong>
+                    <span>Checked 2 minutes ago</span>
+                </div>
+                <span class="watch-state healthy">Healthy</span>
+            </div>
+            <div class="hero-watch-card">
+                <div class="watch-icon">◷</div>
+                <div>
+                    <small>SSL expiration</small>
+                    <strong>Certificate renewal</strong>
+                    <span>14 days remaining</span>
+                </div>
+                <span class="watch-state reminder">Reminder</span>
+            </div>
+            <div class="hero-history-line">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p>One calm history instead of constant checking.</p>
+        </div>
     </section>
 
     <section class="public-section idea-section">
@@ -72,7 +117,7 @@
         </div>
     </section>
 
-    <section class="public-section">
+    <section class="public-section monitor-section">
         <div class="section-heading">
             <div>
                 <div class="eyebrow">START WITH YOUR INTERNET</div>
@@ -81,30 +126,40 @@
             <a href="/products">View all products</a>
         </div>
         <div class="product-grid public-product-grid">
-            <a class="product-card" href="/products/website-change">
+            <a class="product-card monitor-card monitor-change" href="/products/website-change">
+                <div class="monitor-icon">↗</div>
                 <div class="eyebrow">CHANGES</div>
                 <h2>Website Change Monitor</h2>
                 <p>Know when a public webpage changes and keep before/after evidence.</p>
+                <span class="monitor-link">Watch a page →</span>
             </a>
-            <a class="product-card" href="/products/website-uptime">
+            <a class="product-card monitor-card monitor-uptime" href="/products/website-uptime">
+                <div class="monitor-icon">●</div>
                 <div class="eyebrow">AVAILABILITY</div>
                 <h2>Website Uptime Monitor</h2>
                 <p>Know when a website stops responding and when it recovers.</p>
+                <span class="monitor-link">Watch uptime →</span>
             </a>
-            <a class="product-card" href="/products/ssl-expiration">
+            <a class="product-card monitor-card monitor-ssl" href="/products/ssl-expiration">
+                <div class="monitor-icon">◇</div>
                 <div class="eyebrow">CERTIFICATES</div>
                 <h2>SSL Expiration Monitor</h2>
                 <p>Track certificate identity and get expiration reminders before renewal becomes urgent.</p>
+                <span class="monitor-link">Watch SSL →</span>
             </a>
-            <a class="product-card" href="/products/domain-expiration">
+            <a class="product-card monitor-card monitor-domain" href="/products/domain-expiration">
+                <div class="monitor-icon">◎</div>
                 <div class="eyebrow">DOMAINS</div>
                 <h2>Domain Expiration Monitor</h2>
                 <p>Keep domain expiration history and reminders in the same place as everything else.</p>
+                <span class="monitor-link">Watch a domain →</span>
             </a>
-            <a class="product-card" href="/products/dns-change">
+            <a class="product-card monitor-card monitor-dns" href="/products/dns-change">
+                <div class="monitor-icon">⌘</div>
                 <div class="eyebrow">DNS</div>
                 <h2>DNS Change Monitor</h2>
                 <p>See when the public address set for a domain changes.</p>
+                <span class="monitor-link">Watch DNS →</span>
             </a>
         </div>
     </section>
@@ -122,7 +177,7 @@
         </div>
     </section>
 
-    <section class="public-section">
+    <section class="public-section ecosystem-section">
         <div class="section-intro">
             <div class="eyebrow">HOW CLARITY FITS</div>
             <h2>DO. KNOW. HANDLE.</h2>
