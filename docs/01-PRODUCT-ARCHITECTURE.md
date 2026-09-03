@@ -7,11 +7,14 @@ CLARITY BELONGS
 |
 +-- MONEY
 |   +-- Price tracking
+|   +-- Price & sale history
+|   +-- Fee changes
 |   +-- Subscription changes
 |   +-- Airline fares
 |   +-- Hotel/rental rates
 |   +-- Ticket prices
 |   +-- Product availability
+|   +-- Restock & availability
 |
 +-- YOUR INTERNET
 |   +-- Domain expiration
@@ -29,6 +32,8 @@ CLARITY BELONGS
 |   +-- Product changes
 |   +-- Software releases
 |   +-- Competitor changes
+|   +-- Service outages
+|   +-- Cancellations & schedule changes
 |
 +-- OPPORTUNITIES
 |   +-- Jobs
@@ -36,6 +41,7 @@ CLARITY BELONGS
 |   +-- Government bids
 |   +-- Availability
 |   +-- New listings
+|   +-- Deadlines
 |
 +-- PUBLIC INFORMATION
 |   +-- Public meeting agendas
@@ -43,6 +49,10 @@ CLARITY BELONGS
 |   +-- Regulatory filings
 |   +-- Policy changes
 |   +-- Public records
+|   +-- Recall alerts
+|   +-- Local government projects
+|   +-- School & community notices
+|   +-- Consumer notices
 |
 +-- YOUR IDENTITY
 |   +-- Brand mentions
@@ -62,6 +72,10 @@ CLARITY BELONGS
 
 ## Discovery model
 
-Users should be able to enter through a specific problem such as "track SSL expiration" or "tell me when airfare drops" while all products feed the same My Clarity experience.
+Users should be able to enter through a specific problem such as "track SSL expiration," "tell me when this product comes back," or "watch this public deadline page" while all products feed the same My Clarity experience.
 
 The homepage should expose families and outcomes, not hundreds of individual product tiles.
+
+## V1 product rule
+
+A product can ship as a thin Clarity surface when an existing observation adapter can truthfully answer the user's problem. Public-source products should clearly state that V1 watches the selected public page or endpoint and should not imply structured extraction, private-account access, authoritative external datasets, or integrations that have not been built.
