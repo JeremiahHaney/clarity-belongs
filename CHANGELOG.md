@@ -47,3 +47,24 @@
 - Added My Clarity dashboard read models and a Blazor dashboard for Needs Attention, Recent Changes, and Following.
 - Added APIs to create follows, manually run a follow, and acknowledge a change.
 - Marked the core platform Testing Required because a local build could not be run from the current environment after GitHub became unreachable from the build container.
+
+## 0.3.0 - 2026-09-03
+
+- Completed launch phases 1–4 for the first Clarity Belongs V1 product experience.
+- Added GitHub Actions restore/build verification and a Release-mode runtime smoke test against `/health`.
+- Fixed the solution-path and Blazor routing-import issues exposed by CI and reached a green build/startup verification run.
+- Added shared application navigation, polished My Clarity, useful empty states, responsive layout, and an error page.
+- Added a guided Add Follow experience and full Follow detail workflow with check-now, pause/resume, archive, cadence, importance, alert settings, history, and acknowledgement.
+- Added an evidence view that preserves and displays normalized before/after observations for each meaningful change.
+- Added the initial Your Internet product catalog and dedicated setup surfaces for Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DNS Change monitoring.
+- Separated HTTP content-change fingerprints from uptime fingerprints so response-time variation does not create false changes.
+- Stabilized TLS and domain-expiration fingerprints around certificate/registry facts rather than continuously changing days-remaining values.
+- Updated the scheduler so failed follows remain eligible for retry instead of becoming permanently stuck in Error.
+- Added operational failure and recovery alerts in addition to meaningful target-change alerts.
+- Added persisted email delivery records alongside in-app notifications with per-channel deduplication.
+- Added SMTP delivery configuration, user notification-email settings, Sent/Failed/Suppressed delivery tracking, and optional Immediate or DailyDigest delivery modes.
+- Added SSL/domain expiration threshold reminders at 30, 14, 7, and 1 day with send-once deduplication.
+- Added the daily digest framing: what changed while you were not looking.
+- Added CI runtime verification that starts the Release application and checks the live health endpoint.
+- Pinned `SQLitePCLRaw.lib.e_sqlite3` forward to 2.1.12 to avoid the vulnerable transitive 2.1.11 native SQLite package.
+- Advanced launch phases 1–4 to implemented while keeping real monitor targets, interactive flows, and external SMTP delivery marked Testing Required.
