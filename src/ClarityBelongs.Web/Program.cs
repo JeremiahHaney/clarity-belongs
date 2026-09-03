@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -98,6 +100,55 @@ using (var scope = app.Services.CreateScope())
 
     var schema = scope.ServiceProvider.GetRequiredService<DatabaseSchemaService>();
     await schema.UpgradeAsync();
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet(
+        "/dev/login",
+        async (
+            HttpContext context,
+            AccountService accounts,
+            ClarityDbContext db,
+            CancellationToken cancellationToken) =>
+        {
+            var remoteAddress = context.Connection.RemoteIpAddress;
+
+            if (remoteAddress is null
+                || !IPAddress.IsLoopback(remoteAddress))
+            {
+                return Results.NotFound();
+            }
+
+            const string email = "explorer@clarity.local";
+            var user = await db.Users
+                .FirstOrDefaultAsync(
+                    x => x.Email == email,
+                    cancellationToken);
+
+            if (user is null)
+            {
+                var temporaryPassword = Convert.ToHexString(
+                    RandomNumberGenerator.GetBytes(32));
+
+                user = await accounts.CreateAsync(
+                    email,
+                    "Clarity Explorer",
+                    temporaryPassword,
+                    cancellationToken);
+            }
+
+            await context.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                accounts.CreatePrincipal(user),
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+            return Results.Redirect("/my-clarity");
+        });
 }
 
 app.MapGet("/health", () => Results.Ok(new
