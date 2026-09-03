@@ -23,13 +23,22 @@ public sealed record FollowDetailModel(
     IReadOnlyList<Notification> Notifications,
     IReadOnlyList<AlertRule> AlertRules);
 
-public sealed class FollowManagementService(ClarityDbContext db)
+public sealed class FollowManagementService(
+    ClarityDbContext db,
+    MembershipService memberships)
 {
-    public async Task<long> CreateAsync(CreateFollowInput input, CancellationToken cancellationToken = default)
+    public async Task<long> CreateAsync(
+        long userId,
+        long workspaceId,
+        CreateFollowInput input,
+        CancellationToken cancellationToken = default)
     {
-        var workspace = await db.Workspaces
-            .OrderBy(x => x.Id)
-            .FirstAsync(cancellationToken);
+        await EnsureWorkspaceOwnerAsync(userId, workspaceId, cancellationToken);
+        await memberships.ValidateNewFollowAsync(
+            userId,
+            workspaceId,
+            input.CheckCadenceMinutes,
+            cancellationToken);
 
         var normalizedTarget = input.Target.Trim();
         var canonicalKey = $"{input.AdapterType}:{input.SourceConfigurationJson}:{normalizedTarget.ToLowerInvariant()}";
@@ -71,15 +80,21 @@ public sealed class FollowManagementService(ClarityDbContext db)
             await db.SaveChangesAsync(cancellationToken);
         }
 
+        var cadence = await memberships.ClampCadenceAsync(
+            userId,
+            workspaceId,
+            input.CheckCadenceMinutes,
+            cancellationToken);
+
         var follow = new Follow
         {
-            WorkspaceId = workspace.Id,
+            WorkspaceId = workspaceId,
             TargetId = target.Id,
             SourceDefinitionId = source.Id,
             MonitorType = input.MonitorType,
             Name = input.Name.Trim(),
             Importance = input.Importance,
-            CheckCadenceMinutes = Math.Clamp(input.CheckCadenceMinutes, 1, 10080),
+            CheckCadenceMinutes = cadence,
             NextCheckAtUtc = DateTime.UtcNow
         };
 
@@ -97,14 +112,24 @@ public sealed class FollowManagementService(ClarityDbContext db)
         return follow.Id;
     }
 
-    public async Task<FollowDetailModel?> GetAsync(long followId, CancellationToken cancellationToken = default)
+    public async Task<FollowDetailModel?> GetAsync(
+        long workspaceId,
+        long followId,
+        CancellationToken cancellationToken = default)
     {
-        var follow = await db.Follows.FirstOrDefaultAsync(x => x.Id == followId, cancellationToken);
+        var follow = await db.Follows
+            .FirstOrDefaultAsync(
+                x => x.Id == followId
+                    && x.WorkspaceId == workspaceId,
+                cancellationToken);
+
         if (follow is null)
             return null;
 
-        var target = await db.Targets.FirstAsync(x => x.Id == follow.TargetId, cancellationToken);
-        var source = await db.SourceDefinitions.FirstAsync(x => x.Id == follow.SourceDefinitionId, cancellationToken);
+        var target = await db.Targets
+            .FirstAsync(x => x.Id == follow.TargetId, cancellationToken);
+        var source = await db.SourceDefinitions
+            .FirstAsync(x => x.Id == follow.SourceDefinitionId, cancellationToken);
 
         var links = await db.FollowChanges
             .Where(x => x.FollowId == follow.Id)
@@ -132,6 +157,7 @@ public sealed class FollowManagementService(ClarityDbContext db)
 
         var notifications = await db.Notifications
             .Where(x => x.FollowId == follow.Id)
+            .Where(x => x.WorkspaceId == workspaceId)
             .OrderByDescending(x => x.CreatedAtUtc)
             .Take(50)
             .ToListAsync(cancellationToken);
@@ -141,24 +167,49 @@ public sealed class FollowManagementService(ClarityDbContext db)
             .OrderBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        return new FollowDetailModel(follow, target, source, changeItems, notifications, rules);
+        return new FollowDetailModel(
+            follow,
+            target,
+            source,
+            changeItems,
+            notifications,
+            rules);
     }
 
-    public async Task SetPausedAsync(long followId, bool paused, CancellationToken cancellationToken = default)
+    public async Task SetPausedAsync(
+        long workspaceId,
+        long followId,
+        bool paused,
+        CancellationToken cancellationToken = default)
     {
-        var follow = await db.Follows.FirstOrDefaultAsync(x => x.Id == followId, cancellationToken);
+        var follow = await FindOwnedFollowAsync(
+            workspaceId,
+            followId,
+            cancellationToken);
+
         if (follow is null)
             return;
 
-        follow.Status = paused ? FollowStatuses.Paused : FollowStatuses.Active;
-        follow.NextCheckAtUtc = paused ? follow.NextCheckAtUtc : DateTime.UtcNow;
+        follow.Status = paused
+            ? FollowStatuses.Paused
+            : FollowStatuses.Active;
+        follow.NextCheckAtUtc = paused
+            ? follow.NextCheckAtUtc
+            : DateTime.UtcNow;
         follow.UpdatedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task ArchiveAsync(long followId, CancellationToken cancellationToken = default)
+    public async Task ArchiveAsync(
+        long workspaceId,
+        long followId,
+        CancellationToken cancellationToken = default)
     {
-        var follow = await db.Follows.FirstOrDefaultAsync(x => x.Id == followId, cancellationToken);
+        var follow = await FindOwnedFollowAsync(
+            workspaceId,
+            followId,
+            cancellationToken);
+
         if (follow is null)
             return;
 
@@ -168,17 +219,27 @@ public sealed class FollowManagementService(ClarityDbContext db)
     }
 
     public async Task UpdateSettingsAsync(
+        long userId,
+        long workspaceId,
         long followId,
         int cadenceMinutes,
         string importance,
         bool alertsEnabled,
         CancellationToken cancellationToken = default)
     {
-        var follow = await db.Follows.FirstOrDefaultAsync(x => x.Id == followId, cancellationToken);
+        var follow = await FindOwnedFollowAsync(
+            workspaceId,
+            followId,
+            cancellationToken);
+
         if (follow is null)
             return;
 
-        follow.CheckCadenceMinutes = Math.Clamp(cadenceMinutes, 1, 10080);
+        follow.CheckCadenceMinutes = await memberships.ClampCadenceAsync(
+            userId,
+            workspaceId,
+            cadenceMinutes,
+            cancellationToken);
         follow.Importance = importance;
         follow.UpdatedAtUtc = DateTime.UtcNow;
 
@@ -192,14 +253,55 @@ public sealed class FollowManagementService(ClarityDbContext db)
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task AcknowledgeAsync(long followId, long changeId, CancellationToken cancellationToken = default)
+    public async Task AcknowledgeAsync(
+        long workspaceId,
+        long followId,
+        long changeId,
+        CancellationToken cancellationToken = default)
     {
-        var link = await db.FollowChanges.FindAsync([followId, changeId], cancellationToken);
+        var ownsFollow = await db.Follows
+            .AnyAsync(
+                x => x.Id == followId
+                    && x.WorkspaceId == workspaceId,
+                cancellationToken);
+
+        if (!ownsFollow)
+            return;
+
+        var link = await db.FollowChanges.FindAsync(
+            [followId, changeId],
+            cancellationToken);
+
         if (link is null)
             return;
 
         link.IsAcknowledged = true;
         link.AcknowledgedAtUtc = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private Task<Follow?> FindOwnedFollowAsync(
+        long workspaceId,
+        long followId,
+        CancellationToken cancellationToken)
+    {
+        return db.Follows.FirstOrDefaultAsync(
+            x => x.Id == followId
+                && x.WorkspaceId == workspaceId,
+            cancellationToken);
+    }
+
+    private async Task EnsureWorkspaceOwnerAsync(
+        long userId,
+        long workspaceId,
+        CancellationToken cancellationToken)
+    {
+        var ownsWorkspace = await db.Workspaces.AnyAsync(
+            x => x.Id == workspaceId
+                && x.OwnerUserId == userId,
+            cancellationToken);
+
+        if (!ownsWorkspace)
+            throw new UnauthorizedAccessException("Workspace access denied.");
     }
 }
