@@ -29,3 +29,21 @@
 - Confirmed Software Belongs has useful application/product patterns but does not yet provide a mature canonical shared identity/workspace/billing platform.
 - Locked identity, membership, billing, and workspace administration behind simple boundaries so they do not block Clarity implementation.
 - Added `06-ECOSYSTEM-REUSE-AUDIT.md` and aligned the roadmap and portfolio status with the reuse decisions.
+
+## 0.2.0 - 2026-09-03
+
+- Added the first runnable Clarity Belongs .NET 10 Blazor Web App and solution shell.
+- Added EF Core SQLite persistence and automatic bootstrap of a personal User / Workspace ownership boundary.
+- Implemented Follow, Target, SourceDefinition, ObservationRun, Snapshot, Change, AlertRule, FollowChange, and Notification persistence.
+- Ported the AutoPilot IT public-endpoint safety approach into Clarity's reusable `PublicEndpointGuard`.
+- Implemented HTTP observation with redirect handling, public-endpoint validation, response timing, status capture, content snapshots, normalized JSON and fingerprints.
+- Implemented TLS certificate observation using the proven AutoPilot IT socket/TLS mechanics.
+- Implemented DNS observation based on the AutoPilot IT DNS checker behavior.
+- Implemented RDAP domain-expiration observation based on the AutoPilot IT domain checker behavior.
+- Generalized the AutoPilot IT due-target worker pattern into a due-Follow background scheduler.
+- Added a short recent-run reuse window so multiple follows of one Target + SourceDefinition can avoid duplicate checks.
+- Implemented snapshot fingerprint comparison, Change creation, and fan-out through FollowChange records.
+- Implemented default AnyMeaningfulChange rules and persisted in-app notification records with send-once/dedup keys.
+- Added My Clarity dashboard read models and a Blazor dashboard for Needs Attention, Recent Changes, and Following.
+- Added APIs to create follows, manually run a follow, and acknowledge a change.
+- Marked the core platform Testing Required because a local build could not be run from the current environment after GitHub became unreachable from the build container.
