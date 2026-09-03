@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Core Awareness Platform V1 implemented — Testing Required.**
+**Launch Phases 1–4 implemented. Core build/startup verified; product and external-delivery flows are Testing Required.**
 
 ## Identity
 
@@ -17,42 +17,95 @@
 | Family | Status |
 |---|---|
 | Money | Backlog established |
-| Your Internet | Core adapters implemented; product surfaces next |
-| Changes | Core HTTP/change engine implemented |
+| Your Internet | First five product surfaces implemented — Testing Required |
+| Changes | Shared HTTP/change/history engine implemented |
 | Opportunities | Backlog established |
 | Public Information | Backlog established |
 | Your Identity | Backlog established |
-| My Clarity | V1 dashboard implemented — Testing Required |
+| My Clarity | Core dashboard + follow/history/evidence UX implemented — Testing Required |
 
-## Core platform status
+## Launch Phase 1 — Engine
 
 Implemented:
 
-- .NET 10 Blazor Web App shell
-- SQLite / EF Core persistence
-- UserId / WorkspaceId ownership boundary with automatic personal workspace bootstrap
-- Follow
-- Target
-- SourceDefinition
-- ObservationRun
-- Snapshot
-- Change
-- AlertRule
-- FollowChange
-- Notification with persisted dedup keys
-- My Clarity Needs Attention / Recent Changes / Following dashboard
-- HTTP observation adapter
-- TLS observation adapter
-- DNS observation adapter
-- domain expiration / RDAP observation adapter
-- APIT-derived `PublicEndpointGuard` behavior
-- APIT-derived website HTTP/TLS mechanics
-- generalized due-follow BackgroundService scheduler
-- shared-target recent-run deduplication window
-- generic fingerprint change detection
-- change fan-out to all follows sharing a target
-- in-app alert creation and send-once/dedup behavior
-- API surface for creating follows, manual runs, and acknowledgements
+- .NET 10 Blazor Web App
+- EF Core SQLite persistence
+- UserId / WorkspaceId boundary with automatic personal workspace bootstrap
+- Follow / Target / SourceDefinition
+- ObservationRun / Snapshot / Change
+- AlertRule / FollowChange / Notification
+- HTTP observation
+- TLS observation
+- DNS observation
+- RDAP domain-expiration observation
+- APIT-derived public-endpoint protection
+- generalized due-Follow scheduler
+- retries for Error follows
+- shared-target short reuse window
+- stable monitor-specific fingerprints
+- `/health` endpoint
+- GitHub Actions restore/build/runtime smoke verification
+
+Build verification reached green after fixing the solution-path and Blazor routing-import issues. The workflow now starts the Release build and verifies `/health` over HTTP.
+
+## Launch Phase 2 — Core experience
+
+Implemented:
+
+- shared site layout/navigation
+- My Clarity dashboard
+- empty/onboarding state
+- Add Follow wizard
+- Follow detail
+- Check now
+- Pause / Resume
+- Stop following / archive
+- cadence settings
+- importance settings
+- alert enable/disable
+- history
+- change acknowledgement
+- before/after evidence page
+- latest alert history
+- settings page
+- error page
+- responsive styling
+
+## Launch Phase 3 — Your Internet
+
+Implemented product surfaces:
+
+1. Website Change Monitor
+2. Website Uptime Monitor
+3. SSL Expiration Monitor
+4. Domain Expiration Monitor
+5. DNS Change Monitor
+
+Each uses the same Follow -> Observation -> Snapshot -> Change -> History -> Alert pipeline while applying monitor-specific observation semantics.
+
+## Launch Phase 4 — Notifications
+
+Implemented:
+
+- in-app alert records
+- queued email notifications
+- unique dedup keys
+- meaningful-change alerts
+- monitor failure alerts
+- recovery alerts
+- SSL/domain expiration reminders at 30 / 14 / 7 / 1 days
+- SMTP sender boundary
+- email address settings
+- immediate email mode
+- optional daily digest mode
+- Sent / Failed / Suppressed tracking
+
+Production SMTP remains configuration-only. No credentials are committed.
+
+## Security / dependency hygiene
+
+- public HTTP/TLS monitoring blocks private/local endpoint targets
+- the SQLite native dependency is explicitly pinned forward from the vulnerable transitive 2.1.11 release
 
 ## Reuse boundary
 
@@ -63,27 +116,33 @@ Implemented:
 
 ## Testing Required
 
-The implementation is committed, but the current environment could not reach GitHub from the local build container, so a real `dotnet restore/build/run` has not yet been completed here.
+Still validate before public release:
 
-Validate next:
+1. Create and operate each of the five Your Internet follows through the browser UI.
+2. Confirm baseline snapshots and meaningful second-run changes against representative real targets.
+3. Confirm pause/resume, archive, acknowledgement, history, and before/after flows.
+4. Configure the production SMTP provider and verify immediate delivery.
+5. Verify DailyDigest mode with multiple pending alerts.
+6. Exercise SSL/domain expiration alerts with controlled test data or near-expiry targets.
+7. Confirm DNS changes and uptime failure/recovery behavior with controlled targets.
 
-1. `dotnet restore ClarityBelongs.slnx`
-2. `dotnet build ClarityBelongs.slnx`
-3. run `src/ClarityBelongs.Web`
-4. create one HTTP follow and verify initial snapshot
-5. change the target or wait for a real change and verify Change + FollowChange + Notification
-6. test TLS, DNS and domain expiration follows
-7. verify scheduler cadence and duplicate-target reuse
-8. verify My Clarity dashboard and acknowledgement flow
+These are tracked as Testing Required and do not block continued feature development.
 
-## Initial product cluster
+## Next build milestone
 
-1. Website Change Monitor — engine available; product setup surface next
-2. Website Uptime Monitor — engine available; product setup surface next
-3. SSL Expiration Monitor — engine available; product setup surface next
-4. Domain Expiration Monitor — engine available; product setup surface next
-5. DNS Change Monitor — engine available; product setup surface next
-6. Software / Release Monitor — adapter/product specialization next
+Launch Phase 5:
+
+- real accounts/authentication
+- personal workspace bound to authenticated identity
+- membership/usage limits
+- Stripe subscription and billing portal
+
+Then:
+
+- public site
+- search/discovery pages
+- dogfooding
+- additional thin monitor families
 
 ## Lifecycle
 
