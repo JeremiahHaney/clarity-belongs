@@ -1,5 +1,8 @@
 @page "/follows/{FollowId:long}"
+@attribute [Authorize]
 @inject FollowManagementService Follows
+@inject CurrentAccountService CurrentAccount
+@inject MembershipService Memberships
 @inject ClarityBelongs.Web.Observation.ObservationEngine Engine
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
@@ -48,18 +51,24 @@
             </article>
         </section>
 
+        @if (Membership is not null)
+        {
+            <section class="setup-note plan-notice">
+                <strong>@Membership.Plan.Name plan</strong>
+                <span>Fastest available cadence: @FormatCadence(Membership.Plan.MinimumCadenceMinutes). <a href="/pricing">Compare plans</a>.</span>
+            </section>
+        }
+
         <section class="panel">
             <h2>Settings</h2>
             <div class="form-grid">
                 <label class="field">
                     <span>Check every</span>
                     <select @bind="CadenceMinutes">
-                        <option value="5">5 minutes</option>
-                        <option value="15">15 minutes</option>
-                        <option value="60">1 hour</option>
-                        <option value="360">6 hours</option>
-                        <option value="720">12 hours</option>
-                        <option value="1440">1 day</option>
+                        @foreach (var cadence in AvailableCadences)
+                        {
+                            <option value="@cadence">@FormatCadence(cadence)</option>
+                        }
                     </select>
                 </label>
                 <label class="field">
@@ -143,23 +152,42 @@
     [Parameter]
     public long FollowId { get; set; }
 
+    private static readonly int[] CadenceChoices = [5, 15, 60, 360, 720, 1440, 10080];
     private FollowDetailModel? Model { get; set; }
+    private AccountSession? Account { get; set; }
+    private MembershipSummary? Membership { get; set; }
     private int CadenceMinutes { get; set; }
     private string Importance { get; set; } = "Normal";
     private bool AlertsEnabled { get; set; } = true;
     private bool Busy { get; set; }
 
+    private IEnumerable<int> AvailableCadences => Membership is null
+        ? CadenceChoices
+        : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
+
     protected override async Task OnParametersSetAsync()
     {
+        Account = await CurrentAccount.RequireAsync();
+        Membership = await Memberships.GetAsync(
+            Account.UserId,
+            Account.WorkspaceId);
         await ReloadAsync();
     }
 
     private async Task ReloadAsync()
     {
-        Model = await Follows.GetAsync(FollowId);
+        if (Account is null)
+            return;
+
+        Model = await Follows.GetAsync(
+            Account.WorkspaceId,
+            FollowId);
 
         if (Model is null)
+        {
+            Navigation.NavigateTo("/");
             return;
+        }
 
         CadenceMinutes = Model.Follow.CheckCadenceMinutes;
         Importance = Model.Follow.Importance;
@@ -176,11 +204,12 @@
 
     private async Task TogglePauseAsync()
     {
-        if (Model is null)
+        if (Model is null || Account is null)
             return;
 
         Busy = true;
         await Follows.SetPausedAsync(
+            Account.WorkspaceId,
             FollowId,
             Model.Follow.Status != FollowStatuses.Paused);
         Busy = false;
@@ -189,8 +218,13 @@
 
     private async Task SaveSettingsAsync()
     {
+        if (Account is null)
+            return;
+
         Busy = true;
         await Follows.UpdateSettingsAsync(
+            Account.UserId,
+            Account.WorkspaceId,
             FollowId,
             CadenceMinutes,
             Importance,
@@ -201,17 +235,42 @@
 
     private async Task AcknowledgeAsync(long changeId)
     {
-        await Follows.AcknowledgeAsync(FollowId, changeId);
+        if (Account is null)
+            return;
+
+        await Follows.AcknowledgeAsync(
+            Account.WorkspaceId,
+            FollowId,
+            changeId);
         await ReloadAsync();
     }
 
     private async Task ArchiveAsync()
     {
-        await Follows.ArchiveAsync(FollowId);
+        if (Account is null)
+            return;
+
+        await Follows.ArchiveAsync(
+            Account.WorkspaceId,
+            FollowId);
         Navigation.NavigateTo("/");
     }
 
     private static string FormatTime(DateTime? value) => value.HasValue
         ? value.Value.ToLocalTime().ToString("g")
         : "Not yet";
+
+    private static string FormatCadence(int minutes)
+    {
+        if (minutes >= 10080)
+            return "1 week";
+
+        if (minutes >= 1440)
+            return $"{minutes / 1440} day";
+
+        if (minutes >= 60)
+            return $"{minutes / 60} hour";
+
+        return $"{minutes} minutes";
+    }
 }
