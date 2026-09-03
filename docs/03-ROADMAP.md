@@ -95,25 +95,45 @@ Production SMTP credentials are intentionally configuration-only and are not sto
 
 ## Launch Phase 5 — Accounts + Membership
 
-Next:
+Implemented:
 
-- real sign-up/sign-in
-- account recovery
-- personal workspace ownership from authenticated identity
-- free/paid usage limits based on actual delivery cost
-- subscription state
-- Stripe checkout and billing portal
+- cookie-based sign-up/sign-in/sign-out
+- ASP.NET Core password hashing
+- one-hour, single-use password-reset tokens
+- authenticated personal workspace ownership
+- workspace-scoped My Clarity, follows, evidence, settings, and APIs
+- Free / Personal / Business membership records
+- plan-based active-follow limits
+- plan-based minimum check cadence
+- paid email-delivery entitlement
+- public pricing page
+- account/membership page
+- Stripe-hosted Checkout boundary
+- Stripe Billing Portal boundary
+- signed Stripe webhook processing
+- subscription/customer/price state synchronization
+- additive startup upgrade for existing development SQLite databases
+- CI account smoke test covering signup, authenticated account access, and authenticated follow creation
+
+Stripe and SMTP secrets are configuration-only and are not stored in the repository.
+
+**Status: Implemented. Local account/workspace/membership flow is CI verified. Real Stripe and SMTP external flows are Testing Required after provider configuration.**
+
+See `07-ACCOUNTS-MEMBERSHIP-BILLING.md`.
 
 ## Launch Phase 6 — Public Website
 
+Next:
+
 - public homepage
 - product discovery
-- pricing
+- pricing refinement with approved actual prices
 - Learn/help
 - mission
 - privacy
 - terms
 - support/contact
+- sign-up entry paths from public product pages
 
 ## Launch Phase 7 — Search + Discovery
 
@@ -194,7 +214,8 @@ Clarity V1 is release-ready when:
 - the five Your Internet products pass real target tests
 - interactive setup/history/acknowledgement flows pass
 - SMTP delivery passes with the production provider
-- accounts and subscription are complete
+- Stripe Checkout/webhook/portal flows pass in Stripe test mode
+- approved product prices are configured
 - claritybelongs.com public site is published
 - privacy/terms/help are published
 - the Belongs ecosystem is being dogfooded through Clarity
