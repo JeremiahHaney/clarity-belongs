@@ -111,3 +111,10 @@
 
 - Fixed the Blazor programmatic heading focus outline that could draw a jagged border around page headings after navigation.
 - Reused the confirmed Software Belongs fix by suppressing the outline specifically for focused `h1[tabindex="-1"]` elements, preserving normal keyboard focus behavior elsewhere.
+
+## 0.5.2 - 2026-09-03
+
+- Added a restrained teal/blue visual identity to the public homepage while keeping the existing calm neutral layout.
+- Added lightweight inline SVG icons to the four-step observation flow without adding an external icon dependency.
+- Added subtle tinted section treatment, accent bars, card hover depth, colored monitor edges, and differentiated change/recovery/reminder badges.
+- Updated the Clarity ecosystem and call-to-action treatments to carry the new accent palette consistently across the page.
