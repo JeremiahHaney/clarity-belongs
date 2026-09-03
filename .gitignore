@@ -1,0 +1,21 @@
+# Visual Studio / local IDE state
+.vs/
+.vscode/
+*.user
+*.suo
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Local SQLite runtime data
+*.db
+*.db-shm
+*.db-wal
+
+# Local publish/build artifacts
+artifacts/
+
+# OS noise
+.DS_Store
+Thumbs.db
