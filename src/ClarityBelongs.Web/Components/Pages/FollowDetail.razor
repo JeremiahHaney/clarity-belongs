@@ -1,0 +1,216 @@
+@page "/follows/{FollowId:long}"
+@inject FollowManagementService Follows
+@inject ClarityBelongs.Web.Observation.ObservationEngine Engine
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Follow</PageTitle>
+
+<div class="shell">
+    @if (Model is null)
+    {
+        <section class="panel">
+            <p>Loading follow...</p>
+        </section>
+    }
+    else
+    {
+        <header class="hero compact-hero detail-hero">
+            <div>
+                <div class="eyebrow">@Model.Follow.MonitorType</div>
+                <h1>@Model.Follow.Name</h1>
+                <p>@Model.Target.PrimaryUri</p>
+            </div>
+            <div class="action-row">
+                <button class="button secondary" @onclick="RunNowAsync" disabled="@Busy">Check now</button>
+                <button class="button secondary" @onclick="TogglePauseAsync" disabled="@Busy">
+                    @(Model.Follow.Status == FollowStatuses.Paused ? "Resume" : "Pause")
+                </button>
+            </div>
+        </header>
+
+        <section class="summary-grid four">
+            <article class="summary-card">
+                <strong>@Model.Follow.Status</strong>
+                <span>Status</span>
+            </article>
+            <article class="summary-card">
+                <strong>@Model.Follow.Importance</strong>
+                <span>Importance</span>
+            </article>
+            <article class="summary-card">
+                <strong>@FormatTime(Model.Follow.LastCheckedAtUtc)</strong>
+                <span>Last check</span>
+            </article>
+            <article class="summary-card">
+                <strong>@Model.Changes.Count</strong>
+                <span>Changes</span>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Settings</h2>
+            <div class="form-grid">
+                <label class="field">
+                    <span>Check every</span>
+                    <select @bind="CadenceMinutes">
+                        <option value="5">5 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="360">6 hours</option>
+                        <option value="720">12 hours</option>
+                        <option value="1440">1 day</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Importance</span>
+                    <select @bind="Importance">
+                        <option>Low</option>
+                        <option>Normal</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                </label>
+                <label class="check-field">
+                    <input type="checkbox" @bind="AlertsEnabled" />
+                    <span>Create alerts for meaningful changes</span>
+                </label>
+            </div>
+            <button class="button secondary" @onclick="SaveSettingsAsync" disabled="@Busy">Save settings</button>
+        </section>
+
+        <section class="panel">
+            <h2>History</h2>
+            @if (Model.Changes.Count == 0)
+            {
+                <p class="muted">No meaningful changes yet. The first successful check establishes the baseline.</p>
+            }
+            else
+            {
+                @foreach (var change in Model.Changes)
+                {
+                    <article class="change history-card">
+                        <div class="change-topline">
+                            <strong>@change.Title</strong>
+                            <span>@change.DetectedAtUtc.ToLocalTime().ToString("g")</span>
+                        </div>
+                        <div>@change.Summary</div>
+                        <div class="action-row small-actions">
+                            <span class="badge">@change.Severity</span>
+                            @if (!change.IsAcknowledged)
+                            {
+                                <button class="text-button" @onclick="() => AcknowledgeAsync(change.ChangeId)">Mark reviewed</button>
+                            }
+                            else
+                            {
+                                <span class="muted">Reviewed</span>
+                            }
+                        </div>
+                    </article>
+                }
+            }
+        </section>
+
+        <section class="panel">
+            <h2>Alerts</h2>
+            @if (Model.Notifications.Count == 0)
+            {
+                <p class="muted">No notifications have been created yet.</p>
+            }
+            else
+            {
+                @foreach (var notification in Model.Notifications)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@notification.Subject</strong>
+                            <div class="muted">@notification.Channel · @notification.Status</div>
+                        </div>
+                        <span>@notification.CreatedAtUtc.ToLocalTime().ToString("g")</span>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="danger-zone">
+            <button class="text-button danger" @onclick="ArchiveAsync">Stop following</button>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public long FollowId { get; set; }
+
+    private FollowDetailModel? Model { get; set; }
+    private int CadenceMinutes { get; set; }
+    private string Importance { get; set; } = "Normal";
+    private bool AlertsEnabled { get; set; } = true;
+    private bool Busy { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        Model = await Follows.GetAsync(FollowId);
+
+        if (Model is null)
+            return;
+
+        CadenceMinutes = Model.Follow.CheckCadenceMinutes;
+        Importance = Model.Follow.Importance;
+        AlertsEnabled = Model.AlertRules.Any(x => x.IsEnabled);
+    }
+
+    private async Task RunNowAsync()
+    {
+        Busy = true;
+        await Engine.RunFollowAsync(FollowId);
+        Busy = false;
+        await ReloadAsync();
+    }
+
+    private async Task TogglePauseAsync()
+    {
+        if (Model is null)
+            return;
+
+        Busy = true;
+        await Follows.SetPausedAsync(
+            FollowId,
+            Model.Follow.Status != FollowStatuses.Paused);
+        Busy = false;
+        await ReloadAsync();
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        Busy = true;
+        await Follows.UpdateSettingsAsync(
+            FollowId,
+            CadenceMinutes,
+            Importance,
+            AlertsEnabled);
+        Busy = false;
+        await ReloadAsync();
+    }
+
+    private async Task AcknowledgeAsync(long changeId)
+    {
+        await Follows.AcknowledgeAsync(FollowId, changeId);
+        await ReloadAsync();
+    }
+
+    private async Task ArchiveAsync()
+    {
+        await Follows.ArchiveAsync(FollowId);
+        Navigation.NavigateTo("/");
+    }
+
+    private static string FormatTime(DateTime? value) => value.HasValue
+        ? value.Value.ToLocalTime().ToString("g")
+        : "Not yet";
+}
