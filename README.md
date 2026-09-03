@@ -12,12 +12,13 @@ Clarity Belongs is a self-service awareness platform for understanding what chan
 
 ## Current V1
 
-Launch phases 1–7 are implemented in the repository.
+Launch phases 1–8 and the complete first product catalog are implemented in the repository.
 
 The working product includes:
 
 - public homepage and product-discovery site
-- public Learn/search library with 12 initial problem-first guides
+- 64 selectable V1 monitor entry points across seven product families
+- public Learn/search library with initial problem-first guides
 - About, Support, Privacy, and Terms surfaces
 - robots and sitemap discovery files
 - real account signup/sign-in/sign-out
@@ -26,11 +27,11 @@ The working product includes:
 - Free / Personal / Business membership boundary
 - plan-based follow and cadence limits
 - Stripe Checkout / Billing Portal / webhook integration boundary
-- Website Change Monitor
-- Website Uptime Monitor
-- SSL Expiration Monitor
-- Domain Expiration Monitor
-- DNS Change Monitor
+- HTTP content and availability observation
+- TLS certificate observation
+- DNS address observation
+- generic DNS record observation for NS, MX, TXT/SPF, DKIM, and DMARC monitoring
+- RDAP domain observation
 - scheduled observations
 - history and before/after evidence
 - in-app alerts
@@ -38,6 +39,8 @@ The working product includes:
 - Immediate or DailyDigest email delivery
 - failure/recovery alerts
 - SSL/domain expiration thresholds
+
+The 64 V1 products intentionally reuse these shared observation primitives. Source-based monitors such as pricing, jobs, grants, releases, reputation, public information, and provider-status monitoring follow a user-selected public source and preserve its history rather than pretending Clarity has private or proprietary data-provider access.
 
 CI verifies restore/build/startup, public acquisition routes, authenticated My Clarity/Account access, and authenticated Free-plan follow creation.
 
@@ -47,7 +50,7 @@ Representative real targets, production SMTP, real Stripe test-mode flows, final
 
 `search/problem -> Learn or product page -> free account -> Follow -> My Clarity -> recurring value`
 
-The initial discovery library deliberately covers only problems supported by existing V1 monitors, including website changes, webpage alerts, uptime, SSL expiration, domain expiration, DNS changes, pricing pages, public notices, terms/privacy pages, monitor cadence, and change-vs-uptime comparisons.
+Each product can have its own problem-first acquisition path while feeding the same account, history, evidence, notification, and membership experience.
 
 See `docs/08-PUBLIC-SITE-SEARCH-DISCOVERY.md`.
 
@@ -97,6 +100,7 @@ Email supports `Immediate` and `DailyDigest`. In-app alerts remain available ind
 - Opportunities
 - Public Information
 - Your Identity
+- Reliability
 - My Clarity
 
 ## Principles
