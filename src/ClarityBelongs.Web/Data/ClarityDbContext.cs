@@ -1,0 +1,52 @@
+using ClarityBelongs.Web.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace ClarityBelongs.Web.Data;
+
+public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options) : DbContext(options)
+{
+    public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<Workspace> Workspaces => Set<Workspace>();
+    public DbSet<Target> Targets => Set<Target>();
+    public DbSet<SourceDefinition> SourceDefinitions => Set<SourceDefinition>();
+    public DbSet<Follow> Follows => Set<Follow>();
+    public DbSet<ObservationRun> ObservationRuns => Set<ObservationRun>();
+    public DbSet<Snapshot> Snapshots => Set<Snapshot>();
+    public DbSet<Change> Changes => Set<Change>();
+    public DbSet<AlertRule> AlertRules => Set<AlertRule>();
+    public DbSet<FollowChange> FollowChanges => Set<FollowChange>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AppUser>()
+            .HasIndex(x => x.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Target>()
+            .HasIndex(x => x.CanonicalKey)
+            .IsUnique();
+
+        modelBuilder.Entity<Follow>()
+            .HasIndex(x => new { x.WorkspaceId, x.TargetId, x.MonitorType });
+
+        modelBuilder.Entity<SourceDefinition>()
+            .HasIndex(x => new { x.TargetId, x.AdapterType });
+
+        modelBuilder.Entity<ObservationRun>()
+            .HasIndex(x => new { x.TargetId, x.SourceDefinitionId, x.StartedAtUtc });
+
+        modelBuilder.Entity<Snapshot>()
+            .HasIndex(x => new { x.TargetId, x.ObservedAtUtc });
+
+        modelBuilder.Entity<Change>()
+            .HasIndex(x => new { x.TargetId, x.DetectedAtUtc });
+
+        modelBuilder.Entity<FollowChange>()
+            .HasKey(x => new { x.FollowId, x.ChangeId });
+
+        modelBuilder.Entity<Notification>()
+            .HasIndex(x => x.DedupKey)
+            .IsUnique();
+    }
+}
