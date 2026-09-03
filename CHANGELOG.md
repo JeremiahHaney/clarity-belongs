@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.3 - 2026-09-03
+
+- Reworked the authenticated Clarity navigation around My Clarity, Watch Something, Products, Learn, and Account so the signed-in experience behaves like an application rather than a marketing site.
+- Rebuilt `/add` as a guided Watch Something experience with clearer hierarchy, grouped monitor selection, stronger target input, plan context, and a more product-like two-column layout.
+- Added a Website Essentials watch pack that accepts one website/domain and creates Website Uptime, Website Change, SSL Expiration, Domain Expiration, and DNS Change follows together.
+- Kept watch packs on the existing Follow and monitoring engines so the new UX does not introduce a separate execution model.
+- Added plan-capacity validation before creating a pack so Free-plan users do not begin a pack they cannot finish.
+- Added post-creation success guidance and related-monitor recommendations so one configured watch naturally leads to useful next watches.
+- Added target query prefill support for recommendation links and expanded responsive styling for the new watch flow.
+
 ## 0.6.2 - 2026-09-03
 
 - Added a development-only localhost `/dev/login` route for quickly exploring authenticated Clarity flows without storing temporary credentials in the repository.
