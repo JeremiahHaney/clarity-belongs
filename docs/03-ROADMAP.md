@@ -96,6 +96,25 @@ Next:
 - DNS
 - important vendor/release pages
 
+## Expansion Wave 1 — Public-source monitors
+
+Implemented as thin product surfaces over the existing HTTP content-change and uptime engines:
+
+1. Restock & Availability Monitor
+2. Recall Alert Monitor
+3. Local Government Project Monitor
+4. School & Community Notice Monitor
+5. Fee Change Monitor
+6. Service Outage Monitor
+7. Price & Sale History Monitor
+8. Cancellation & Change Monitor
+9. Deadline Monitor
+10. Consumer Notice Monitor
+
+These monitors intentionally watch user-selected public sources and preserve evidence/history. Specialized structured extraction, source discovery, retailer integrations, private-account access, and authoritative external datasets remain future work rather than being implied by V1.
+
+**Status: Product definitions implemented — representative real-source testing remains required.**
+
 ## Expansion — Changes
 
 - terms monitoring
@@ -107,8 +126,8 @@ Next:
 
 ## Expansion — Money & Availability
 
-- product prices
-- product availability
+- structured product price extraction
+- structured product availability extraction
 - subscription price changes
 - airfare
 - hotels
