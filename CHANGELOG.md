@@ -144,3 +144,12 @@
 - Grouped the public product catalog by family and expanded the public sitemap to include every V1 product route.
 - Updated README and roadmap so implementation status, product count, shared primitives, testing requirements, and later adapter refinements match the code.
 - Moved Clarity's next phase from feature expansion to representative real-source testing, dogfooding, production integrations, deployment, and release validation.
+
+## 0.6.1 - 2026-09-03
+
+- Added the neutral `Belongs.Shared` .NET 8 project as the canonical source for cross-identity monitoring infrastructure.
+- Extracted shared endpoint safety, HTTP observation, TLS observation, DNS observation, RDAP domain observation, scheduling, and notification deduplication primitives.
+- Rewired Clarity's HTTP/TLS/DNS/domain adapters, scheduler cadence calculation, and notification-key generation to the shared project while preserving Clarity-specific Follow/Snapshot/Change/History behavior.
+- Made AutoPilot IT consume the exact same shared project through a pinned public git submodule rather than maintaining duplicate low-level monitoring implementations.
+- Kept brand-specific outcomes, awareness rules, incidents, persistence, user-facing messages, and managed-service workflows outside the shared layer.
+- Verified Clarity restore/build/startup/account smoke tests remain green after the consolidation.
