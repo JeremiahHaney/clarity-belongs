@@ -14,8 +14,14 @@ The product identity is intentionally different from a traditional monitoring or
 
 ## Current V1
 
-Launch phases 1–4 are implemented:
+Launch phases 1–5 are implemented:
 
+- real account signup/sign-in/sign-out
+- personal authenticated My Clarity workspace
+- password-reset flow
+- Free / Personal / Business membership boundary
+- plan-based follow and cadence limits
+- Stripe Checkout / Billing Portal / webhook integration boundary
 - My Clarity dashboard
 - Add Follow wizard
 - follow settings/history/evidence
@@ -26,12 +32,14 @@ Launch phases 1–4 are implemented:
 - DNS Change Monitor
 - scheduled observations
 - in-app alerts
-- queued SMTP email alerts
+- paid queued SMTP email alerts
 - immediate or daily-digest email delivery
 - failure/recovery alerts
 - SSL/domain expiration thresholds
 
-The interactive product flows and production SMTP provider remain **Testing Required** until exercised against representative real targets and production configuration.
+CI now verifies restore/build/startup plus a real local account flow: signup, authenticated Account access, and authenticated Free-plan follow creation.
+
+Representative real targets, production SMTP, and real Stripe test-mode flows remain **Testing Required**.
 
 ## Core platform loop
 
@@ -51,6 +59,40 @@ dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj
 
 SQLite is created automatically on first startup. The app also exposes `/health` for runtime verification.
 
+## Accounts and plans
+
+New accounts receive a personal `My Clarity` workspace and start on Free.
+
+Current limits:
+
+- Free — 5 active follows, 6-hour minimum cadence
+- Personal — 50 active follows, 15-minute minimum cadence, email delivery
+- Business — 250 active follows, 5-minute minimum cadence, email delivery
+
+The exact public paid prices are intentionally not hard-coded until approved Stripe products/prices are chosen.
+
+See `docs/07-ACCOUNTS-MEMBERSHIP-BILLING.md` for the complete boundary.
+
+## Stripe configuration
+
+Stripe is off by default. Configure production/test values through environment or deployment configuration, not source control.
+
+Expected configuration keys include:
+
+```text
+Stripe__Enabled=true
+Stripe__SecretKey=...
+Stripe__WebhookSecret=...
+Stripe__PersonalPriceId=...
+Stripe__BusinessPriceId=...
+```
+
+Webhook endpoint:
+
+`POST /webhooks/stripe`
+
+The implementation supports Stripe-hosted subscription Checkout, Billing Portal sessions, and subscription state synchronization.
+
 ## Email configuration
 
 Email delivery is off by default. Configure the `Email` section through production configuration/environment settings rather than committing credentials.
@@ -60,7 +102,7 @@ Supported delivery modes:
 - `Immediate`
 - `DailyDigest`
 
-The user-facing notification email can be changed from Clarity Settings. In-app alerts remain available independently of external email delivery.
+In-app alerts remain available on Free. External email delivery requires an active paid membership and configured SMTP provider.
 
 ## Product families
 
@@ -86,10 +128,10 @@ The user-facing notification email can be changed from Clarity Settings. In-app 
 
 ## Repository structure
 
-- `docs/` — charter, architecture, roadmap, and brand decisions
+- `docs/` — charter, architecture, roadmap, brand, and account/billing decisions
 - `portfolio/` — product families, opportunities, and status
 - `src/` — runnable product implementation
-- `.github/workflows/` — build and runtime verification
+- `.github/workflows/` — build, runtime, and account verification
 
 ## Domains and identity
 
