@@ -2,9 +2,7 @@
 
 **Clarity belongs to everyone. We help you get there.**
 
-Clarity Belongs is a self-service software ecosystem for understanding what changed, what matters, what needs attention, and what action to take next.
-
-The product identity is intentionally different from a traditional monitoring or watchdog brand. The goal is calm visibility, useful context, and better decisions.
+Clarity Belongs is a self-service awareness platform for understanding what changed, what matters, what needs attention, and what action to take next.
 
 ## Ecosystem role
 
@@ -14,32 +12,44 @@ The product identity is intentionally different from a traditional monitoring or
 
 ## Current V1
 
-Launch phases 1–5 are implemented:
+Launch phases 1–7 are implemented in the repository.
 
+The working product includes:
+
+- public homepage and product-discovery site
+- public Learn/search library with 12 initial problem-first guides
+- About, Support, Privacy, and Terms surfaces
+- robots and sitemap discovery files
 - real account signup/sign-in/sign-out
-- personal authenticated My Clarity workspace
+- personal authenticated My Clarity workspace at `/my-clarity`
 - password-reset flow
 - Free / Personal / Business membership boundary
 - plan-based follow and cadence limits
 - Stripe Checkout / Billing Portal / webhook integration boundary
-- My Clarity dashboard
-- Add Follow wizard
-- follow settings/history/evidence
 - Website Change Monitor
 - Website Uptime Monitor
 - SSL Expiration Monitor
 - Domain Expiration Monitor
 - DNS Change Monitor
 - scheduled observations
+- history and before/after evidence
 - in-app alerts
 - paid queued SMTP email alerts
-- immediate or daily-digest email delivery
+- Immediate or DailyDigest email delivery
 - failure/recovery alerts
 - SSL/domain expiration thresholds
 
-CI now verifies restore/build/startup plus a real local account flow: signup, authenticated Account access, and authenticated Free-plan follow creation.
+CI verifies restore/build/startup, public acquisition routes, authenticated My Clarity/Account access, and authenticated Free-plan follow creation.
 
-Representative real targets, production SMTP, and real Stripe test-mode flows remain **Testing Required**.
+Representative real targets, production SMTP, real Stripe test-mode flows, final legal/contact details, and production deployment remain **Testing Required**.
+
+## Public acquisition loop
+
+`search/problem -> Learn or product page -> free account -> Follow -> My Clarity -> recurring value`
+
+The initial discovery library deliberately covers only problems supported by existing V1 monitors, including website changes, webpage alerts, uptime, SSL expiration, domain expiration, DNS changes, pricing pages, public notices, terms/privacy pages, monitor cadence, and change-vs-uptime comparisons.
+
+See `docs/08-PUBLIC-SITE-SEARCH-DISCOVERY.md`.
 
 ## Core platform loop
 
@@ -57,52 +67,27 @@ dotnet build ClarityBelongs.slnx
 dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj
 ```
 
-SQLite is created automatically on first startup. The app also exposes `/health` for runtime verification.
+SQLite is created/upgraded automatically on startup. `/health` is available for runtime verification.
 
 ## Accounts and plans
 
-New accounts receive a personal `My Clarity` workspace and start on Free.
-
-Current limits:
+New accounts receive a personal My Clarity workspace and start on Free.
 
 - Free — 5 active follows, 6-hour minimum cadence
 - Personal — 50 active follows, 15-minute minimum cadence, email delivery
 - Business — 250 active follows, 5-minute minimum cadence, email delivery
 
-The exact public paid prices are intentionally not hard-coded until approved Stripe products/prices are chosen.
+Exact public paid prices remain intentionally unapproved/unconfigured rather than being invented in source.
 
-See `docs/07-ACCOUNTS-MEMBERSHIP-BILLING.md` for the complete boundary.
+See `docs/07-ACCOUNTS-MEMBERSHIP-BILLING.md`.
 
-## Stripe configuration
+## Production integrations
 
-Stripe is off by default. Configure production/test values through environment or deployment configuration, not source control.
+Stripe and SMTP are disabled by default and use environment/deployment configuration rather than committed credentials.
 
-Expected configuration keys include:
+Stripe supports hosted subscription Checkout, Billing Portal sessions, and signed subscription-state webhooks at `POST /webhooks/stripe`.
 
-```text
-Stripe__Enabled=true
-Stripe__SecretKey=...
-Stripe__WebhookSecret=...
-Stripe__PersonalPriceId=...
-Stripe__BusinessPriceId=...
-```
-
-Webhook endpoint:
-
-`POST /webhooks/stripe`
-
-The implementation supports Stripe-hosted subscription Checkout, Billing Portal sessions, and subscription state synchronization.
-
-## Email configuration
-
-Email delivery is off by default. Configure the `Email` section through production configuration/environment settings rather than committing credentials.
-
-Supported delivery modes:
-
-- `Immediate`
-- `DailyDigest`
-
-In-app alerts remain available on Free. External email delivery requires an active paid membership and configured SMTP provider.
+Email supports `Immediate` and `DailyDigest`. In-app alerts remain available independently; external email requires a paid entitlement and configured provider.
 
 ## Product families
 
@@ -118,20 +103,13 @@ In-app alerts remain available on Free. External email delivery requires an acti
 
 - self-service first
 - low support burden
-- simple, calm UX
+- calm UX
 - useful free functionality where delivery cost is negligible
 - paid features where ongoing delivery has meaningful cost or recurring value
 - privacy-respecting by default
-- no fear-driven or adversarial branding
+- no fear-driven branding
 - clear history and evidence behind alerts
 - reusable engines before one-off products
-
-## Repository structure
-
-- `docs/` — charter, architecture, roadmap, brand, and account/billing decisions
-- `portfolio/` — product families, opportunities, and status
-- `src/` — runnable product implementation
-- `.github/workflows/` — build, runtime, and account verification
 
 ## Domains and identity
 
