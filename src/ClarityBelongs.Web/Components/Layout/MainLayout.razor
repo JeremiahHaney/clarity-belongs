@@ -1,5 +1,113 @@
 @inherits LayoutComponentBase
 
+<style>
+    .clarity-social-band {
+        margin-top: 54px;
+        padding: 34px 0;
+        background: linear-gradient(135deg, #17312f, #1f4252);
+        color: white;
+    }
+
+    .clarity-social-inner {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+    }
+
+    .clarity-social-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
+    }
+
+    .clarity-social-heading .eyebrow {
+        color: #9ed3cd;
+    }
+
+    .clarity-social-heading h2 {
+        margin: 7px 0 0;
+        font-size: clamp(26px, 4vw, 36px);
+    }
+
+    .clarity-social-heading p {
+        max-width: 440px;
+        margin: 0;
+        color: #c9d8dc;
+    }
+
+    .clarity-social-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .clarity-social-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 78px;
+        padding: 16px;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 15px;
+        background: rgba(255,255,255,.07);
+        color: white;
+        text-decoration: none;
+        transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+
+    .clarity-social-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,.28);
+        background: rgba(255,255,255,.12);
+    }
+
+    .clarity-social-icon {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        place-items: center;
+        border-radius: 12px;
+        background: #e8f5f1;
+        color: #287a72;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: -.02em;
+    }
+
+    .clarity-social-copy {
+        display: grid;
+        gap: 2px;
+    }
+
+    .clarity-social-copy strong {
+        font-size: 14px;
+    }
+
+    .clarity-social-copy small {
+        color: #c9d8dc;
+        font-size: 12px;
+    }
+
+    .clarity-social-arrow {
+        margin-left: auto;
+        color: #9ed3cd;
+        font-size: 18px;
+    }
+
+    @@media (max-width: 800px) {
+        .clarity-social-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .clarity-social-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 <div class="site-frame">
     <header class="site-header">
         <a class="brand" href="/" aria-label="Clarity Belongs home">
@@ -38,6 +146,44 @@
     <main>
         @Body
     </main>
+
+    <section class="clarity-social-band" aria-label="Clarity Belongs social channels">
+        <div class="clarity-social-inner">
+            <div class="clarity-social-heading">
+                <div>
+                    <div class="eyebrow">FOLLOW WHAT CHANGES</div>
+                    <h2>Find @@claritybelongs.</h2>
+                </div>
+                <p>Useful changes, simple explanations, and things worth knowing without having to keep checking.</p>
+            </div>
+            <div class="clarity-social-grid">
+                <a class="clarity-social-card" href="https://www.instagram.com/claritybelongs" target="_blank" rel="noopener noreferrer">
+                    <span class="clarity-social-icon">IG</span>
+                    <span class="clarity-social-copy">
+                        <strong>Instagram</strong>
+                        <small>@@claritybelongs</small>
+                    </span>
+                    <span class="clarity-social-arrow" aria-hidden="true">↗</span>
+                </a>
+                <a class="clarity-social-card" href="https://www.tiktok.com/@@claritybelongs" target="_blank" rel="noopener noreferrer">
+                    <span class="clarity-social-icon">TT</span>
+                    <span class="clarity-social-copy">
+                        <strong>TikTok</strong>
+                        <small>@@claritybelongs</small>
+                    </span>
+                    <span class="clarity-social-arrow" aria-hidden="true">↗</span>
+                </a>
+                <a class="clarity-social-card" href="https://www.youtube.com/@@claritybelongs" target="_blank" rel="noopener noreferrer">
+                    <span class="clarity-social-icon">YT</span>
+                    <span class="clarity-social-copy">
+                        <strong>YouTube</strong>
+                        <small>@@claritybelongs</small>
+                    </span>
+                    <span class="clarity-social-arrow" aria-hidden="true">↗</span>
+                </a>
+            </div>
+        </div>
+    </section>
 
     <footer class="site-footer expanded-footer">
         <div>
