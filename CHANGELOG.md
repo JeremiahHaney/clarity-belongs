@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 - 2026-09-03
+
+- Added a development-only localhost `/dev/login` route for quickly exploring authenticated Clarity flows without storing temporary credentials in the repository.
+- The route creates or reuses a local `Clarity Explorer` Free-plan account, signs it in for seven days, and redirects directly to `/my-clarity`.
+- Restricted the helper to the Development environment and loopback requests so it is unavailable in Production deployments.
+
 ## 0.1.0 - 2026-09-03
 
 - Established Clarity Belongs as the ecosystem's KNOW identity.
