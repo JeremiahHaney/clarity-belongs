@@ -7,10 +7,20 @@
             <small>KNOW WHAT CHANGED</small>
         </a>
         <nav>
-            <a href="/">My Clarity</a>
             <a href="/products">Products</a>
-            <a href="/settings">Settings</a>
-            <a class="primary-link" href="/add">Add Follow</a>
+            <a href="/pricing">Pricing</a>
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/">My Clarity</a>
+                    <a href="/settings">Settings</a>
+                    <a href="/account">Account</a>
+                    <a class="primary-link" href="/add">Add Follow</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login">Sign in</a>
+                    <a class="primary-link" href="/signup">Start free</a>
+                </NotAuthorized>
+            </AuthorizeView>
         </nav>
     </header>
 
