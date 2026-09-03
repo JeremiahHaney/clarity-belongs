@@ -1,3 +1,4 @@
+using Belongs.Shared.Observation;
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -78,7 +79,8 @@ public sealed class ObservationEngine(
             : ObservationStatuses.Failed;
 
         follow.LastCheckedAtUtc = completed;
-        follow.NextCheckAtUtc = completed.AddMinutes(
+        follow.NextCheckAtUtc = SchedulingEngine.NextRunUtc(
+            completed,
             Math.Clamp(follow.CheckCadenceMinutes, 1, 10080));
         follow.UpdatedAtUtc = completed;
 
@@ -227,7 +229,12 @@ public sealed class ObservationEngine(
             change.Id,
             "InApp",
             "Sent",
-            $"follow:{follow.Id}:change:{change.Id}:inapp",
+            NotificationEngine.BuildDedupKey(
+                "follow",
+                follow.Id,
+                "change",
+                change.Id,
+                "inapp"),
             change.Title,
             change.Summary,
             cancellationToken);
@@ -238,7 +245,12 @@ public sealed class ObservationEngine(
             change.Id,
             "Email",
             "Pending",
-            $"follow:{follow.Id}:change:{change.Id}:email",
+            NotificationEngine.BuildDedupKey(
+                "follow",
+                follow.Id,
+                "change",
+                change.Id,
+                "email"),
             $"Clarity: {change.Title}",
             change.Summary,
             cancellationToken);
@@ -253,7 +265,11 @@ public sealed class ObservationEngine(
     {
         var workspace = await db.Workspaces
             .FirstAsync(x => x.Id == follow.WorkspaceId, cancellationToken);
-        var eventKey = $"follow:{follow.Id}:{eventKind}:{DateTime.UtcNow:yyyyMMddHHmmss}";
+        var eventKey = NotificationEngine.BuildDedupKey(
+            "follow",
+            follow.Id,
+            eventKind,
+            DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
 
         await AddNotificationIfMissingAsync(
             follow,
@@ -261,7 +277,7 @@ public sealed class ObservationEngine(
             0,
             "InApp",
             "Sent",
-            $"{eventKey}:inapp",
+            NotificationEngine.BuildDedupKey(eventKey, "inapp"),
             subject,
             body,
             cancellationToken);
@@ -272,7 +288,7 @@ public sealed class ObservationEngine(
             0,
             "Email",
             "Pending",
-            $"{eventKey}:email",
+            NotificationEngine.BuildDedupKey(eventKey, "email"),
             $"Clarity: {subject}",
             body,
             cancellationToken);
@@ -368,7 +384,8 @@ public sealed class ObservationEngine(
         DateTime checkedAtUtc)
     {
         follow.LastCheckedAtUtc = checkedAtUtc;
-        follow.NextCheckAtUtc = DateTime.UtcNow.AddMinutes(
+        follow.NextCheckAtUtc = SchedulingEngine.NextRunUtc(
+            DateTime.UtcNow,
             Math.Clamp(follow.CheckCadenceMinutes, 1, 10080));
         follow.UpdatedAtUtc = DateTime.UtcNow;
     }
