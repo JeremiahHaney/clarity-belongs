@@ -16,6 +16,9 @@
 # Local publish/build artifacts
 artifacts/
 
+# Local deployment secrets
+deployment/publish-settings.local.ps1
+
 # OS noise
 .DS_Store
 Thumbs.db
