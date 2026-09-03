@@ -1,5 +1,8 @@
 @page "/settings"
+@attribute [Authorize]
 @inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject CurrentAccountService CurrentAccount
+@inject MembershipService Memberships
 @inject IClarityEmailSender EmailSender
 @rendermode InteractiveServer
 
@@ -9,28 +12,24 @@
     <header class="hero compact-hero">
         <div class="eyebrow">SETTINGS</div>
         <h1>How should Clarity reach you?</h1>
-        <p>In-app alerts are always recorded. Email is sent when a real address and an SMTP provider are configured.</p>
+        <p>In-app alerts are always recorded. Paid plans can also deliver email when a provider is configured.</p>
     </header>
 
     <section class="panel">
-        @if (User is null)
+        @if (User is null || Membership is null)
         {
             <p>Loading settings...</p>
         }
         else
         {
             <label class="field">
-                <span>Email address</span>
+                <span>Account and notification email</span>
                 <input @bind="Email" type="email" placeholder="you@example.com" />
             </label>
 
             <div class="setup-note">
-                <strong>Email delivery: @(EmailSender.IsEnabled ? "Provider configured" : "Provider not configured")</strong>
-                <span>
-                    @(EmailSender.IsEnabled
-                        ? "Clarity will deliver pending email alerts to the address above."
-                        : "Set the Email section in appsettings or environment configuration before production email can send.")
-                </span>
+                <strong>Email delivery: @GetEmailDeliveryStatus()</strong>
+                <span>@GetEmailDeliveryMessage()</span>
             </div>
 
             @if (!string.IsNullOrWhiteSpace(Message))
@@ -44,22 +43,27 @@
 
     <section class="panel">
         <h2>Alert behavior</h2>
-        <p>Clarity currently creates both an in-app alert and an email delivery record for meaningful changes, failures, recoveries, and SSL/domain expiration thresholds.</p>
-        <p class="muted">Expiration reminders are deduplicated at 30, 14, 7, and 1 day so the same threshold does not keep emailing you.</p>
+        <p>Clarity records in-app alerts for meaningful changes, failures, recoveries, and SSL/domain expiration thresholds.</p>
+        <p class="muted">Paid plans can also create email deliveries. Expiration reminders are deduplicated at 30, 14, 7, and 1 day.</p>
     </section>
 </div>
 
 @code {
     private AppUser? User { get; set; }
+    private MembershipSummary? Membership { get; set; }
     private string Email { get; set; } = string.Empty;
     private string? Message { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        User = await Db.Users
-            .OrderBy(x => x.Id)
-            .FirstOrDefaultAsync();
+        var account = await CurrentAccount.RequireAsync();
 
+        User = await Db.Users
+            .FirstOrDefaultAsync(x => x.Id == account.UserId);
+
+        Membership = await Memberships.GetAsync(
+            account.UserId,
+            account.WorkspaceId);
         Email = User?.Email ?? string.Empty;
     }
 
@@ -68,7 +72,7 @@
         if (User is null)
             return;
 
-        var value = Email.Trim();
+        var value = Email.Trim().ToLowerInvariant();
 
         if (string.IsNullOrWhiteSpace(value)
             || !value.Contains('@'))
@@ -77,8 +81,38 @@
             return;
         }
 
+        var duplicate = await Db.Users.AnyAsync(
+            x => x.Id != User.Id
+                && x.Email == value);
+
+        if (duplicate)
+        {
+            Message = "That email address is already used by another account.";
+            return;
+        }
+
         User.Email = value;
         await Db.SaveChangesAsync();
-        Message = "Notification email saved.";
+        Message = "Account and notification email saved. Sign in with this address next time.";
+    }
+
+    private string GetEmailDeliveryStatus()
+    {
+        if (Membership?.Plan.EmailAlerts != true)
+            return "Paid plan required";
+
+        return EmailSender.IsEnabled
+            ? "Provider configured"
+            : "Provider not configured";
+    }
+
+    private string GetEmailDeliveryMessage()
+    {
+        if (Membership?.Plan.EmailAlerts != true)
+            return "In-app alerts remain available on Free. Personal and Business add email delivery.";
+
+        return EmailSender.IsEnabled
+            ? "Clarity can deliver pending email alerts to the address above."
+            : "Set the Email section in environment configuration before production email can send.";
     }
 }
