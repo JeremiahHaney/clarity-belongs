@@ -1,0 +1,166 @@
+@page "/add"
+@inject ClarityProductCatalog Catalog
+@inject FollowManagementService Follows
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Add Follow</PageTitle>
+
+<div class="shell narrow-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">ADD FOLLOW</div>
+        <h1>What should Clarity watch?</h1>
+        <p>Pick a monitor, tell us the public target, and Clarity will start building history.</p>
+    </header>
+
+    <section class="panel">
+        <EditForm Model="Form" OnValidSubmit="CreateAsync">
+            <DataAnnotationsValidator />
+
+            <label class="field">
+                <span>Monitor</span>
+                <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
+                    @foreach (var product in Catalog.GetAll())
+                    {
+                        <option value="@product.Slug">@product.Name</option>
+                    }
+                </select>
+            </label>
+
+            @if (Product is not null)
+            {
+                <div class="setup-note">
+                    <strong>@Product.ShortDescription</strong>
+                    <span>@Product.HelpText</span>
+                </div>
+
+                <label class="field">
+                    <span>Name</span>
+                    <input @bind="Form.Name" placeholder="A name you will recognize" />
+                </label>
+
+                <label class="field">
+                    <span>@Product.TargetLabel</span>
+                    <input @bind="Form.Target" placeholder="@Product.TargetPlaceholder" />
+                </label>
+
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Check every</span>
+                        <select @bind="Form.CadenceMinutes">
+                            <option value="5">5 minutes</option>
+                            <option value="15">15 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="360">6 hours</option>
+                            <option value="720">12 hours</option>
+                            <option value="1440">1 day</option>
+                        </select>
+                    </label>
+
+                    <label class="field">
+                        <span>Importance</span>
+                        <select @bind="Form.Importance">
+                            <option>Low</option>
+                            <option>Normal</option>
+                            <option>High</option>
+                            <option>Critical</option>
+                        </select>
+                    </label>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Error))
+                {
+                    <div class="error-card">@Error</div>
+                }
+
+                <button class="button" type="submit" disabled="@Saving">
+                    @(Saving ? "Starting..." : "Start following")
+                </button>
+            }
+        </EditForm>
+    </section>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "product")]
+    public string? ProductQuery { get; set; }
+
+    private AddFollowForm Form { get; } = new();
+    private ClarityProduct? Product => Catalog.GetBySlug(Form.ProductSlug);
+    private string? Error { get; set; }
+    private bool Saving { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Form.ProductSlug = Catalog.GetBySlug(ProductQuery)?.Slug
+            ?? Catalog.GetAll().First().Slug;
+
+        ApplyProduct();
+    }
+
+    private void ApplyProduct()
+    {
+        var product = Product;
+
+        if (product is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(Form.Name)
+            || Catalog.GetAll().Any(x => x.Name == Form.Name))
+        {
+            Form.Name = product.Name;
+        }
+
+        Form.CadenceMinutes = product.DefaultCadenceMinutes;
+        Form.Importance = product.DefaultImportance;
+    }
+
+    private async Task CreateAsync()
+    {
+        var product = Product;
+
+        if (product is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(Form.Name)
+            || string.IsNullOrWhiteSpace(Form.Target))
+        {
+            Error = "Give this follow a name and enter the target to watch.";
+            return;
+        }
+
+        Saving = true;
+        Error = null;
+
+        try
+        {
+            var followId = await Follows.CreateAsync(
+                new CreateFollowInput(
+                    Form.Name,
+                    Form.Target,
+                    product.TargetType,
+                    product.MonitorType,
+                    product.AdapterType,
+                    product.SourceConfigurationJson,
+                    Form.Importance,
+                    Form.CadenceMinutes,
+                    product.DefaultAlertRule));
+
+            Navigation.NavigateTo($"/follows/{followId}");
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+            Saving = false;
+        }
+    }
+
+    private sealed class AddFollowForm
+    {
+        public string ProductSlug { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Target { get; set; } = string.Empty;
+        public int CadenceMinutes { get; set; } = 60;
+        public string Importance { get; set; } = "Normal";
+    }
+}
