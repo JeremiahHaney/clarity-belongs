@@ -54,11 +54,14 @@ builder.Services.AddHttpClient<StripeBillingService>();
 
 builder.Services.AddHttpClient<HttpObservationAdapter>();
 builder.Services.AddHttpClient<DomainObservationAdapter>();
+builder.Services.AddHttpClient<DnsRecordObservationAdapter>();
 builder.Services.AddScoped<PublicEndpointGuard>();
 builder.Services.AddScoped<IObservationAdapter>(sp =>
     sp.GetRequiredService<HttpObservationAdapter>());
 builder.Services.AddScoped<IObservationAdapter, TlsObservationAdapter>();
 builder.Services.AddScoped<IObservationAdapter, DnsObservationAdapter>();
+builder.Services.AddScoped<IObservationAdapter>(sp =>
+    sp.GetRequiredService<DnsRecordObservationAdapter>());
 builder.Services.AddScoped<IObservationAdapter>(sp =>
     sp.GetRequiredService<DomainObservationAdapter>());
 
