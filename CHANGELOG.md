@@ -118,3 +118,11 @@
 - Added lightweight inline SVG icons to the four-step observation flow without adding an external icon dependency.
 - Added subtle tinted section treatment, accent bars, card hover depth, colored monitor edges, and differentiated change/recovery/reminder badges.
 - Updated the Clarity ecosystem and call-to-action treatments to carry the new accent palette consistently across the page.
+
+## 0.5.3 - 2026-09-03
+
+- Modernized the public homepage so Clarity feels like a product company rather than an editorial/news-style site while keeping its own identity separate from Software Belongs.
+- Added a Clarity brand mark built directly into the shared header with an eye/change motif and teal brand treatment.
+- Rebuilt the homepage hero as a two-column product surface with a live example of watched items, change status, reminders, and history.
+- Added stronger product-card iconography, monitor-specific accent colors, status pills, hover depth, and section backgrounds to increase visual hierarchy.
+- Updated primary actions and header branding to use Clarity teal consistently while preserving the existing calm neutral base and responsive behavior.
