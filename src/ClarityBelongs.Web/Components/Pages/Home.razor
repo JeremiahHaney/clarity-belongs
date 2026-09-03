@@ -1,0 +1,119 @@
+@page "/"
+@inject MyClarityService Clarity
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@rendermode InteractiveServer
+
+<PageTitle>My Clarity</PageTitle>
+
+<div class="shell">
+    <header class="hero">
+        <div>
+            <div class="eyebrow">CLARITY BELONGS</div>
+            <h1>My Clarity</h1>
+            <p>What changed, what needs attention, and what is worth knowing.</p>
+        </div>
+    </header>
+
+    @if (_dashboard is null)
+    {
+        <p>Loading Clarity...</p>
+    }
+    else
+    {
+        <section class="summary-grid">
+            <article class="summary-card">
+                <strong>@_dashboard.NeedsAttention.Count</strong>
+                <span>Need attention</span>
+            </article>
+            <article class="summary-card">
+                <strong>@_dashboard.RecentChanges.Count</strong>
+                <span>Recent changes</span>
+            </article>
+            <article class="summary-card">
+                <strong>@_dashboard.Following.Count</strong>
+                <span>Following</span>
+            </article>
+        </section>
+
+        <section class="panel">
+            <h2>Needs Attention</h2>
+            @if (_dashboard.NeedsAttention.Count == 0)
+            {
+                <p class="muted">Nothing needs your attention right now.</p>
+            }
+            else
+            {
+                @foreach (var item in _dashboard.NeedsAttention)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@item.Name</strong>
+                            <div class="muted">@item.MonitorType · @item.Status</div>
+                        </div>
+                        <div class="badge">@item.UnacknowledgedChangeCount new</div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="panel">
+            <h2>Recent Changes</h2>
+            @if (_dashboard.RecentChanges.Count == 0)
+            {
+                <p class="muted">No meaningful changes have been detected yet.</p>
+            }
+            else
+            {
+                @foreach (var item in _dashboard.RecentChanges)
+                {
+                    <div class="change">
+                        <div class="change-topline">
+                            <strong>@item.Title</strong>
+                            <span>@item.DetectedAtUtc.ToLocalTime().ToString("g")</span>
+                        </div>
+                        <div>@item.Summary</div>
+                        <div class="muted">@item.FollowName · @item.Severity</div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="panel">
+            <h2>Following</h2>
+            @if (_dashboard.Following.Count == 0)
+            {
+                <p class="muted">Nothing is being followed yet. Add a follow through <code>POST /api/follows</code>.</p>
+            }
+            else
+            {
+                @foreach (var item in _dashboard.Following)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@item.Name</strong>
+                            <div class="muted">@item.MonitorType · @item.Importance</div>
+                        </div>
+                        <div class="right">
+                            <div>@item.Status</div>
+                            <div class="muted">Next @item.NextCheckAtUtc.ToLocalTime().ToString("g")</div>
+                        </div>
+                    </div>
+                }
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private MyClarityDashboard? _dashboard;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var workspaceId = await Db.Workspaces
+            .OrderBy(x => x.Id)
+            .Select(x => x.Id)
+            .FirstAsync();
+
+        _dashboard = await Clarity.GetAsync(workspaceId);
+    }
+}
