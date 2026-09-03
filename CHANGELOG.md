@@ -133,3 +133,14 @@
 - Linked the confirmed @claritybelongs Instagram, TikTok, and YouTube accounts with compact social cards and matching teal/dark visual treatment.
 - Added the “Follow what changes” discovery message while keeping the existing legal/navigation footer below it.
 - Left Reddit out until the matching Clarity account is reserved and ready to link.
+
+## 0.6.0 - 2026-09-03
+
+- Expanded Clarity from the initial five monitors to a complete 64-product V1 catalog across Money, Your Internet, Changes, Opportunities, Public Information, Your Identity, and Reliability.
+- Kept the expansion thin by reusing the shared HTTP content, HTTP availability, TLS, DNS, RDAP domain, history, evidence, alert, membership, and notification engines.
+- Added a generic DNS-over-HTTPS record observer and new DNS record adapter type for nameserver, MX, SPF/TXT, DKIM, and DMARC monitoring.
+- Added V1 product surfaces for pricing, availability, travel, tickets, fees, web infrastructure, releases, jobs, grants, bids, public information, identity/reputation, and reliability use cases.
+- Kept specialized source-based monitors explicit about V1 scope instead of implying unsupported private APIs, proprietary datasets, broad crawling, or structured extraction.
+- Grouped the public product catalog by family and expanded the public sitemap to include every V1 product route.
+- Updated README and roadmap so implementation status, product count, shared primitives, testing requirements, and later adapter refinements match the code.
+- Moved Clarity's next phase from feature expansion to representative real-source testing, dogfooding, production integrations, deployment, and release validation.
