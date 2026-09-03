@@ -19,7 +19,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore ClarityBelongs.sln
+        run: dotnet restore ClarityBelongs.slnx
 
       - name: Build
-        run: dotnet build ClarityBelongs.sln --configuration Release --no-restore
+        run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
