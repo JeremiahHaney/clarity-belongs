@@ -125,17 +125,19 @@
             </span>
         </a>
         <nav>
-            <a href="/products">Products</a>
-            <a href="/learn">Learn</a>
-            <a href="/pricing">Pricing</a>
-            <a href="/about">About</a>
             <AuthorizeView>
                 <Authorized>
                     <a href="/my-clarity">My Clarity</a>
+                    <a class="primary-link" href="/add">Watch Something</a>
+                    <a href="/products">Products</a>
+                    <a href="/learn">Learn</a>
                     <a href="/account">Account</a>
-                    <a class="primary-link" href="/add">Add Follow</a>
                 </Authorized>
                 <NotAuthorized>
+                    <a href="/products">Products</a>
+                    <a href="/learn">Learn</a>
+                    <a href="/pricing">Pricing</a>
+                    <a href="/about">About</a>
                     <a href="/login">Sign in</a>
                     <a class="primary-link" href="/signup">Start free</a>
                 </NotAuthorized>
