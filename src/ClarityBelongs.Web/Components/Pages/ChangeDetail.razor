@@ -1,6 +1,9 @@
 @page "/follows/{FollowId:long}/changes/{ChangeId:long}"
+@attribute [Authorize]
 @inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject CurrentAccountService CurrentAccount
 @inject FollowManagementService Follows
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Change evidence</PageTitle>
@@ -64,27 +67,51 @@
     [Parameter]
     public long ChangeId { get; set; }
 
+    private AccountSession? Account { get; set; }
     private Follow? Follow { get; set; }
     private Change? Change { get; set; }
     private bool Acknowledged { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
+        Account = await CurrentAccount.RequireAsync();
+
         Follow = await Db.Follows
-            .FirstOrDefaultAsync(x => x.Id == FollowId);
+            .FirstOrDefaultAsync(
+                x => x.Id == FollowId
+                    && x.WorkspaceId == Account.WorkspaceId);
+
+        if (Follow is null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        var link = await Db.FollowChanges
+            .FirstOrDefaultAsync(
+                x => x.FollowId == FollowId
+                    && x.ChangeId == ChangeId);
+
+        if (link is null)
+        {
+            Navigation.NavigateTo($"/follows/{FollowId}");
+            return;
+        }
 
         Change = await Db.Changes
             .FirstOrDefaultAsync(x => x.Id == ChangeId);
-
-        var link = await Db.FollowChanges
-            .FirstOrDefaultAsync(x => x.FollowId == FollowId && x.ChangeId == ChangeId);
-
-        Acknowledged = link?.IsAcknowledged ?? false;
+        Acknowledged = link.IsAcknowledged;
     }
 
     private async Task AcknowledgeAsync()
     {
-        await Follows.AcknowledgeAsync(FollowId, ChangeId);
+        if (Account is null)
+            return;
+
+        await Follows.AcknowledgeAsync(
+            Account.WorkspaceId,
+            FollowId,
+            ChangeId);
         Acknowledged = true;
     }
 
