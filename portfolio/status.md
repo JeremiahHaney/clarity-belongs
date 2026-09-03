@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Launch Phases 1–4 implemented. Core build/startup verified; product and external-delivery flows are Testing Required.**
+**Launch Phases 1–5 implemented. Core build/startup and local account/workspace/membership flows are CI verified. Real product targets, SMTP, and Stripe external flows remain Testing Required.**
 
 ## Identity
 
@@ -22,7 +22,7 @@
 | Opportunities | Backlog established |
 | Public Information | Backlog established |
 | Your Identity | Backlog established |
-| My Clarity | Core dashboard + follow/history/evidence UX implemented — Testing Required |
+| My Clarity | Dashboard + follow/history/evidence + account/membership UX implemented — Testing Required |
 
 ## Launch Phase 1 — Engine
 
@@ -30,7 +30,7 @@ Implemented:
 
 - .NET 10 Blazor Web App
 - EF Core SQLite persistence
-- UserId / WorkspaceId boundary with automatic personal workspace bootstrap
+- UserId / WorkspaceId ownership boundary
 - Follow / Target / SourceDefinition
 - ObservationRun / Snapshot / Change
 - AlertRule / FollowChange / Notification
@@ -45,8 +45,6 @@ Implemented:
 - stable monitor-specific fingerprints
 - `/health` endpoint
 - GitHub Actions restore/build/runtime smoke verification
-
-Build verification reached green after fixing the solution-path and Blazor routing-import issues. The workflow now starts the Release build and verifies `/health` over HTTP.
 
 ## Launch Phase 2 — Core experience
 
@@ -95,16 +93,52 @@ Implemented:
 - recovery alerts
 - SSL/domain expiration reminders at 30 / 14 / 7 / 1 days
 - SMTP sender boundary
-- email address settings
+- account notification email settings
 - immediate email mode
 - optional daily digest mode
 - Sent / Failed / Suppressed tracking
+- paid-plan entitlement check before email delivery
 
 Production SMTP remains configuration-only. No credentials are committed.
+
+## Launch Phase 5 — Accounts + Membership
+
+Implemented:
+
+- sign up
+- sign in
+- sign out
+- secure ASP.NET Core password hashes
+- forgot-password request flow
+- one-hour, single-use password-reset tokens
+- cookie sessions
+- one personal My Clarity workspace per new account
+- workspace ownership checks throughout user-facing follow/evidence APIs and pages
+- Free / Personal / Business membership state
+- Free: 5 active follows, 6-hour minimum cadence
+- Personal: 50 active follows, 15-minute minimum cadence
+- Business: 250 active follows, 5-minute minimum cadence
+- plan-aware Add Follow and Follow settings
+- account/membership page
+- public pricing surface
+- Stripe Checkout session creation
+- Stripe Billing Portal session creation
+- verified Stripe webhook endpoint
+- Stripe customer/subscription/price/state persistence
+- cancellation and past-due state handling
+- additive SQLite schema upgrade for existing development databases
+- CI account smoke test
+
+The CI smoke path now creates a fresh account, retains the auth cookie, opens the protected account page, and creates an authenticated Free-plan follow.
 
 ## Security / dependency hygiene
 
 - public HTTP/TLS monitoring blocks private/local endpoint targets
+- password-reset raw tokens are not stored
+- Stripe webhook signatures are verified before membership updates
+- auth form posts require same-origin Origin/Referer validation
+- protected data is scoped by authenticated workspace
+- Stripe and SMTP credentials are not committed
 - the SQLite native dependency is explicitly pinned forward from the vulnerable transitive 2.1.11 release
 
 ## Reuse boundary
@@ -118,28 +152,29 @@ Production SMTP remains configuration-only. No credentials are committed.
 
 Still validate before public release:
 
-1. Create and operate each of the five Your Internet follows through the browser UI.
-2. Confirm baseline snapshots and meaningful second-run changes against representative real targets.
-3. Confirm pause/resume, archive, acknowledgement, history, and before/after flows.
-4. Configure the production SMTP provider and verify immediate delivery.
-5. Verify DailyDigest mode with multiple pending alerts.
-6. Exercise SSL/domain expiration alerts with controlled test data or near-expiry targets.
-7. Confirm DNS changes and uptime failure/recovery behavior with controlled targets.
-
-These are tracked as Testing Required and do not block continued feature development.
+1. Create and operate each of the five Your Internet follows through the browser UI against representative targets.
+2. Confirm pause/resume, archive, acknowledgement, history, and before/after flows with a real account.
+3. Configure production SMTP and verify password reset and paid alert delivery.
+4. Create the approved Stripe products/prices for Personal and Business.
+5. Exercise Stripe Checkout in test mode.
+6. Verify Stripe webhook subscription activation/update/cancel/past-due state.
+7. Verify Billing Portal return flow.
+8. Exercise SSL/domain expiration and DNS/uptime changes with controlled targets.
 
 ## Next build milestone
 
-Launch Phase 5:
+Launch Phase 6 — public website:
 
-- real accounts/authentication
-- personal workspace bound to authenticated identity
-- membership/usage limits
-- Stripe subscription and billing portal
+- public homepage
+- mission / explanation
+- pricing with approved actual prices
+- privacy and terms
+- help / Learn
+- support/contact
+- public product-to-signup entry paths
 
 Then:
 
-- public site
 - search/discovery pages
 - dogfooding
 - additional thin monitor families
