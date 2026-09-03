@@ -15,9 +15,19 @@
     @if (Product is null)
     {
         <header class="hero compact-hero">
-            <div class="eyebrow">CLARITY PRODUCTS</div>
-            <h1>Know what changed.</h1>
-            <p class="public-lead">Start with a specific thing you care about. Every monitor feeds the same My Clarity history, evidence, and alert experience.</p>
+            <div class="eyebrow">WHAT CLARITY CAN WATCH</div>
+            <h1>Start with what matters to you.</h1>
+            <p class="public-lead">Clarity has many monitoring capabilities underneath, but you do not need to learn them first. Pick the kind of thing you care about and Clarity uses the right checks, history, evidence, and alerts behind the scenes.</p>
+            <div class="action-row">
+                <AuthorizeView>
+                    <Authorized>
+                        <a class="button" href="/add">Watch something</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="button" href="/signup">Start free</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </header>
 
         @foreach (var family in Catalog.GetAll()
@@ -33,10 +43,9 @@
                     @foreach (var product in family)
                     {
                         <a class="product-card" href="/products/@product.Slug">
-                            <div class="eyebrow">@product.MonitorType</div>
                             <h2>@product.Name</h2>
                             <p>@product.ShortDescription</p>
-                            <span>Learn more →</span>
+                            <span>See how Clarity watches this →</span>
                         </a>
                     }
                 </div>
@@ -45,9 +54,9 @@
 
         <section class="public-section">
             <div class="section-intro">
-                <div class="eyebrow">WHY ONE PLATFORM</div>
-                <h2>Different questions. Shared history.</h2>
-                <p>Clarity uses the same observe → store → compare → history → alert foundation across many kinds of public information. You learn one product experience instead of a collection of unrelated services.</p>
+                <div class="eyebrow">ONE SERVICE</div>
+                <h2>These are capabilities, not separate apps you have to manage.</h2>
+                <p>Everything you follow ends up in the same My Clarity experience. Clarity observes, remembers, compares, and surfaces what changed while the technical monitor types stay underneath.</p>
             </div>
         </section>
     }
@@ -60,7 +69,7 @@
             <div class="action-row">
                 <AuthorizeView>
                     <Authorized>
-                        <a class="button" href="/add?product=@Product.Slug">Start following</a>
+                        <a class="button" href="/add?product=@Product.Slug">Watch this</a>
                     </Authorized>
                     <NotAuthorized>
                         <a class="button" href="/signup">Start free</a>
@@ -71,11 +80,11 @@
         </header>
 
         <section class="panel product-detail public-product-detail">
-            <h2>What it does</h2>
+            <h2>What Clarity keeps an eye on</h2>
             <p>@Product.Outcome</p>
             <p class="muted">@Product.HelpText</p>
             <div class="product-meta">
-                <span><strong>Default check:</strong> every @FormatCadence(Product.DefaultCadenceMinutes)</span>
+                <span><strong>Typical check:</strong> every @FormatCadence(Product.DefaultCadenceMinutes)</span>
                 <span><strong>Importance:</strong> @Product.DefaultImportance</span>
                 <span><strong>History:</strong> included</span>
                 <span><strong>Evidence:</strong> preserved</span>
@@ -85,19 +94,19 @@
         <section class="public-section">
             <div class="three-column-info">
                 <article>
-                    <div class="eyebrow">OBSERVE</div>
-                    <h2>Establish a baseline</h2>
-                    <p>Clarity records a normalized first observation so later results have something factual to compare against.</p>
+                    <div class="eyebrow">WATCH</div>
+                    <h2>Establish what is true now</h2>
+                    <p>Clarity records a first observation so it has a factual baseline for later checks.</p>
                 </article>
                 <article>
                     <div class="eyebrow">COMPARE</div>
-                    <h2>Detect meaningful differences</h2>
-                    <p>Monitor-specific fingerprints avoid turning ordinary noise into a constant stream of false changes.</p>
+                    <h2>Notice meaningful differences</h2>
+                    <p>Clarity compares later observations and tries to avoid turning ordinary noise into constant alerts.</p>
                 </article>
                 <article>
                     <div class="eyebrow">REMEMBER</div>
                     <h2>Keep the history</h2>
-                    <p>Changes remain in My Clarity with evidence instead of disappearing after an email notification.</p>
+                    <p>Changes stay in My Clarity with evidence instead of disappearing after a notification.</p>
                 </article>
             </div>
         </section>
@@ -111,11 +120,11 @@
                 </details>
                 <details>
                     <summary>Can I pause or stop this later?</summary>
-                    <p>Yes. Every follow can be paused, resumed, reviewed, or archived from My Clarity.</p>
+                    <p>Yes. Anything you follow can be paused, resumed, reviewed, or archived from My Clarity.</p>
                 </details>
                 <details>
                     <summary>Does Clarity keep evidence?</summary>
-                    <p>Yes. The core model stores snapshots and before/after evidence so a later alert can be explained.</p>
+                    <p>Yes. Clarity stores snapshots and before/after evidence so a later alert can be explained.</p>
                 </details>
                 <details>
                     <summary>Can I start without paying?</summary>
@@ -126,13 +135,13 @@
 
         <section class="article-cta">
             <div>
-                <div class="eyebrow">READY</div>
-                <h2>Stop checking this manually.</h2>
+                <div class="eyebrow">STOP CHECKING</div>
+                <h2>Let Clarity keep an eye on this.</h2>
                 <p>Start with one target and let Clarity begin building the history.</p>
             </div>
             <AuthorizeView>
                 <Authorized>
-                    <a class="button" href="/add?product=@Product.Slug">Add this follow</a>
+                    <a class="button" href="/add?product=@Product.Slug">Watch this</a>
                 </Authorized>
                 <NotAuthorized>
                     <a class="button" href="/signup">Create free account</a>
@@ -148,7 +157,7 @@
 
     private ClarityProduct? Product => Catalog.GetBySlug(Slug);
     private string TitleText => Product is null
-        ? "Monitoring Products - Clarity Belongs"
+        ? "What Clarity Can Watch - Clarity Belongs"
         : $"{Product.Name} - Clarity Belongs";
 
     private static string FormatCadence(int minutes)
