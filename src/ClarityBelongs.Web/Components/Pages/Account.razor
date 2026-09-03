@@ -14,7 +14,7 @@
         <p>See your plan, capacity, and billing state in one place.</p>
     </header>
 
-    @if (Account is null || Summary is null)
+    @if (Session is null || Summary is null)
     {
         <section class="panel"><p>Loading account...</p></section>
     }
@@ -32,8 +32,8 @@
             <div class="account-heading">
                 <div>
                     <div class="eyebrow">SIGNED IN</div>
-                    <h2>@Account.DisplayName</h2>
-                    <p class="muted">@Account.Email</p>
+                    <h2>@Session.DisplayName</h2>
+                    <p class="muted">@Session.Email</p>
                 </div>
                 <span class="badge">@Summary.Plan.Name</span>
             </div>
@@ -93,19 +93,19 @@
     [SupplyParameterFromQuery(Name = "checkout")]
     public string? Checkout { get; set; }
 
-    private AccountSession? Account { get; set; }
+    private AccountSession? Session { get; set; }
     private MembershipSummary? Summary { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        Account = await CurrentAccount.GetAsync();
+        Session = await CurrentAccount.GetAsync();
 
-        if (Account is null)
+        if (Session is null)
             return;
 
         Summary = await Memberships.GetAsync(
-            Account.UserId,
-            Account.WorkspaceId);
+            Session.UserId,
+            Session.WorkspaceId);
     }
 
     private static string FormatCadence(int minutes)
