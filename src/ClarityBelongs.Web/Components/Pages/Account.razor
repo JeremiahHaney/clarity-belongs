@@ -1,0 +1,121 @@
+@page "/account"
+@attribute [Authorize]
+@inject CurrentAccountService CurrentAccount
+@inject MembershipService Memberships
+@inject StripeBillingService Stripe
+@rendermode InteractiveServer
+
+<PageTitle>Account - Clarity Belongs</PageTitle>
+
+<div class="shell narrow-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">ACCOUNT</div>
+        <h1>Your Clarity membership</h1>
+        <p>See your plan, capacity, and billing state in one place.</p>
+    </header>
+
+    @if (Account is null || Summary is null)
+    {
+        <section class="panel"><p>Loading account...</p></section>
+    }
+    else
+    {
+        @if (Checkout == "success")
+        {
+            <div class="setup-note">
+                <strong>Checkout completed</strong>
+                <span>Stripe is syncing the subscription. Refresh shortly if the plan has not updated yet.</span>
+            </div>
+        }
+
+        <section class="panel account-card">
+            <div class="account-heading">
+                <div>
+                    <div class="eyebrow">SIGNED IN</div>
+                    <h2>@Account.DisplayName</h2>
+                    <p class="muted">@Account.Email</p>
+                </div>
+                <span class="badge">@Summary.Plan.Name</span>
+            </div>
+
+            <div class="account-stats">
+                <div>
+                    <strong>@Summary.ActiveFollowCount</strong>
+                    <span>active follows</span>
+                </div>
+                <div>
+                    <strong>@Summary.RemainingFollows</strong>
+                    <span>remaining</span>
+                </div>
+                <div>
+                    <strong>@Summary.Membership.Status</strong>
+                    <span>billing status</span>
+                </div>
+            </div>
+
+            <p>@Summary.Plan.Description</p>
+            <p class="muted">Fastest cadence: @FormatCadence(Summary.Plan.MinimumCadenceMinutes). History target: @Summary.Plan.HistoryDays days.</p>
+
+            <div class="action-row">
+                @if (Summary.Plan.Code == MembershipPlans.Free)
+                {
+                    <a class="button" href="/pricing">See paid plans</a>
+                }
+                else if (Stripe.IsConfigured && !string.IsNullOrWhiteSpace(Summary.Membership.StripeCustomerId))
+                {
+                    <form method="post" action="/billing/portal">
+                        <button class="button" type="submit">Manage billing</button>
+                    </form>
+                }
+
+                <a class="button secondary" href="/settings">Notification settings</a>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Plan limits</h2>
+            <div class="limit-row"><span>Active follows</span><strong>@Summary.Plan.MaxActiveFollows</strong></div>
+            <div class="limit-row"><span>Minimum cadence</span><strong>@FormatCadence(Summary.Plan.MinimumCadenceMinutes)</strong></div>
+            <div class="limit-row"><span>Email alerts</span><strong>@(Summary.Plan.EmailAlerts ? "Included" : "Paid plans")</strong></div>
+            <div class="limit-row"><span>Daily digest</span><strong>@(Summary.Plan.DailyDigest ? "Available" : "Paid plans")</strong></div>
+        </section>
+
+        <section class="panel">
+            <h2>Sign out</h2>
+            <form method="post" action="/auth/logout">
+                <button class="button secondary" type="submit">Sign out</button>
+            </form>
+        </section>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "checkout")]
+    public string? Checkout { get; set; }
+
+    private AccountSession? Account { get; set; }
+    private MembershipSummary? Summary { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Account = await CurrentAccount.GetAsync();
+
+        if (Account is null)
+            return;
+
+        Summary = await Memberships.GetAsync(
+            Account.UserId,
+            Account.WorkspaceId);
+    }
+
+    private static string FormatCadence(int minutes)
+    {
+        if (minutes >= 1440)
+            return $"{minutes / 1440} day";
+
+        if (minutes >= 60)
+            return $"{minutes / 60} hour";
+
+        return $"{minutes} minutes";
+    }
+}
