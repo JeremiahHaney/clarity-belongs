@@ -12,6 +12,56 @@ The product identity is intentionally different from a traditional monitoring or
 - **Clarity Belongs — KNOW**: monitoring, history, comparison, alerts, and awareness.
 - **AutoPilot IT — HANDLE**: low-touch IT services for businesses that want technology handled for them.
 
+## Current V1
+
+Launch phases 1–4 are implemented:
+
+- My Clarity dashboard
+- Add Follow wizard
+- follow settings/history/evidence
+- Website Change Monitor
+- Website Uptime Monitor
+- SSL Expiration Monitor
+- Domain Expiration Monitor
+- DNS Change Monitor
+- scheduled observations
+- in-app alerts
+- queued SMTP email alerts
+- immediate or daily-digest email delivery
+- failure/recovery alerts
+- SSL/domain expiration thresholds
+
+The interactive product flows and production SMTP provider remain **Testing Required** until exercised against representative real targets and production configuration.
+
+## Core platform loop
+
+`source -> observe -> store -> compare -> history -> alert -> user`
+
+Clarity products share this infrastructure rather than becoming independent codebases.
+
+## Run locally
+
+Requirements: .NET 10 SDK.
+
+```text
+dotnet restore ClarityBelongs.slnx
+dotnet build ClarityBelongs.slnx
+dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj
+```
+
+SQLite is created automatically on first startup. The app also exposes `/health` for runtime verification.
+
+## Email configuration
+
+Email delivery is off by default. Configure the `Email` section through production configuration/environment settings rather than committing credentials.
+
+Supported delivery modes:
+
+- `Immediate`
+- `DailyDigest`
+
+The user-facing notification email can be changed from Clarity Settings. In-app alerts remain available independently of external email delivery.
+
 ## Product families
 
 - Money
@@ -21,12 +71,6 @@ The product identity is intentionally different from a traditional monitoring or
 - Public Information
 - Your Identity
 - My Clarity
-
-## Core platform loop
-
-`source -> observe -> store -> compare -> history -> alert -> user`
-
-Clarity products should share infrastructure wherever possible rather than becoming independent codebases.
 
 ## Principles
 
@@ -44,8 +88,8 @@ Clarity products should share infrastructure wherever possible rather than becom
 
 - `docs/` — charter, architecture, roadmap, and brand decisions
 - `portfolio/` — product families, opportunities, and status
-- `src/` — implementation when product development begins
-- `tests/` — automated tests when implementation begins
+- `src/` — runnable product implementation
+- `.github/workflows/` — build and runtime verification
 
 ## Domains and identity
 
