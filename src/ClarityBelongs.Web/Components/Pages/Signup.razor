@@ -1,0 +1,61 @@
+@page "/signup"
+@attribute [AllowAnonymous]
+
+<PageTitle>Create account - Clarity Belongs</PageTitle>
+
+<div class="shell narrow-shell auth-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">START MY CLARITY</div>
+        <h1>Create your account</h1>
+        <p>Start free. Add a few things worth watching and upgrade only when you need more capacity or faster delivery.</p>
+    </header>
+
+    <section class="panel auth-panel">
+        @if (!string.IsNullOrWhiteSpace(Error))
+        {
+            <div class="error-card">@GetErrorMessage(Error)</div>
+        }
+
+        <form method="post" action="/auth/signup">
+            <label class="field">
+                <span>Name</span>
+                <input name="displayName" autocomplete="name" required />
+            </label>
+
+            <label class="field">
+                <span>Email</span>
+                <input name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input name="password" type="password" autocomplete="new-password" minlength="10" required />
+            </label>
+
+            <div class="setup-note">
+                <strong>Free plan</strong>
+                <span>Up to 5 active follows with a 6-hour minimum cadence. No card required.</span>
+            </div>
+
+            <button class="button full-button" type="submit">Create account</button>
+        </form>
+
+        <div class="auth-links">
+            <span>Already have an account? <a href="/login">Sign in</a></span>
+            <a href="/pricing">Compare plans</a>
+        </div>
+    </section>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private static string GetErrorMessage(string code) => code switch
+    {
+        "exists" => "An account already exists for that email address.",
+        "password" => "Use a password with at least 10 characters.",
+        "email" => "Enter a valid email address.",
+        _ => "We could not create the account. Check the form and try again."
+    };
+}
