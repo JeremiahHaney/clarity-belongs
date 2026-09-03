@@ -1,0 +1,53 @@
+@page "/support"
+
+<PageTitle>Support - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Clarity Belongs support and help for accounts, follows, monitoring history, and alerts." />
+</HeadContent>
+
+<div class="shell public-shell article-shell">
+    <header class="hero compact-hero article-hero">
+        <div class="eyebrow">SUPPORT</div>
+        <h1>Simple help for simple tools.</h1>
+        <p class="public-lead">Clarity is designed to be self-service. Start with these common questions and the Learn library.</p>
+    </header>
+
+    <article class="article-body">
+        <section>
+            <h2>Start here</h2>
+            <div class="support-grid">
+                <a class="learn-card" href="/learn/how-to-monitor-a-website-for-changes"><strong>Set up your first follow</strong><span>Learn how the baseline and history work.</span></a>
+                <a class="learn-card" href="/learn/website-change-monitor-vs-uptime-monitor"><strong>Choose the right monitor</strong><span>Separate availability from content changes.</span></a>
+                <a class="learn-card" href="/account"><strong>Account and membership</strong><span>Review plan limits and billing state.</span></a>
+                <a class="learn-card" href="/settings"><strong>Notification settings</strong><span>Set the email address Clarity should use.</span></a>
+            </div>
+        </section>
+
+        <section>
+            <h2>How Clarity behaves</h2>
+            <div class="faq-list">
+                <details open>
+                    <summary>Why is there no change after the first check?</summary>
+                    <p>The first successful observation establishes the baseline. Clarity needs a later observation to compare against it.</p>
+                </details>
+                <details>
+                    <summary>Why did a follow enter Error?</summary>
+                    <p>The latest observation could not complete successfully. Error follows remain eligible for retry, and recovery is recorded when the source becomes observable again.</p>
+                </details>
+                <details>
+                    <summary>Why is email not arriving?</summary>
+                    <p>In-app alerts are independent. External email requires a paid entitlement plus a configured production email provider.</p>
+                </details>
+                <details>
+                    <summary>What targets can Clarity monitor?</summary>
+                    <p>V1 is intentionally limited to public targets. Private and local endpoints are blocked by the public-endpoint safety boundary.</p>
+                </details>
+            </div>
+        </section>
+
+        <section>
+            <h2>Still need help?</h2>
+            <p>For the public V1, support is intentionally lightweight while the product is being tested. Use the product and Learn pages first; a production contact channel will be published before the public release gate is marked complete.</p>
+        </section>
+    </article>
+</div>
