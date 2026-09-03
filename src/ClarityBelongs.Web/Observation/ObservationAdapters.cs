@@ -1,10 +1,8 @@
+using Belongs.Shared.Observation;
 using ClarityBelongs.Web.Domain;
-using System.Diagnostics;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 
@@ -36,10 +34,12 @@ public interface IObservationAdapter
 }
 
 public sealed class HttpObservationAdapter(
-    HttpClient http,
-    PublicEndpointGuard guard) : IObservationAdapter
+    HttpClient http) : IObservationAdapter
 {
-    private const int MaxRedirects = 3;
+    private readonly HttpObservationEngine _shared =
+        new(
+            http,
+            new Belongs.Shared.Observation.PublicEndpointGuard());
 
     public string AdapterType => AdapterTypes.Http;
 
@@ -48,69 +48,41 @@ public sealed class HttpObservationAdapter(
         SourceDefinition source,
         CancellationToken cancellationToken = default)
     {
-        if (!Uri.TryCreate(target.PrimaryUri, UriKind.Absolute, out var current))
+        if (!Uri.TryCreate(target.PrimaryUri, UriKind.Absolute, out var uri))
             return Failure("invalid_uri", "The target URL is invalid.");
 
         var mode = GetMode(source.ConfigurationJson);
 
         try
         {
-            for (var redirect = 0; redirect <= MaxRedirects; redirect++)
-            {
-                await guard.ValidateAsync(current, cancellationToken);
+            var result = await _shared.ObserveAsync(
+                uri,
+                mode == "content",
+                "ClarityBelongs/0.2",
+                cancellationToken: cancellationToken);
 
-                using var request = new HttpRequestMessage(HttpMethod.Get, current);
-                request.Headers.UserAgent.ParseAdd("ClarityBelongs/0.2");
-
-                var watch = Stopwatch.StartNew();
-                using var response = await http.SendAsync(
-                    request,
-                    HttpCompletionOption.ResponseContentRead,
-                    cancellationToken);
-                watch.Stop();
-
-                if ((int)response.StatusCode is >= 300 and < 400
-                    && response.Headers.Location is not null)
+            var normalized = mode == "content"
+                ? JsonSerializer.Serialize(new
                 {
-                    if (redirect == MaxRedirects)
-                        return Failure("redirect_limit", "Too many redirects.");
+                    finalUrl = result.FinalUri.ToString(),
+                    statusCode = result.StatusCode,
+                    body = result.Body
+                })
+                : JsonSerializer.Serialize(new
+                {
+                    finalUrl = result.FinalUri.ToString(),
+                    statusCode = result.StatusCode
+                });
 
-                    current = response.Headers.Location.IsAbsoluteUri
-                        ? response.Headers.Location
-                        : new Uri(current, response.Headers.Location);
-
-                    continue;
-                }
-
-                var body = mode == "content"
-                    ? await response.Content.ReadAsStringAsync(cancellationToken)
-                    : null;
-
-                var normalized = mode == "content"
-                    ? JsonSerializer.Serialize(new
-                    {
-                        finalUrl = current.ToString(),
-                        statusCode = (int)response.StatusCode,
-                        body
-                    })
-                    : JsonSerializer.Serialize(new
-                    {
-                        finalUrl = current.ToString(),
-                        statusCode = (int)response.StatusCode
-                    });
-
-                var success = (int)response.StatusCode is >= 200 and < 400;
-
-                return new ObservationResult(
-                    success,
-                    success ? "Healthy" : "Down",
-                    response.Content.Headers.ContentType?.MediaType ?? "text/plain",
-                    normalized,
-                    $"HTTP {(int)response.StatusCode} in {watch.ElapsedMilliseconds} ms",
-                    (int)response.StatusCode,
-                    success ? null : "http_error",
-                    success ? null : $"HTTP {(int)response.StatusCode}");
-            }
+            return new ObservationResult(
+                result.Success,
+                result.Success ? "Healthy" : "Down",
+                result.ContentType ?? "text/plain",
+                normalized,
+                $"HTTP {result.StatusCode} in {result.DurationMilliseconds} ms",
+                result.StatusCode,
+                result.Success ? null : "http_error",
+                result.Success ? null : $"HTTP {result.StatusCode}");
         }
         catch (Exception ex) when (
             ex is HttpRequestException
@@ -121,8 +93,6 @@ public sealed class HttpObservationAdapter(
         {
             return Failure("http_exception", ex.Message);
         }
-
-        return Failure("unknown", "Unable to observe the target.");
     }
 
     private static string GetMode(string? configurationJson)
@@ -157,9 +127,11 @@ public sealed class HttpObservationAdapter(
             ErrorMessage: message);
 }
 
-public sealed class TlsObservationAdapter(
-    PublicEndpointGuard guard) : IObservationAdapter
+public sealed class TlsObservationAdapter : IObservationAdapter
 {
+    private readonly TlsObservationEngine _shared =
+        new(new Belongs.Shared.Observation.PublicEndpointGuard());
+
     public string AdapterType => AdapterTypes.Tls;
 
     public async Task<ObservationResult> ObserveAsync(
@@ -173,40 +145,20 @@ public sealed class TlsObservationAdapter(
 
         try
         {
-            await guard.ValidateAsync(uri, cancellationToken);
-
-            using var tcp = new TcpClient();
-            await tcp.ConnectAsync(
-                uri.Host,
-                uri.IsDefaultPort ? 443 : uri.Port,
+            var result = await _shared.ObserveAsync(
+                uri,
                 cancellationToken);
 
-            await using var ssl = new SslStream(
-                tcp.GetStream(),
-                false,
-                (_, _, _, errors) => errors == SslPolicyErrors.None);
-
-            await ssl.AuthenticateAsClientAsync(
-                new SslClientAuthenticationOptions
-                {
-                    TargetHost = uri.Host
-                },
-                cancellationToken);
-
-            if (ssl.RemoteCertificate is null)
-                throw new AuthenticationException("The server did not present an SSL certificate.");
-
-            using var cert = new X509Certificate2(ssl.RemoteCertificate);
-            var expiresUtc = cert.NotAfter.ToUniversalTime();
-            var days = (int)Math.Ceiling((expiresUtc - DateTime.UtcNow).TotalDays);
+            var days = (int)Math.Ceiling(
+                (result.ExpiresUtc - DateTime.UtcNow).TotalDays);
 
             var normalized = JsonSerializer.Serialize(new
             {
-                host = uri.Host,
-                subject = cert.Subject,
-                issuer = cert.Issuer,
-                thumbprint = cert.Thumbprint,
-                expiresUtc
+                host = result.Host,
+                subject = result.Subject,
+                issuer = result.Issuer,
+                thumbprint = result.Thumbprint,
+                expiresUtc = result.ExpiresUtc
             });
 
             return new ObservationResult(
@@ -218,7 +170,7 @@ public sealed class TlsObservationAdapter(
                         : "Healthy",
                 "application/json",
                 normalized,
-                $"TLS expires {expiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
+                $"TLS expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
         }
         catch (Exception ex) when (
             ex is SocketException
@@ -240,6 +192,8 @@ public sealed class TlsObservationAdapter(
 
 public sealed class DnsObservationAdapter : IObservationAdapter
 {
+    private readonly DnsObservationEngine _shared = new();
+
     public string AdapterType => AdapterTypes.Dns;
 
     public async Task<ObservationResult> ObserveAsync(
@@ -250,15 +204,9 @@ public sealed class DnsObservationAdapter : IObservationAdapter
         try
         {
             var host = NormalizeHost(target.PrimaryUri);
-            var addresses = await System.Net.Dns.GetHostAddressesAsync(
+            var values = await _shared.ObserveAddressesAsync(
                 host,
                 cancellationToken);
-
-            var values = addresses
-                .Select(x => x.ToString())
-                .Distinct()
-                .OrderBy(x => x)
-                .ToArray();
 
             var json = JsonSerializer.Serialize(new
             {
@@ -290,22 +238,15 @@ public sealed class DnsObservationAdapter : IObservationAdapter
         }
     }
 
-    public static string NormalizeHost(string input)
-    {
-        var value = (input ?? string.Empty).Trim();
-
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
-            value = uri.Host;
-
-        return value
-            .Trim()
-            .TrimEnd('.');
-    }
+    public static string NormalizeHost(string input) =>
+        DnsObservationEngine.NormalizeHost(input);
 }
 
 public sealed class DomainObservationAdapter(
     HttpClient http) : IObservationAdapter
 {
+    private readonly DomainObservationEngine _shared = new(http);
+
     public string AdapterType => AdapterTypes.Domain;
 
     public async Task<ObservationResult> ObserveAsync(
@@ -313,73 +254,19 @@ public sealed class DomainObservationAdapter(
         SourceDefinition source,
         CancellationToken cancellationToken = default)
     {
-        var domain = DnsObservationAdapter
-            .NormalizeHost(target.PrimaryUri)
-            .ToLowerInvariant();
-
-        if (string.IsNullOrWhiteSpace(domain)
-            || !domain.Contains('.'))
-        {
-            return Failure(
-                "invalid_domain",
-                "Enter a valid public domain name.");
-        }
-
         try
         {
-            using var response = await http.GetAsync(
-                $"https://rdap.org/domain/{Uri.EscapeDataString(domain)}",
+            var result = await _shared.ObserveAsync(
+                target.PrimaryUri,
                 cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return Failure(
-                    "rdap_http",
-                    $"RDAP lookup returned HTTP {(int)response.StatusCode}.");
-            }
-
-            using var doc = await JsonDocument.ParseAsync(
-                await response.Content.ReadAsStreamAsync(cancellationToken),
-                cancellationToken: cancellationToken);
-
-            if (!doc.RootElement.TryGetProperty("events", out var events))
-                return Failure("rdap_events", "The registry response did not include domain lifecycle events.");
-
-            DateTime? expiresUtc = null;
-
-            foreach (var item in events.EnumerateArray())
-            {
-                if (!item.TryGetProperty("eventAction", out var action))
-                    continue;
-
-                if (!string.Equals(
-                    action.GetString(),
-                    "expiration",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (!item.TryGetProperty("eventDate", out var date))
-                    continue;
-
-                if (!DateTimeOffset.TryParse(date.GetString(), out var parsed))
-                    continue;
-
-                expiresUtc = parsed.UtcDateTime;
-                break;
-            }
-
-            if (!expiresUtc.HasValue)
-                return Failure("expiration_unavailable", "Expiration date unavailable.");
-
             var days = (int)Math.Ceiling(
-                (expiresUtc.Value - DateTime.UtcNow).TotalDays);
+                (result.ExpiresUtc - DateTime.UtcNow).TotalDays);
 
             var json = JsonSerializer.Serialize(new
             {
-                domain,
-                expiresUtc
+                domain = result.Domain,
+                expiresUtc = result.ExpiresUtc
             });
 
             return new ObservationResult(
@@ -391,11 +278,12 @@ public sealed class DomainObservationAdapter(
                         : "Healthy",
                 "application/json",
                 json,
-                $"Domain expires {expiresUtc.Value:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
+                $"Domain expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
         }
         catch (Exception ex) when (
             ex is HttpRequestException
                 or JsonException
+                or InvalidOperationException
                 or TaskCanceledException)
         {
             return Failure("rdap_error", ex.Message);
