@@ -91,12 +91,13 @@
                 {
                     <article class="change history-card">
                         <div class="change-topline">
-                            <strong>@change.Title</strong>
+                            <a href="/follows/@FollowId/changes/@change.ChangeId"><strong>@change.Title</strong></a>
                             <span>@change.DetectedAtUtc.ToLocalTime().ToString("g")</span>
                         </div>
                         <div>@change.Summary</div>
                         <div class="action-row small-actions">
                             <span class="badge">@change.Severity</span>
+                            <a class="text-button" href="/follows/@FollowId/changes/@change.ChangeId">View before / after</a>
                             @if (!change.IsAcknowledged)
                             {
                                 <button class="text-button" @onclick="() => AcknowledgeAsync(change.ChangeId)">Mark reviewed</button>
