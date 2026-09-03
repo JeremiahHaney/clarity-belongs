@@ -1,0 +1,99 @@
+@page "/learn"
+@page "/learn/{Slug}"
+@inject LearnContentCatalog LearnCatalog
+
+<PageTitle>@PageTitleText</PageTitle>
+
+@if (Entry is null)
+{
+    <div class="shell public-shell">
+        <header class="hero compact-hero">
+            <div class="eyebrow">LEARN</div>
+            <h1>Start with the problem.</h1>
+            <p>Plain-language guides for things people keep checking manually today.</p>
+        </header>
+
+        <section class="learn-grid">
+            @foreach (var entry in LearnCatalog.GetAll())
+            {
+                <a class="learn-card" href="/learn/@entry.Slug">
+                    <div class="eyebrow">@entry.SearchIntent</div>
+                    <h2>@entry.Title</h2>
+                    <p>@entry.Description</p>
+                    <span>Read guide →</span>
+                </a>
+            }
+        </section>
+    </div>
+}
+else
+{
+    <HeadContent>
+        <meta name="description" content="@Entry.Description" />
+    </HeadContent>
+
+    <div class="shell public-shell article-shell">
+        <header class="hero compact-hero article-hero">
+            <div class="eyebrow">CLARITY GUIDE</div>
+            <h1>@Entry.Title</h1>
+            <p class="public-lead">@Entry.Description</p>
+        </header>
+
+        <article class="article-body">
+            <section>
+                <h2>The simple answer</h2>
+                <p>Instead of revisiting the same public source yourself, give Clarity the target once. Clarity establishes a baseline, observes it on a schedule, stores history, compares new observations, and surfaces meaningful differences.</p>
+            </section>
+
+            <section>
+                <h2>How to do it</h2>
+                <ol class="steps-list">
+                    @foreach (var step in Entry.Steps)
+                    {
+                        <li>@step</li>
+                    }
+                </ol>
+            </section>
+
+            <section>
+                <h2>Questions people usually have</h2>
+                <div class="faq-list">
+                    @foreach (var question in Entry.Questions)
+                    {
+                        <details>
+                            <summary>@question</summary>
+                            <p>Clarity is designed around factual observation, history, comparison, and notification. The exact behavior depends on the selected monitor and the public data the source makes available.</p>
+                        </details>
+                    }
+                </div>
+            </section>
+
+            <section class="article-cta">
+                <div>
+                    <div class="eyebrow">TRY IT</div>
+                    <h2>@Entry.ProductName</h2>
+                    <p>Start free and turn this repeated manual check into something Clarity keeps track of for you.</p>
+                </div>
+                <a class="button" href="/products/@Entry.ProductSlug">See the product</a>
+            </section>
+
+            <section class="related-links">
+                <h2>Related guides</h2>
+                @foreach (var related in LearnCatalog.GetAll().Where(x => x.Slug != Entry.Slug).Take(5))
+                {
+                    <a href="/learn/@related.Slug">@related.Title</a>
+                }
+            </section>
+        </article>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
+    private string PageTitleText => Entry is null
+        ? "Learn - Clarity Belongs"
+        : $"{Entry.Title} - Clarity Belongs";
+}
