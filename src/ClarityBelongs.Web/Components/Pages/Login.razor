@@ -1,0 +1,56 @@
+@page "/login"
+@attribute [AllowAnonymous]
+
+<PageTitle>Sign in - Clarity Belongs</PageTitle>
+
+<div class="shell narrow-shell auth-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">WELCOME BACK</div>
+        <h1>Sign in to My Clarity</h1>
+        <p>Your follows, history, alerts, and membership live in your personal workspace.</p>
+    </header>
+
+    <section class="panel auth-panel">
+        @if (Error == "invalid")
+        {
+            <div class="error-card">That email and password did not match.</div>
+        }
+        else if (Error == "locked")
+        {
+            <div class="error-card">This account cannot sign in yet. Reset the password or create a new account.</div>
+        }
+
+        <form method="post" action="/auth/login">
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+            <label class="field">
+                <span>Email</span>
+                <input name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+
+            <button class="button full-button" type="submit">Sign in</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="/forgot-password">Forgot password?</a>
+            <span>New here? <a href="/signup">Create an account</a></span>
+        </div>
+    </section>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrlQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private string ReturnUrl => string.IsNullOrWhiteSpace(ReturnUrlQuery)
+        ? "/"
+        : ReturnUrlQuery;
+}
