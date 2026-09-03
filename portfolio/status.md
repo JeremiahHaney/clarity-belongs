@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Launch Phases 1–5 implemented. Core build/startup and local account/workspace/membership flows are CI verified. Real product targets, SMTP, and Stripe external flows remain Testing Required.**
+**Launch Phases 1–7 implemented. Core engine, local accounts/membership, and public-site/search routes are covered by CI. Real monitor targets, production SMTP/Stripe, legal finalization, and live deployment remain Testing Required.**
 
 ## Identity
 
@@ -18,15 +18,15 @@
 |---|---|
 | Money | Backlog established |
 | Your Internet | First five product surfaces implemented — Testing Required |
-| Changes | Shared HTTP/change/history engine implemented |
+| Changes | Shared HTTP/change/history engine implemented; initial public search surfaces live in code |
 | Opportunities | Backlog established |
-| Public Information | Backlog established |
+| Public Information | Initial public-notice discovery entry exists; product family backlog established |
 | Your Identity | Backlog established |
 | My Clarity | Dashboard + follow/history/evidence + account/membership UX implemented — Testing Required |
 
 ## Launch Phase 1 — Engine
 
-Implemented:
+Implemented and CI verified:
 
 - .NET 10 Blazor Web App
 - EF Core SQLite persistence
@@ -34,40 +34,28 @@ Implemented:
 - Follow / Target / SourceDefinition
 - ObservationRun / Snapshot / Change
 - AlertRule / FollowChange / Notification
-- HTTP observation
-- TLS observation
-- DNS observation
-- RDAP domain-expiration observation
+- HTTP / TLS / DNS / RDAP domain observations
 - APIT-derived public-endpoint protection
-- generalized due-Follow scheduler
-- retries for Error follows
-- shared-target short reuse window
+- due-Follow scheduler
+- retry/error behavior
+- shared-target reuse window
 - stable monitor-specific fingerprints
-- `/health` endpoint
-- GitHub Actions restore/build/runtime smoke verification
+- `/health`
 
 ## Launch Phase 2 — Core experience
 
 Implemented:
 
-- shared site layout/navigation
-- My Clarity dashboard
-- empty/onboarding state
-- Add Follow wizard
+- My Clarity dashboard at `/my-clarity`
+- Add Follow
 - Follow detail
 - Check now
-- Pause / Resume
-- Stop following / archive
-- cadence settings
-- importance settings
-- alert enable/disable
+- Pause / Resume / archive
+- cadence / importance / alert settings
 - history
-- change acknowledgement
-- before/after evidence page
-- latest alert history
-- settings page
-- error page
-- responsive styling
+- acknowledgement
+- before/after evidence
+- responsive app UX
 
 ## Launch Phase 3 — Your Internet
 
@@ -79,109 +67,93 @@ Implemented product surfaces:
 4. Domain Expiration Monitor
 5. DNS Change Monitor
 
-Each uses the same Follow -> Observation -> Snapshot -> Change -> History -> Alert pipeline while applying monitor-specific observation semantics.
-
 ## Launch Phase 4 — Notifications
 
 Implemented:
 
-- in-app alert records
-- queued email notifications
+- in-app alerts
+- email queue
 - unique dedup keys
-- meaningful-change alerts
-- monitor failure alerts
-- recovery alerts
-- SSL/domain expiration reminders at 30 / 14 / 7 / 1 days
-- SMTP sender boundary
-- account notification email settings
-- immediate email mode
-- optional daily digest mode
+- meaningful-change / failure / recovery alerts
+- SSL/domain expiration thresholds
+- SMTP boundary
+- Immediate / DailyDigest modes
 - Sent / Failed / Suppressed tracking
-- paid-plan entitlement check before email delivery
-
-Production SMTP remains configuration-only. No credentials are committed.
+- paid email entitlement
 
 ## Launch Phase 5 — Accounts + Membership
 
+Implemented and locally CI verified:
+
+- signup / signin / signout
+- password hashing and reset tokens
+- personal workspace ownership
+- Free / Personal / Business memberships
+- plan follow and cadence limits
+- account/membership UX
+- Stripe Checkout / Billing Portal / signed webhook boundary
+- additive SQLite schema upgrades
+
+## Launch Phase 6 — Public website
+
 Implemented:
 
-- sign up
-- sign in
-- sign out
-- secure ASP.NET Core password hashes
-- forgot-password request flow
-- one-hour, single-use password-reset tokens
-- cookie sessions
-- one personal My Clarity workspace per new account
-- workspace ownership checks throughout user-facing follow/evidence APIs and pages
-- Free / Personal / Business membership state
-- Free: 5 active follows, 6-hour minimum cadence
-- Personal: 50 active follows, 15-minute minimum cadence
-- Business: 250 active follows, 5-minute minimum cadence
-- plan-aware Add Follow and Follow settings
-- account/membership page
-- public pricing surface
-- Stripe Checkout session creation
-- Stripe Billing Portal session creation
-- verified Stripe webhook endpoint
-- Stripe customer/subscription/price/state persistence
-- cancellation and past-due state handling
-- additive SQLite schema upgrade for existing development databases
-- CI account smoke test
+- public homepage at `/`
+- homepage explanation of the KNOW identity
+- product catalog and expanded product-detail pages
+- public pricing path
+- About / ecosystem page
+- Support
+- draft Privacy
+- draft Terms
+- public navigation/footer
+- signup entry points
+- separate authenticated `/my-clarity` route
+- public responsive styling
 
-The CI smoke path now creates a fresh account, retains the auth cookie, opens the protected account page, and creates an authenticated Free-plan follow.
+## Launch Phase 7 — Search + Discovery
+
+Implemented:
+
+- public `/learn` discovery library
+- 12 initial problem-first guide routes
+- how-to, FAQ, comparison, and explanation content structures
+- product <-> Learn internal linking
+- initial search intents aligned only to working V1 monitors
+- `robots.txt`
+- `sitemap.xml`
+- page titles / descriptions on discovery surfaces
+- Software Belongs cross-link strategy documented
+- CI expanded to request homepage, products, Learn, legal/help, robots, sitemap, authenticated dashboard, and account routes
 
 ## Security / dependency hygiene
 
-- public HTTP/TLS monitoring blocks private/local endpoint targets
+- public HTTP/TLS monitoring blocks private/local endpoints
 - password-reset raw tokens are not stored
-- Stripe webhook signatures are verified before membership updates
-- auth form posts require same-origin Origin/Referer validation
-- protected data is scoped by authenticated workspace
+- Stripe webhook signatures are verified
+- protected data is workspace-scoped
 - Stripe and SMTP credentials are not committed
-- the SQLite native dependency is explicitly pinned forward from the vulnerable transitive 2.1.11 release
+- private application routes are excluded from public crawler guidance
+- SQLite native dependency is pinned forward from vulnerable transitive 2.1.11
 
-## Reuse boundary
+## Testing Required before public release
 
-- AutoPilot IT remains the operational monitoring / incident / recovery consumer.
-- Clarity owns Follow -> Observation -> Snapshot -> Change -> History -> Alert.
-- Low-level public endpoint, HTTP/TLS, DNS, domain and scheduler mechanics are intentionally aligned with the proven AutoPilot IT implementations.
-- Software Belongs remains the DO surface and can consume shared platform mechanics later without blocking Clarity.
-
-## Testing Required
-
-Still validate before public release:
-
-1. Create and operate each of the five Your Internet follows through the browser UI against representative targets.
-2. Confirm pause/resume, archive, acknowledgement, history, and before/after flows with a real account.
-3. Configure production SMTP and verify password reset and paid alert delivery.
-4. Create the approved Stripe products/prices for Personal and Business.
-5. Exercise Stripe Checkout in test mode.
-6. Verify Stripe webhook subscription activation/update/cancel/past-due state.
-7. Verify Billing Portal return flow.
-8. Exercise SSL/domain expiration and DNS/uptime changes with controlled targets.
+1. Exercise all five Your Internet products against representative real targets.
+2. Validate pause/resume/archive/history/evidence with real accounts.
+3. Configure production SMTP and test password reset plus paid alerts/digest.
+4. Configure approved Stripe products/prices and verify Checkout, webhooks, cancellation/past-due, and Billing Portal.
+5. Review Phase 6 on desktop/mobile browsers.
+6. Replace draft privacy/terms language with final business/legal/contact details.
+7. Deploy to claritybelongs.com and verify canonical production behavior.
+8. Configure analytics/search indexing tools and confirm sitemap discovery.
+9. Add reciprocal Software Belongs discovery links.
+10. Dogfood the full Belongs ecosystem through Clarity.
 
 ## Next build milestone
 
-Launch Phase 6 — public website:
-
-- public homepage
-- mission / explanation
-- pricing with approved actual prices
-- privacy and terms
-- help / Learn
-- support/contact
-- public product-to-signup entry paths
-
-Then:
-
-- search/discovery pages
-- dogfooding
-- additional thin monitor families
+Launch Phase 8 — Dogfood the system, then use the real usage findings to decide whether to expand Changes first or add another Clarity family.
 
 ## Lifecycle
-
-Use these states for products:
 
 - Captured
 - Validate
