@@ -51,6 +51,6 @@
     public string? Error { get; set; }
 
     private string ReturnUrl => string.IsNullOrWhiteSpace(ReturnUrlQuery)
-        ? "/"
+        ? "/my-clarity"
         : ReturnUrlQuery;
 }
