@@ -24,21 +24,42 @@ jobs:
       - name: Build
         run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
 
-      - name: Runtime smoke test
+      - name: Runtime and account smoke test
         shell: bash
         run: |
+          rm -f src/ClarityBelongs.Web/clarity.db /tmp/clarity-cookies.txt
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity.log 2>&1 &
           APP_PID=$!
           trap 'kill $APP_PID || true' EXIT
 
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:5080/health > /tmp/clarity-health.json; then
-              cat /tmp/clarity-health.json
-              exit 0
+              break
             fi
 
             sleep 1
           done
 
-          cat /tmp/clarity.log
-          exit 1
+          cat /tmp/clarity-health.json
+
+          curl --fail --silent --show-error \
+            -c /tmp/clarity-cookies.txt \
+            -H 'Origin: http://127.0.0.1:5080' \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data 'displayName=CI+User&email=ci%40claritybelongs.test&password=ClarityTest12345' \
+            http://127.0.0.1:5080/auth/signup \
+            -o /dev/null
+
+          curl --fail --silent --show-error \
+            -b /tmp/clarity-cookies.txt \
+            http://127.0.0.1:5080/account \
+            -o /tmp/clarity-account.html
+
+          curl --fail --silent --show-error \
+            -b /tmp/clarity-cookies.txt \
+            -H 'Content-Type: application/json' \
+            --data '{"name":"CI Example","target":"https://example.com","checkCadenceMinutes":360}' \
+            http://127.0.0.1:5080/api/follows \
+            -o /tmp/clarity-follow.json
+
+          grep -q '"id"' /tmp/clarity-follow.json
