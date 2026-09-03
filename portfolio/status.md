@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Foundation complete — ready for engine design/build planning.**
+**Core Observation Engine + My Clarity design complete — ready for implementation.**
 
 ## Identity
 
@@ -22,13 +22,40 @@
 | Opportunities | Backlog established |
 | Public Information | Backlog established |
 | Your Identity | Backlog established |
-| My Clarity | Platform concept defined |
+| My Clarity | V1 data model defined |
 
-## Next build decision
+## Core platform status
 
-Design the reusable Core Observation Engine and My Clarity data model before implementing individual monitors.
+Defined:
 
-Initial product cluster:
+- User / Workspace ownership
+- Follow
+- Target
+- SourceDefinition
+- ObservationRun
+- Snapshot
+- Change
+- AlertRule
+- FollowChange
+- Notification
+- My Clarity read models
+- observation adapter contract
+- comparison contract
+- monitor definition contract
+- scheduler/deduplication model
+- V1 boundaries
+
+Next implementation slice:
+
+1. app/solution shell + persistence
+2. User/Workspace
+3. Follow/Target/SourceDefinition
+4. ObservationRun/Snapshot
+5. scheduler + adapters
+6. HTTP adapter + first change detection
+7. My Clarity history and dashboard
+
+## Initial product cluster
 
 1. Website Change Monitor
 2. Website Uptime Monitor
