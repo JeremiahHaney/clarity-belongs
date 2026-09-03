@@ -14,7 +14,7 @@
 
 Build the minimum shared engine needed for multiple monitors:
 
-- accounts/workspaces
+- account/workspace identifier boundary
 - Follow + Target + SourceDefinition
 - scheduled ObservationRuns
 - snapshots/history
@@ -28,22 +28,26 @@ Build the minimum shared engine needed for multiple monitors:
 
 The V1 entity model and monitor contracts are locked in `05-CORE-OBSERVATION-DATA-MODEL.md`.
 
+The cross-ecosystem reuse decisions are locked in `06-ECOSYSTEM-REUSE-AUDIT.md`.
+
 Recommended implementation order:
 
 1. solution/app shell + persistence
-2. User/Workspace personal ownership
-3. Follow/Target/SourceDefinition management
-4. ObservationRun/Snapshot persistence
-5. scheduler + adapter contracts
-6. HTTP adapter + generic fingerprint comparison
-7. Change/FollowChange history
-8. AlertRule evaluation
-9. in-app + email notifications
-10. My Clarity dashboard/read models
-11. TLS adapter
-12. DNS adapter
+2. UserId / WorkspaceId ownership boundary without building a full identity platform
+3. Follow / Target / SourceDefinition management
+4. ObservationRun / Snapshot / Change persistence
+5. port/extract AutoPilot IT `PublicEndpointGuard`
+6. port/extract AutoPilot IT website/TLS HTTP check mechanics behind neutral Clarity contracts
+7. general scheduler using AutoPilot IT's proven due-target / `NextCheckUtc` pattern
+8. Change / FollowChange history + My Clarity read models
+9. AlertRule evaluation
+10. neutral notification delivery using AutoPilot IT's send-once/dedup patterns
+11. DNS adapter from the existing AutoPilot IT implementation
+12. domain-expiration adapter from the existing AutoPilot IT implementation
 
-**Status: Design complete — implementation next**
+Do not block this phase on a perfect shared identity, membership, or billing platform. Keep those concerns behind simple boundaries so they can be shared later.
+
+**Status: Architecture + ecosystem reuse review complete — implementation next**
 
 ## Phase 2 — First Product Cluster
 
