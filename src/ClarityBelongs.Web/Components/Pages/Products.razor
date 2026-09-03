@@ -1,0 +1,66 @@
+@page "/products"
+@page "/products/{Slug}"
+@inject ClarityProductCatalog Catalog
+
+<PageTitle>Clarity Products</PageTitle>
+
+<div class="shell">
+    @if (Product is null)
+    {
+        <header class="hero compact-hero">
+            <div class="eyebrow">YOUR INTERNET</div>
+            <h1>Know what changed.</h1>
+            <p>Five useful monitors, one My Clarity history.</p>
+        </header>
+
+        <section class="product-grid">
+            @foreach (var product in Catalog.GetAll())
+            {
+                <a class="product-card" href="/products/@product.Slug">
+                    <div class="eyebrow">@product.MonitorType</div>
+                    <h2>@product.Name</h2>
+                    <p>@product.ShortDescription</p>
+                    <span>Set it up →</span>
+                </a>
+            }
+        </section>
+    }
+    else
+    {
+        <header class="hero compact-hero">
+            <div class="eyebrow">YOUR INTERNET</div>
+            <h1>@Product.Name</h1>
+            <p>@Product.ShortDescription</p>
+        </header>
+
+        <section class="panel product-detail">
+            <h2>What it does</h2>
+            <p>@Product.Outcome</p>
+            <p class="muted">@Product.HelpText</p>
+            <div class="product-meta">
+                <span><strong>Default check:</strong> every @FormatCadence(Product.DefaultCadenceMinutes)</span>
+                <span><strong>Importance:</strong> @Product.DefaultImportance</span>
+                <span><strong>History:</strong> included</span>
+            </div>
+            <a class="button" href="/add?product=@Product.Slug">Follow something</a>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Slug { get; set; }
+
+    private ClarityProduct? Product => Catalog.GetBySlug(Slug);
+
+    private static string FormatCadence(int minutes)
+    {
+        if (minutes < 60)
+            return $"{minutes} minutes";
+
+        if (minutes % 1440 == 0)
+            return $"{minutes / 1440} day(s)";
+
+        return $"{minutes / 60} hour(s)";
+    }
+}
