@@ -23,3 +23,22 @@ jobs:
 
       - name: Build
         run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
+
+      - name: Runtime smoke test
+        shell: bash
+        run: |
+          dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5080/health > /tmp/clarity-health.json; then
+              cat /tmp/clarity-health.json
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          cat /tmp/clarity.log
+          exit 1
