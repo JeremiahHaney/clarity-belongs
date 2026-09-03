@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.4 - 2026-09-03
+
+- Simplified Clarity around one clear customer promise: tell Clarity what matters and it keeps an eye on it for you.
+- Rewrote the homepage to lead with things customers care about instead of individual monitor implementations.
+- Reframed the public catalog as monitoring capabilities underneath one Clarity service rather than dozens of separate apps.
+- Renamed public navigation from Products to What It Watches and updated the brand/footer language around the simplified service model.
+- Added `docs/clarity-product-direction.md` to lock the distinction between Clarity observation/history and Software Belongs consumer-action tools.
+
 ## 0.6.3 - 2026-09-03
 
 - Reworked the authenticated Clarity navigation around My Clarity, Watch Something, Products, Learn, and Account so the signed-in experience behaves like an application rather than a marketing site.
