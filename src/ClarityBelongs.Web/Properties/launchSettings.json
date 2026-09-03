@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ClarityBelongs.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:57062;http://localhost:57063"
+    }
+  }
+}
