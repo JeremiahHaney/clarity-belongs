@@ -88,3 +88,21 @@
 - Fixed the account-page Razor generated-class naming collision found by CI; the follow-up Release build and account smoke test passed.
 - Added `07-ACCOUNTS-MEMBERSHIP-BILLING.md` and advanced roadmap/status documentation through Launch Phase 5.
 - Kept real Stripe Checkout/webhook/portal validation and production SMTP password-reset/paid-alert delivery marked Testing Required until external provider credentials and approved Stripe prices are configured.
+
+## 0.5.0 - 2026-09-03
+
+- Completed Launch Phases 6 and 7: the public Clarity Belongs website plus the first search/discovery acquisition layer.
+- Replaced the authenticated root route with a public homepage built around “Stop checking. Know what changed.” and moved the authenticated awareness dashboard to `/my-clarity`.
+- Added public homepage sections explaining the observation loop, first five monitors, My Clarity, the DO / KNOW / HANDLE ecosystem, and Free-plan entry path.
+- Expanded product discovery and product-detail pages with monitor outcomes, defaults, history/evidence framing, FAQs, and signup/Add Follow calls to action.
+- Added public About, Support, draft Privacy, and draft Terms pages and expanded the public navigation/footer.
+- Added a problem-first `/learn` library and 12 initial search-intent guides covering website changes, webpage notifications, uptime, SSL expiration, domain expiration, DNS changes, pricing pages, terms/privacy pages, public notices, website-change concepts, change-vs-uptime comparison, and check cadence.
+- Kept initial discovery content aligned to currently implemented V1 monitors instead of advertising speculative products.
+- Added internal links from Learn -> product -> signup / Add Follow and documented the future Software Belongs free-checker -> Clarity recurring-monitor referral pattern.
+- Added `robots.txt` that allows public discovery while excluding authenticated/private routes from crawler guidance.
+- Added an initial `sitemap.xml` for the homepage, product, pricing, About, Support, legal, and Learn surfaces.
+- Added unique page titles and description metadata to public product and Learn/article pages.
+- Added dedicated public responsive styles without disrupting the existing application UX.
+- Expanded CI smoke coverage to request the homepage, public product route, Learn route/article, pricing, About, Support, Privacy, Terms, robots, sitemap, authenticated My Clarity, Account, and follow-creation API.
+- Added `08-PUBLIC-SITE-SEARCH-DISCOVERY.md` and advanced roadmap/status documentation through Launch Phase 7.
+- Kept final legal/contact details, approved paid prices, production deployment/indexing, reciprocal Software Belongs links, analytics/search-console configuration, and real-world browser/search validation marked Testing Required.
