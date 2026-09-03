@@ -9,44 +9,17 @@
 - opportunity backlog established
 - ecosystem reuse audit completed
 
-## Launch Phase 1 — Make the engine real
+## Launch Phase 1 — Engine
 
-- .NET 10 Blazor application shell
-- EF Core SQLite persistence
-- personal UserId / WorkspaceId boundary
-- Follow / Target / SourceDefinition
-- ObservationRun / Snapshot / Change
-- scheduled observations
-- shared-target recent-run reuse
-- HTTP / TLS / DNS / domain adapters
-- public-endpoint safety guard
-- CI restore/build verification
-- runtime `/health` smoke test
-
-**Status: Implemented. CI build and runtime smoke verification added.**
+Implemented and CI verified: .NET 10 Blazor, EF Core SQLite, User/Workspace boundary, Follow/Target/SourceDefinition, ObservationRun/Snapshot/Change, scheduler, HTTP/TLS/DNS/domain adapters, public-endpoint guard, shared-target reuse, `/health`.
 
 ## Launch Phase 2 — Core product experience
 
-- shared Clarity navigation and layout
-- My Clarity dashboard
-- meaningful empty/onboarding state
-- Add Follow wizard
-- Follow detail page
-- pause / resume
-- stop following / archive
-- manual check-now action
-- cadence and importance settings
-- alert enable/disable
-- history
-- acknowledgement
-- before / after evidence view
-- error-state experience
+Implemented: My Clarity, onboarding, Add Follow, Follow detail, pause/resume/archive, check now, cadence/importance/alerts, history, acknowledgement, before/after evidence, error experience.
 
-**Status: Implemented — Testing Required for interactive user flows.**
+**Status: Implemented — representative interactive flows remain Testing Required.**
 
 ## Launch Phase 3 — Your Internet
-
-Initial public monitor cluster:
 
 1. Website Change Monitor
 2. Website Uptime Monitor
@@ -54,98 +27,66 @@ Initial public monitor cluster:
 4. Domain Expiration Monitor
 5. DNS Change Monitor
 
-Each now has:
-
-- a dedicated product route
-- product description/help
-- setup flow
-- monitor-specific defaults
-- current Follow state
-- shared history/evidence
-- shared alert pipeline
-
-Important implementation details:
-
-- Website Change fingerprints content, final URL, and HTTP status.
-- Website Uptime fingerprints stable availability state instead of response milliseconds.
-- TLS fingerprints certificate identity/expiration instead of changing days-remaining values.
-- Domain expiration fingerprints registry expiration data instead of changing days-remaining values.
-- DNS fingerprints a normalized sorted public address set.
-
-**Status: Implemented — Testing Required against representative real-world targets.**
+**Status: Implemented — real target testing remains required.**
 
 ## Launch Phase 4 — Notifications
 
-- persisted in-app alerts
-- persisted email delivery queue
-- unique dedup keys
-- meaningful-change alerts
-- failure alerts
-- recovery alerts
-- SSL/domain expiration reminders at 30 / 14 / 7 / 1 days
-- SMTP delivery provider boundary
-- notification email settings
-- immediate delivery mode
-- optional daily digest mode: “what changed while you were not looking”
-- failed/suppressed delivery tracking
+Implemented: in-app alerts, email queue, deduplication, failure/recovery, SSL/domain expiration reminders, SMTP boundary, Immediate and DailyDigest modes, delivery state tracking.
 
-Production SMTP credentials are intentionally configuration-only and are not stored in the repository.
-
-**Status: Implemented — external SMTP delivery Testing Required after provider configuration.**
+**Status: Implemented — production SMTP delivery remains Testing Required.**
 
 ## Launch Phase 5 — Accounts + Membership
 
-Implemented:
+Implemented: signup/signin/signout, password reset, personal workspace ownership, Free/Personal/Business membership state, usage/cadence limits, paid email entitlement, Stripe Checkout/Portal/webhook boundary, additive SQLite upgrade, CI account smoke test.
 
-- cookie-based sign-up/sign-in/sign-out
-- ASP.NET Core password hashing
-- one-hour, single-use password-reset tokens
-- authenticated personal workspace ownership
-- workspace-scoped My Clarity, follows, evidence, settings, and APIs
-- Free / Personal / Business membership records
-- plan-based active-follow limits
-- plan-based minimum check cadence
-- paid email-delivery entitlement
-- public pricing page
-- account/membership page
-- Stripe-hosted Checkout boundary
-- Stripe Billing Portal boundary
-- signed Stripe webhook processing
-- subscription/customer/price state synchronization
-- additive startup upgrade for existing development SQLite databases
-- CI account smoke test covering signup, authenticated account access, and authenticated follow creation
-
-Stripe and SMTP secrets are configuration-only and are not stored in the repository.
-
-**Status: Implemented. Local account/workspace/membership flow is CI verified. Real Stripe and SMTP external flows are Testing Required after provider configuration.**
+**Status: Implemented — external Stripe and SMTP flows remain Testing Required.**
 
 See `07-ACCOUNTS-MEMBERSHIP-BILLING.md`.
 
 ## Launch Phase 6 — Public Website
 
-Next:
+Implemented:
 
-- public homepage
-- product discovery
-- pricing refinement with approved actual prices
-- Learn/help
-- mission
-- privacy
-- terms
-- support/contact
-- sign-up entry paths from public product pages
+- public homepage at `/`
+- authenticated dashboard moved to `/my-clarity`
+- public product discovery and expanded product-detail pages
+- pricing entry path
+- public About / mission page
+- Learn/help entry path
+- Support page
+- draft Privacy page
+- draft Terms page
+- signup entry paths from homepage/product pages
+- public navigation/footer
+- responsive public-site styling
+
+**Status: Implemented — browser/mobile presentation, final legal copy, production contact details, approved prices, and live domain deployment remain Testing Required.**
 
 ## Launch Phase 7 — Search + Discovery
 
-- problem-first landing pages
+Implemented initial acquisition surface:
+
+- problem-first Learn library
+- 12 initial search-intent guide pages
 - how-to pages
-- comparison pages
-- FAQs
-- Software Belongs cross-links and free-checker entry paths
+- explanation pages
+- comparison page
+- FAQ structures
+- product-to-guide and guide-to-product internal linking
+- `robots.txt` separating public discovery from authenticated application routes
+- `sitemap.xml` covering current public pages
+- unique page titles and description metadata for product/article pages
+- Software Belongs ecosystem/cross-link direction documented
+
+Initial intents include website-change monitoring, webpage-change alerts, uptime, SSL expiration, domain expiration, DNS changes, pricing-page changes, terms/privacy changes, public notices, change-vs-uptime comparison, and monitor cadence.
+
+**Status: Implemented — production indexing, analytics/Search Console, keyword performance, Software Belongs reciprocal links, and content expansion remain Testing Required.**
+
+See `08-PUBLIC-SITE-SEARCH-DISCOVERY.md`.
 
 ## Launch Phase 8 — Dogfood
 
-Clarity should monitor the Belongs ecosystem itself:
+Next:
 
 - softwarebelongs.com
 - claritybelongs.com
@@ -211,11 +152,13 @@ Only as real usage requires it:
 Clarity V1 is release-ready when:
 
 - engine build/startup verification is green
-- the five Your Internet products pass real target tests
+- public-site/search route smoke verification is green
+- five Your Internet products pass real target tests
 - interactive setup/history/acknowledgement flows pass
 - SMTP delivery passes with the production provider
-- Stripe Checkout/webhook/portal flows pass in Stripe test mode
+- Stripe Checkout/webhook/portal flows pass in test mode
 - approved product prices are configured
-- claritybelongs.com public site is published
-- privacy/terms/help are published
+- claritybelongs.com is deployed
+- final privacy/terms/support contact details are published
+- Software Belongs reciprocal discovery links are live
 - the Belongs ecosystem is being dogfooded through Clarity
