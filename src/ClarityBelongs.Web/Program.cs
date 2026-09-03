@@ -35,6 +35,7 @@ builder.Services.AddScoped<FollowManagementService>();
 builder.Services.AddSingleton<ClarityProductCatalog>();
 builder.Services.AddSingleton<IClarityEmailSender, SmtpClarityEmailSender>();
 builder.Services.AddHostedService<ObservationWorker>();
+builder.Services.AddHostedService<ExpirationAlertWorker>();
 builder.Services.AddHostedService<NotificationDeliveryWorker>();
 
 var app = builder.Build();
