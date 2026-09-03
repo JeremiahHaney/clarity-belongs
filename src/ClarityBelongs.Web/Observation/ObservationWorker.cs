@@ -37,7 +37,8 @@ public sealed class ObservationWorker(
         var now = DateTime.UtcNow;
 
         var followIds = await db.Follows
-            .Where(x => x.Status == FollowStatuses.Active)
+            .Where(x => x.Status != FollowStatuses.Paused)
+            .Where(x => x.Status != FollowStatuses.Archived)
             .Where(x => x.NextCheckAtUtc <= now)
             .OrderBy(x => x.NextCheckAtUtc)
             .Select(x => x.Id)
