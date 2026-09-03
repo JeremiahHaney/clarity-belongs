@@ -1,68 +1,150 @@
 # Roadmap
 
-## Phase 0 — Foundation
+## Foundation — Complete
 
-- lock mission and brand
-- secure domains and social identity
-- define product families
-- define shared observation architecture
-- establish opportunity backlog
+- mission and brand locked
+- domains and social identity secured
+- product families defined
+- shared observation architecture defined
+- opportunity backlog established
+- ecosystem reuse audit completed
 
-**Status: Complete**
+## Launch Phase 1 — Make the engine real
 
-## Phase 1 — Core Awareness Platform
+- .NET 10 Blazor application shell
+- EF Core SQLite persistence
+- personal UserId / WorkspaceId boundary
+- Follow / Target / SourceDefinition
+- ObservationRun / Snapshot / Change
+- scheduled observations
+- shared-target recent-run reuse
+- HTTP / TLS / DNS / domain adapters
+- public-endpoint safety guard
+- CI restore/build verification
+- runtime `/health` smoke test
 
-Build the minimum shared engine needed for multiple monitors:
+**Status: Implemented. CI build and runtime smoke verification added.**
 
-- account/workspace identifier boundary
-- Follow + Target + SourceDefinition
-- scheduled ObservationRuns
-- snapshots/history
-- change detection
-- alert rules
-- FollowChange relevance/acknowledgement
-- notification records
-- email alerts
-- My Clarity dashboard/read models
-- HTTP/TLS/DNS adapters
+## Launch Phase 2 — Core product experience
 
-The V1 entity model and monitor contracts are locked in `05-CORE-OBSERVATION-DATA-MODEL.md`.
+- shared Clarity navigation and layout
+- My Clarity dashboard
+- meaningful empty/onboarding state
+- Add Follow wizard
+- Follow detail page
+- pause / resume
+- stop following / archive
+- manual check-now action
+- cadence and importance settings
+- alert enable/disable
+- history
+- acknowledgement
+- before / after evidence view
+- error-state experience
 
-The cross-ecosystem reuse decisions are locked in `06-ECOSYSTEM-REUSE-AUDIT.md`.
+**Status: Implemented — Testing Required for interactive user flows.**
 
-Recommended implementation order:
+## Launch Phase 3 — Your Internet
 
-1. solution/app shell + persistence
-2. UserId / WorkspaceId ownership boundary without building a full identity platform
-3. Follow / Target / SourceDefinition management
-4. ObservationRun / Snapshot / Change persistence
-5. port/extract AutoPilot IT `PublicEndpointGuard`
-6. port/extract AutoPilot IT website/TLS HTTP check mechanics behind neutral Clarity contracts
-7. general scheduler using AutoPilot IT's proven due-target / `NextCheckUtc` pattern
-8. Change / FollowChange history + My Clarity read models
-9. AlertRule evaluation
-10. neutral notification delivery using AutoPilot IT's send-once/dedup patterns
-11. DNS adapter from the existing AutoPilot IT implementation
-12. domain-expiration adapter from the existing AutoPilot IT implementation
+Initial public monitor cluster:
 
-Do not block this phase on a perfect shared identity, membership, or billing platform. Keep those concerns behind simple boundaries so they can be shared later.
+1. Website Change Monitor
+2. Website Uptime Monitor
+3. SSL Expiration Monitor
+4. Domain Expiration Monitor
+5. DNS Change Monitor
 
-**Status: Architecture + ecosystem reuse review complete — implementation next**
+Each now has:
 
-## Phase 2 — First Product Cluster
+- a dedicated product route
+- product description/help
+- setup flow
+- monitor-specific defaults
+- current Follow state
+- shared history/evidence
+- shared alert pipeline
 
-Prioritize monitors with simple data sources and strong engine reuse:
+Important implementation details:
 
-1. Website change monitor
-2. Website uptime monitor
-3. SSL expiration monitor
-4. Domain expiration monitor
-5. DNS change monitor
-6. Software/release monitor
+- Website Change fingerprints content, final URL, and HTTP status.
+- Website Uptime fingerprints stable availability state instead of response milliseconds.
+- TLS fingerprints certificate identity/expiration instead of changing days-remaining values.
+- Domain expiration fingerprints registry expiration data instead of changing days-remaining values.
+- DNS fingerprints a normalized sorted public address set.
 
-## Phase 3 — Money & Availability
+**Status: Implemented — Testing Required against representative real-world targets.**
 
-Add price/history adapters where reliable data can be obtained with acceptable operating cost:
+## Launch Phase 4 — Notifications
+
+- persisted in-app alerts
+- persisted email delivery queue
+- unique dedup keys
+- meaningful-change alerts
+- failure alerts
+- recovery alerts
+- SSL/domain expiration reminders at 30 / 14 / 7 / 1 days
+- SMTP delivery provider boundary
+- notification email settings
+- immediate delivery mode
+- optional daily digest mode: “what changed while you were not looking”
+- failed/suppressed delivery tracking
+
+Production SMTP credentials are intentionally configuration-only and are not stored in the repository.
+
+**Status: Implemented — external SMTP delivery Testing Required after provider configuration.**
+
+## Launch Phase 5 — Accounts + Membership
+
+Next:
+
+- real sign-up/sign-in
+- account recovery
+- personal workspace ownership from authenticated identity
+- free/paid usage limits based on actual delivery cost
+- subscription state
+- Stripe checkout and billing portal
+
+## Launch Phase 6 — Public Website
+
+- public homepage
+- product discovery
+- pricing
+- Learn/help
+- mission
+- privacy
+- terms
+- support/contact
+
+## Launch Phase 7 — Search + Discovery
+
+- problem-first landing pages
+- how-to pages
+- comparison pages
+- FAQs
+- Software Belongs cross-links and free-checker entry paths
+
+## Launch Phase 8 — Dogfood
+
+Clarity should monitor the Belongs ecosystem itself:
+
+- softwarebelongs.com
+- claritybelongs.com
+- AutoPilot IT public endpoints
+- domains
+- certificates
+- DNS
+- important vendor/release pages
+
+## Expansion — Changes
+
+- terms monitoring
+- privacy-policy monitoring
+- competitor pages
+- software releases
+- product pages
+- RSS/feed monitoring
+
+## Expansion — Money & Availability
 
 - product prices
 - product availability
@@ -72,15 +154,17 @@ Add price/history adapters where reliable data can be obtained with acceptable o
 - rental cars
 - event tickets
 
-## Phase 4 — Opportunities & Public Information
+## Expansion — Opportunities & Public Information
 
-- job alerts
+- jobs
 - grants
 - bids
 - public agendas
-- regulatory/public-record change tracking
+- regulatory filings
+- policy changes
+- public records
 
-## Phase 5 — Identity & Reputation
+## Expansion — Identity & Reputation
 
 - brand mentions
 - typo domains
@@ -88,13 +172,29 @@ Add price/history adapters where reliable data can be obtained with acceptable o
 - username impersonation
 - reputation changes
 
-## Release gate
+## Scale / Harden
 
-A product should not ship merely because the engine can technically perform the check. It should also have:
+Only as real usage requires it:
 
-- understandable setup
-- reliable evidence/history
-- sensible notification defaults
-- bounded operating cost
-- low expected support burden
-- clear help content
+- PostgreSQL / SQL Server evaluation
+- distributed workers / leases
+- durable queueing
+- retention policies
+- object storage for larger evidence
+- quotas and rate limits
+- telemetry
+- backup/recovery
+- abuse protection
+
+## Public V1 release gate
+
+Clarity V1 is release-ready when:
+
+- engine build/startup verification is green
+- the five Your Internet products pass real target tests
+- interactive setup/history/acknowledgement flows pass
+- SMTP delivery passes with the production provider
+- accounts and subscription are complete
+- claritybelongs.com public site is published
+- privacy/terms/help are published
+- the Belongs ecosystem is being dogfooded through Clarity
