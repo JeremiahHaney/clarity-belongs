@@ -253,6 +253,18 @@ public sealed class NotificationDeliveryWorker(
         long userId,
         CancellationToken cancellationToken)
     {
+        var membership = await db.Memberships
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.UserId == userId,
+                cancellationToken);
+
+        if (membership is null
+            || !MembershipService.IsPaidActive(membership))
+        {
+            return null;
+        }
+
         var user = await db.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(
@@ -294,7 +306,7 @@ public sealed class NotificationDeliveryWorker(
     private static void Suppress(Notification notification)
     {
         notification.Status = "Suppressed";
-        notification.FailureReason = "No deliverable user email is configured.";
+        notification.FailureReason = "Email delivery is unavailable for this account or plan.";
     }
 
     private static void MarkSent(Notification notification)
