@@ -1,6 +1,5 @@
 @page "/learn"
 @page "/learn/{Slug}"
-@inject LearnContentCatalog LearnCatalog
 
 <PageTitle>@PageTitleText</PageTitle>
 
@@ -92,6 +91,7 @@ else
     [Parameter]
     public string? Slug { get; set; }
 
+    private LearnContentCatalog LearnCatalog { get; } = new();
     private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
     private string PageTitleText => Entry is null
         ? "Learn - Clarity Belongs"
