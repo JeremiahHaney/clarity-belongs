@@ -68,3 +68,23 @@
 - Added CI runtime verification that starts the Release application and checks the live health endpoint.
 - Pinned `SQLitePCLRaw.lib.e_sqlite3` forward to 2.1.12 to avoid the vulnerable transitive 2.1.11 native SQLite package.
 - Advanced launch phases 1–4 to implemented while keeping real monitor targets, interactive flows, and external SMTP delivery marked Testing Required.
+
+## 0.4.0 - 2026-09-03
+
+- Completed Launch Phase 5: accounts, personal workspace ownership, membership limits, and the Stripe billing boundary.
+- Added ASP.NET Core cookie authentication with sign-up, sign-in, sign-out, protected routes, and authenticated API access.
+- Added ASP.NET Core password hashing and one-hour, single-use password-reset tokens stored only as SHA-256 hashes.
+- Bound My Clarity, Follow detail, change evidence, settings, and follow-management operations to the authenticated user's personal workspace.
+- Added Free, Personal, and Business membership records and plan definitions.
+- Added active-follow limits and minimum check cadences: Free 5 / 6 hours, Personal 50 / 15 minutes, Business 250 / 5 minutes.
+- Kept in-app alerts available on Free while enforcing paid membership at the external email-delivery boundary.
+- Added a public membership/pricing page and authenticated account/membership page without inventing unapproved public dollar prices.
+- Added Stripe-hosted Checkout session creation, Billing Portal session creation, customer/subscription identifiers, price synchronization, current-period state, cancellation state, and past-due handling.
+- Added a signed `POST /webhooks/stripe` endpoint covering checkout completion, subscription create/update/delete, and invoice payment failure events.
+- Added Stripe webhook HMAC verification with timestamp tolerance before membership state is changed.
+- Added startup schema upgrades so existing development SQLite databases can receive the Phase 5 authentication, Membership, and PasswordResetToken fields/tables without being deleted.
+- Added account-aware navigation and membership-aware Add Follow / Follow settings UI.
+- Expanded CI from health-only verification to a real local account smoke test: create account, preserve session cookie, open the protected Account page, and create an authenticated Free-plan follow.
+- Fixed the account-page Razor generated-class naming collision found by CI; the follow-up Release build and account smoke test passed.
+- Added `07-ACCOUNTS-MEMBERSHIP-BILLING.md` and advanced roadmap/status documentation through Launch Phase 5.
+- Kept real Stripe Checkout/webhook/portal validation and production SMTP password-reset/paid-alert delivery marked Testing Required until external provider credentials and approved Stripe prices are configured.
