@@ -3,8 +3,19 @@
 }
 
 .public-hero {
+    position: relative;
     max-width: 920px;
     padding: 84px 0 72px;
+}
+
+.public-hero::before {
+    content: "";
+    display: block;
+    width: 82px;
+    height: 6px;
+    margin-bottom: 28px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #287a72, #4f87c8);
 }
 
 .public-hero h1 {
@@ -32,6 +43,24 @@
 .public-section {
     padding: 68px 0;
     border-top: 1px solid #e2e6ea;
+}
+
+.idea-section {
+    position: relative;
+}
+
+.idea-section::before {
+    content: "";
+    position: absolute;
+    inset: 18px -24px;
+    z-index: -1;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #f1f8f7, #f4f7fb);
+}
+
+.public-section .eyebrow,
+.public-hero .eyebrow {
+    color: #287a72;
 }
 
 .section-intro {
@@ -70,11 +99,41 @@
     background: white;
 }
 
+.flow-grid > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 18px 12px;
+    align-items: start;
+    border-color: #d8e7e4;
+    box-shadow: 0 10px 30px rgba(33, 71, 81, .05);
+}
+
+.flow-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 12px;
+    background: #e7f3f1;
+    color: #287a72;
+}
+
+.flow-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
 .flow-grid strong {
     display: block;
-    margin-bottom: 26px;
+    padding-top: 10px;
     font-size: 14px;
-    color: #77828d;
+    color: #4f87c8;
+}
+
+.flow-grid > div > span:last-child {
+    grid-column: 1 / -1;
+    font-weight: 700;
 }
 
 .flow-grid span,
@@ -85,6 +144,30 @@
 
 .public-product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.public-product-grid .product-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.public-product-grid .product-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #287a72;
+}
+
+.public-product-grid .product-card:nth-child(even)::before {
+    background: #4f87c8;
+}
+
+.public-product-grid .product-card:hover {
+    transform: translateY(-2px);
+    border-color: #cbdeda;
+    box-shadow: 0 12px 34px rgba(33, 71, 81, .08);
 }
 
 .public-product-grid .product-card:last-child {
@@ -102,9 +185,9 @@
     display: grid;
     gap: 10px;
     padding: 18px;
-    border: 1px solid #dfe4e8;
+    border: 1px solid #d8e7e4;
     border-radius: 22px;
-    background: white;
+    background: linear-gradient(180deg, #ffffff, #f7fbfa);
     box-shadow: 0 18px 60px rgba(25,35,45,.07);
 }
 
@@ -114,7 +197,23 @@
     gap: 6px 10px;
     padding: 15px;
     border-radius: 13px;
-    background: #f7f8fa;
+    background: white;
+    border: 1px solid #edf1f3;
+}
+
+.mock-feed .badge {
+    background: #e7f3f1;
+    color: #236a63;
+}
+
+.mock-feed > div:nth-child(2) .badge {
+    background: #eaf1fb;
+    color: #376a9f;
+}
+
+.mock-feed > div:nth-child(3) .badge {
+    background: #fff5d8;
+    color: #80671f;
 }
 
 .mock-feed small {
@@ -132,7 +231,8 @@
 }
 
 .ecosystem-current {
-    outline: 2px solid #17202a;
+    outline: 2px solid #287a72;
+    background: #f1f8f7 !important;
 }
 
 .public-cta,
@@ -140,8 +240,13 @@
     margin-top: 42px;
     padding: 36px;
     border-radius: 22px;
-    background: #17202a;
+    background: linear-gradient(135deg, #17312f, #1f4252);
     color: white;
+}
+
+.public-cta .eyebrow,
+.article-cta .eyebrow {
+    color: #9ed3cd;
 }
 
 .public-cta p,
@@ -313,6 +418,10 @@
 @media (max-width: 800px) {
     .public-hero {
         padding: 52px 0;
+    }
+
+    .idea-section::before {
+        inset: 18px -12px;
     }
 
     .flow-grid,
