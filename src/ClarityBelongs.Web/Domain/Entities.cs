@@ -31,6 +31,7 @@ public static class AdapterTypes
     public const string Http = "Http";
     public const string Tls = "Tls";
     public const string Dns = "Dns";
+    public const string DnsRecord = "DnsRecord";
     public const string Domain = "Domain";
 }
 
@@ -119,24 +120,22 @@ public sealed class Snapshot
     public string ContentType { get; set; } = "application/json";
     public string Fingerprint { get; set; } = string.Empty;
     public string NormalizedDataJson { get; set; } = "{}";
-    public string? SummaryText { get; set; }
-    public string RetentionClass { get; set; } = "StandardHistory";
+    public string? EvidenceLocation { get; set; }
+    public string Summary { get; set; } = string.Empty;
 }
 
 public sealed class Change
 {
     public long Id { get; set; }
     public long TargetId { get; set; }
+    public long SourceDefinitionId { get; set; }
     public long? PreviousSnapshotId { get; set; }
     public long CurrentSnapshotId { get; set; }
-    public DateTime DetectedAtUtc { get; set; } = DateTime.UtcNow;
-    public string ChangeType { get; set; } = "ContentChanged";
+    public string ChangeType { get; set; } = string.Empty;
     public string Severity { get; set; } = ChangeSeverities.Notice;
-    public string Title { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
-    public string? BeforeJson { get; set; }
-    public string? AfterJson { get; set; }
-    public bool IsMeaningful { get; set; } = true;
+    public string? StructuredDiffJson { get; set; }
+    public DateTime DetectedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public sealed class AlertRule
@@ -145,18 +144,14 @@ public sealed class AlertRule
     public long FollowId { get; set; }
     public string RuleType { get; set; } = "AnyMeaningfulChange";
     public string? ConfigurationJson { get; set; }
-    public string MinimumSeverity { get; set; } = ChangeSeverities.Notice;
     public bool IsEnabled { get; set; } = true;
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }
 
 public sealed class FollowChange
 {
+    public long Id { get; set; }
     public long FollowId { get; set; }
     public long ChangeId { get; set; }
-    public long? MatchedRuleId { get; set; }
-    public string Relevance { get; set; } = "Relevant";
     public bool IsAcknowledged { get; set; }
     public DateTime? AcknowledgedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -165,17 +160,15 @@ public sealed class FollowChange
 public sealed class Notification
 {
     public long Id { get; set; }
-    public long WorkspaceId { get; set; }
-    public long UserId { get; set; }
     public long FollowId { get; set; }
-    public long ChangeId { get; set; }
+    public long? ChangeId { get; set; }
     public string Channel { get; set; } = "InApp";
-    public string Status { get; set; } = "Pending";
+    public string DeliveryMode { get; set; } = "Immediate";
+    public string State { get; set; } = "Pending";
     public string DedupKey { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
-    public string BodySummary { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? SentAtUtc { get; set; }
-    public DateTime? FailedAtUtc { get; set; }
     public string? FailureReason { get; set; }
 }
