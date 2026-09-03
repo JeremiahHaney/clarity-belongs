@@ -15,35 +15,46 @@
     @if (Product is null)
     {
         <header class="hero compact-hero">
-            <div class="eyebrow">YOUR INTERNET</div>
+            <div class="eyebrow">CLARITY PRODUCTS</div>
             <h1>Know what changed.</h1>
-            <p class="public-lead">Start with five practical monitors. Every one feeds the same My Clarity history, evidence, and alert experience.</p>
+            <p class="public-lead">Start with a specific thing you care about. Every monitor feeds the same My Clarity history, evidence, and alert experience.</p>
         </header>
 
-        <section class="product-grid">
-            @foreach (var product in Catalog.GetAll())
-            {
-                <a class="product-card" href="/products/@product.Slug">
-                    <div class="eyebrow">@product.MonitorType</div>
-                    <h2>@product.Name</h2>
-                    <p>@product.ShortDescription</p>
-                    <span>Learn more →</span>
-                </a>
-            }
-        </section>
+        @foreach (var family in Catalog.GetAll()
+            .GroupBy(x => x.Family)
+            .OrderBy(x => x.Key))
+        {
+            <section class="public-section">
+                <div class="section-intro">
+                    <div class="eyebrow">@family.Key.ToUpperInvariant()</div>
+                </div>
+
+                <div class="product-grid">
+                    @foreach (var product in family)
+                    {
+                        <a class="product-card" href="/products/@product.Slug">
+                            <div class="eyebrow">@product.MonitorType</div>
+                            <h2>@product.Name</h2>
+                            <p>@product.ShortDescription</p>
+                            <span>Learn more →</span>
+                        </a>
+                    }
+                </div>
+            </section>
+        }
 
         <section class="public-section">
             <div class="section-intro">
                 <div class="eyebrow">WHY ONE PLATFORM</div>
                 <h2>Different questions. Shared history.</h2>
-                <p>Website availability, page changes, certificates, domains, and DNS all use the same observe → store → compare → history → alert foundation. You learn one product experience instead of five separate services.</p>
+                <p>Clarity uses the same observe → store → compare → history → alert foundation across many kinds of public information. You learn one product experience instead of a collection of unrelated services.</p>
             </div>
         </section>
     }
     else
     {
         <header class="hero compact-hero product-public-hero">
-            <div class="eyebrow">YOUR INTERNET</div>
+            <div class="eyebrow">@Product.Family.ToUpperInvariant()</div>
             <h1>@Product.Name</h1>
             <p class="public-lead">@Product.ShortDescription</p>
             <div class="action-row">
