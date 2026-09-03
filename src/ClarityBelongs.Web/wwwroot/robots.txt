@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /settings
+Disallow: /add
+Disallow: /follows/
+Disallow: /my-clarity
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://claritybelongs.com/sitemap.xml
