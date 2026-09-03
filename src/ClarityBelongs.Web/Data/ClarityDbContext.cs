@@ -7,6 +7,8 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
 {
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Workspace> Workspaces => Set<Workspace>();
+    public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<Target> Targets => Set<Target>();
     public DbSet<SourceDefinition> SourceDefinitions => Set<SourceDefinition>();
     public DbSet<Follow> Follows => Set<Follow>();
@@ -21,6 +23,27 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     {
         modelBuilder.Entity<AppUser>()
             .HasIndex(x => x.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Workspace>()
+            .HasIndex(x => x.OwnerUserId);
+
+        modelBuilder.Entity<Membership>()
+            .HasIndex(x => x.UserId)
+            .IsUnique();
+
+        modelBuilder.Entity<Membership>()
+            .HasIndex(x => x.WorkspaceId)
+            .IsUnique();
+
+        modelBuilder.Entity<Membership>()
+            .HasIndex(x => x.StripeCustomerId);
+
+        modelBuilder.Entity<Membership>()
+            .HasIndex(x => x.StripeSubscriptionId);
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(x => x.TokenHash)
             .IsUnique();
 
         modelBuilder.Entity<Target>()
