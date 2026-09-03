@@ -126,3 +126,10 @@
 - Rebuilt the homepage hero as a two-column product surface with a live example of watched items, change status, reminders, and history.
 - Added stronger product-card iconography, monitor-specific accent colors, status pills, hover depth, and section backgrounds to increase visual hierarchy.
 - Updated primary actions and header branding to use Clarity teal consistently while preserving the existing calm neutral base and responsive behavior.
+
+## 0.5.4 - 2026-09-03
+
+- Added a Clarity-branded social footer band across the public site.
+- Linked the confirmed @claritybelongs Instagram, TikTok, and YouTube accounts with compact social cards and matching teal/dark visual treatment.
+- Added the “Follow what changes” discovery message while keeping the existing legal/navigation footer below it.
+- Left Reddit out until the matching Clarity account is reserved and ready to link.
