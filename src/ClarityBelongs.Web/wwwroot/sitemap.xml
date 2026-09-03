@@ -2,21 +2,70 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://claritybelongs.com/</loc></url>
   <url><loc>https://claritybelongs.com/products</loc></url>
-  <url><loc>https://claritybelongs.com/products/website-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/product-price</loc></url>
+  <url><loc>https://claritybelongs.com/products/restock-availability</loc></url>
+  <url><loc>https://claritybelongs.com/products/subscription-price-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/airfare</loc></url>
+  <url><loc>https://claritybelongs.com/products/hotel-rate</loc></url>
+  <url><loc>https://claritybelongs.com/products/rental-car-rate</loc></url>
+  <url><loc>https://claritybelongs.com/products/event-ticket-price</loc></url>
+  <url><loc>https://claritybelongs.com/products/fee-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/sale-price-history</loc></url>
   <url><loc>https://claritybelongs.com/products/website-uptime</loc></url>
   <url><loc>https://claritybelongs.com/products/ssl-expiration</loc></url>
   <url><loc>https://claritybelongs.com/products/domain-expiration</loc></url>
   <url><loc>https://claritybelongs.com/products/dns-change</loc></url>
-  <url><loc>https://claritybelongs.com/products/restock-availability</loc></url>
+  <url><loc>https://claritybelongs.com/products/nameserver-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/http-status</loc></url>
+  <url><loc>https://claritybelongs.com/products/redirect-chain</loc></url>
+  <url><loc>https://claritybelongs.com/products/broken-link</loc></url>
+  <url><loc>https://claritybelongs.com/products/sitemap-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/robots-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/mx-record</loc></url>
+  <url><loc>https://claritybelongs.com/products/spf-record</loc></url>
+  <url><loc>https://claritybelongs.com/products/dkim-record</loc></url>
+  <url><loc>https://claritybelongs.com/products/dmarc-record</loc></url>
+  <url><loc>https://claritybelongs.com/products/ip-blacklist</loc></url>
+  <url><loc>https://claritybelongs.com/products/website-malware-reputation</loc></url>
+  <url><loc>https://claritybelongs.com/products/page-speed-regression</loc></url>
+  <url><loc>https://claritybelongs.com/products/core-web-vitals</loc></url>
+  <url><loc>https://claritybelongs.com/products/website-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/website-keyword-source</loc></url>
+  <url><loc>https://claritybelongs.com/products/competitor-pricing</loc></url>
+  <url><loc>https://claritybelongs.com/products/competitor-homepage</loc></url>
+  <url><loc>https://claritybelongs.com/products/terms-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/privacy-policy-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/app-store-rating</loc></url>
+  <url><loc>https://claritybelongs.com/products/app-store-release</loc></url>
+  <url><loc>https://claritybelongs.com/products/software-release</loc></url>
+  <url><loc>https://claritybelongs.com/products/github-release</loc></url>
+  <url><loc>https://claritybelongs.com/products/package-release</loc></url>
+  <url><loc>https://claritybelongs.com/products/public-status-page</loc></url>
+  <url><loc>https://claritybelongs.com/products/service-outage</loc></url>
+  <url><loc>https://claritybelongs.com/products/cancellation-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/job-posting</loc></url>
+  <url><loc>https://claritybelongs.com/products/grant-opportunity</loc></url>
+  <url><loc>https://claritybelongs.com/products/government-bid</loc></url>
+  <url><loc>https://claritybelongs.com/products/new-listing</loc></url>
+  <url><loc>https://claritybelongs.com/products/deadline-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/public-meeting-agenda</loc></url>
+  <url><loc>https://claritybelongs.com/products/regulatory-filing</loc></url>
+  <url><loc>https://claritybelongs.com/products/policy-public-record</loc></url>
   <url><loc>https://claritybelongs.com/products/recall-alert</loc></url>
   <url><loc>https://claritybelongs.com/products/local-government-project</loc></url>
   <url><loc>https://claritybelongs.com/products/school-community-notice</loc></url>
-  <url><loc>https://claritybelongs.com/products/fee-change</loc></url>
-  <url><loc>https://claritybelongs.com/products/service-outage</loc></url>
-  <url><loc>https://claritybelongs.com/products/sale-price-history</loc></url>
-  <url><loc>https://claritybelongs.com/products/cancellation-change</loc></url>
-  <url><loc>https://claritybelongs.com/products/deadline-change</loc></url>
   <url><loc>https://claritybelongs.com/products/consumer-notice</loc></url>
+  <url><loc>https://claritybelongs.com/products/brand-mention-source</loc></url>
+  <url><loc>https://claritybelongs.com/products/username-impersonation</loc></url>
+  <url><loc>https://claritybelongs.com/products/domain-typosquat</loc></url>
+  <url><loc>https://claritybelongs.com/products/certificate-transparency</loc></url>
+  <url><loc>https://claritybelongs.com/products/reputation-change</loc></url>
+  <url><loc>https://claritybelongs.com/products/api-endpoint-uptime</loc></url>
+  <url><loc>https://claritybelongs.com/products/webhook-health</loc></url>
+  <url><loc>https://claritybelongs.com/products/cron-heartbeat</loc></url>
+  <url><loc>https://claritybelongs.com/products/backup-heartbeat</loc></url>
+  <url><loc>https://claritybelongs.com/products/email-delivery-heartbeat</loc></url>
+  <url><loc>https://claritybelongs.com/products/cloud-service-outage</loc></url>
   <url><loc>https://claritybelongs.com/pricing</loc></url>
   <url><loc>https://claritybelongs.com/about</loc></url>
   <url><loc>https://claritybelongs.com/support</loc></url>
