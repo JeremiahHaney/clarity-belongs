@@ -19,7 +19,7 @@ Implemented: My Clarity, onboarding, Add Follow, Follow detail, pause/resume/arc
 
 **Status: Implemented — representative interactive flows remain Testing Required.**
 
-## Launch Phase 3 — Your Internet
+## Launch Phase 3 — Initial Your Internet cluster
 
 1. Website Change Monitor
 2. Website Uptime Monitor
@@ -48,8 +48,8 @@ See `07-ACCOUNTS-MEMBERSHIP-BILLING.md`.
 Implemented:
 
 - public homepage at `/`
-- authenticated dashboard moved to `/my-clarity`
-- public product discovery and expanded product-detail pages
+- authenticated dashboard at `/my-clarity`
+- public product discovery and product-detail pages
 - pricing entry path
 - public About / mission page
 - Learn/help entry path
@@ -74,17 +74,42 @@ Implemented initial acquisition surface:
 - FAQ structures
 - product-to-guide and guide-to-product internal linking
 - `robots.txt` separating public discovery from authenticated application routes
-- `sitemap.xml` covering current public pages
+- `sitemap.xml` covering public product and content pages
 - unique page titles and description metadata for product/article pages
 - Software Belongs ecosystem/cross-link direction documented
-
-Initial intents include website-change monitoring, webpage-change alerts, uptime, SSL expiration, domain expiration, DNS changes, pricing-page changes, terms/privacy changes, public notices, change-vs-uptime comparison, and monitor cadence.
 
 **Status: Implemented — production indexing, analytics/Search Console, keyword performance, Software Belongs reciprocal links, and content expansion remain Testing Required.**
 
 See `08-PUBLIC-SITE-SEARCH-DISCOVERY.md`.
 
-## Launch Phase 8 — Dogfood
+## Launch Phase 8 — Complete V1 catalog
+
+Implemented 64 selectable V1 monitor entry points across:
+
+- Money
+- Your Internet
+- Changes
+- Opportunities
+- Public Information
+- Your Identity
+- Reliability
+
+The complete initial opportunity backlog is represented as working self-service follows. Products reuse a small set of observation primitives:
+
+- HTTP content history
+- HTTP availability/final-destination state
+- TLS certificate state
+- DNS address state
+- generic DNS record state through DNS-over-HTTPS
+- RDAP domain state
+
+Specialized products that depend on ratings, reputation, performance reports, prices, listings, public notices, or provider status use a user-selected public source in V1. The UI and product copy explicitly say this rather than implying access to private accounts, proprietary datasets, or unsupported extraction.
+
+DNS-record V1 support adds normalized public NS, MX, TXT/SPF, DKIM, and DMARC observations.
+
+**Status: Implemented — representative real-source testing across product families remains required.**
+
+## Launch Phase 9 — Dogfood and release testing
 
 Next:
 
@@ -93,64 +118,27 @@ Next:
 - AutoPilot IT public endpoints
 - domains
 - certificates
-- DNS
+- DNS and email records
 - important vendor/release pages
+- public pricing and policy pages
+- representative public-information sources
+- representative opportunity/listing sources
 
-## Expansion Wave 1 — Public-source monitors
+## Later refinement — only after V1 usage proves value
 
-Implemented as thin product surfaces over the existing HTTP content-change and uptime engines:
+Do not create separate product codebases. Improve shared adapters when real usage justifies it:
 
-1. Restock & Availability Monitor
-2. Recall Alert Monitor
-3. Local Government Project Monitor
-4. School & Community Notice Monitor
-5. Fee Change Monitor
-6. Service Outage Monitor
-7. Price & Sale History Monitor
-8. Cancellation & Change Monitor
-9. Deadline Monitor
-10. Consumer Notice Monitor
-
-These monitors intentionally watch user-selected public sources and preserve evidence/history. Specialized structured extraction, source discovery, retailer integrations, private-account access, and authoritative external datasets remain future work rather than being implied by V1.
-
-**Status: Product definitions implemented — representative real-source testing remains required.**
-
-## Expansion — Changes
-
-- terms monitoring
-- privacy-policy monitoring
-- competitor pages
-- software releases
-- product pages
-- RSS/feed monitoring
-
-## Expansion — Money & Availability
-
-- structured product price extraction
-- structured product availability extraction
-- subscription price changes
-- airfare
-- hotels
-- rental cars
-- event tickets
-
-## Expansion — Opportunities & Public Information
-
-- jobs
-- grants
-- bids
-- public agendas
-- regulatory filings
-- policy changes
-- public records
-
-## Expansion — Identity & Reputation
-
-- brand mentions
-- typo domains
-- certificate-transparency signals
-- username impersonation
-- reputation changes
+- structured price and availability extraction
+- retailer/travel integrations where legally and operationally sensible
+- isolated keyword/selector extraction
+- dedicated app-store and package-registry adapters
+- dedicated reputation/security data integrations
+- browser-based PageSpeed/Core Web Vitals observation
+- broad source discovery and mention search
+- automatic typo-domain generation
+- inbound heartbeat collection for jobs/backups/mail rather than public health-URL observation
+- multi-source outage aggregation
+- RSS/feed-specific normalization
 
 ## Scale / Harden
 
@@ -172,7 +160,8 @@ Clarity V1 is release-ready when:
 
 - engine build/startup verification is green
 - public-site/search route smoke verification is green
-- five Your Internet products pass real target tests
+- representative HTTP, TLS, DNS, DNS-record, and domain monitors pass real target tests
+- representative products from each V1 family pass Add Follow -> history -> change -> alert testing
 - interactive setup/history/acknowledgement flows pass
 - SMTP delivery passes with the production provider
 - Stripe Checkout/webhook/portal flows pass in test mode
