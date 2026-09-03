@@ -1,6 +1,7 @@
 @page "/"
+@attribute [Authorize]
 @inject MyClarityService Clarity
-@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject CurrentAccountService CurrentAccount
 @rendermode InteractiveServer
 
 <PageTitle>My Clarity</PageTitle>
@@ -163,11 +164,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var workspaceId = await Db.Workspaces
-            .OrderBy(x => x.Id)
-            .Select(x => x.Id)
-            .FirstAsync();
-
-        _dashboard = await Clarity.GetAsync(workspaceId);
+        var account = await CurrentAccount.RequireAsync();
+        _dashboard = await Clarity.GetAsync(account.WorkspaceId);
     }
 }
