@@ -1,6 +1,9 @@
 @page "/add"
+@attribute [Authorize]
 @inject ClarityProductCatalog Catalog
 @inject FollowManagementService Follows
+@inject CurrentAccountService CurrentAccount
+@inject MembershipService Memberships
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
@@ -13,85 +16,107 @@
         <p>Pick a monitor, tell us the public target, and Clarity will start building history.</p>
     </header>
 
-    <section class="panel">
-        <EditForm Model="Form" OnValidSubmit="CreateAsync">
-            <DataAnnotationsValidator />
+    @if (Account is null || Membership is null)
+    {
+        <section class="panel"><p>Loading membership...</p></section>
+    }
+    else
+    {
+        <section class="setup-note plan-notice">
+            <strong>@Membership.Plan.Name plan · @Membership.ActiveFollowCount / @Membership.Plan.MaxActiveFollows follows used</strong>
+            <span>Fastest available cadence: @FormatCadence(Membership.Plan.MinimumCadenceMinutes). <a href="/pricing">Compare plans</a>.</span>
+        </section>
 
-            <label class="field">
-                <span>Monitor</span>
-                <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
-                    @foreach (var product in Catalog.GetAll())
-                    {
-                        <option value="@product.Slug">@product.Name</option>
-                    }
-                </select>
-            </label>
-
-            @if (Product is not null)
-            {
-                <div class="setup-note">
-                    <strong>@Product.ShortDescription</strong>
-                    <span>@Product.HelpText</span>
-                </div>
+        <section class="panel">
+            <EditForm Model="Form" OnValidSubmit="CreateAsync">
+                <DataAnnotationsValidator />
 
                 <label class="field">
-                    <span>Name</span>
-                    <input @bind="Form.Name" placeholder="A name you will recognize" />
+                    <span>Monitor</span>
+                    <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
+                        @foreach (var product in Catalog.GetAll())
+                        {
+                            <option value="@product.Slug">@product.Name</option>
+                        }
+                    </select>
                 </label>
 
-                <label class="field">
-                    <span>@Product.TargetLabel</span>
-                    <input @bind="Form.Target" placeholder="@Product.TargetPlaceholder" />
-                </label>
-
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Check every</span>
-                        <select @bind="Form.CadenceMinutes">
-                            <option value="5">5 minutes</option>
-                            <option value="15">15 minutes</option>
-                            <option value="60">1 hour</option>
-                            <option value="360">6 hours</option>
-                            <option value="720">12 hours</option>
-                            <option value="1440">1 day</option>
-                        </select>
-                    </label>
-
-                    <label class="field">
-                        <span>Importance</span>
-                        <select @bind="Form.Importance">
-                            <option>Low</option>
-                            <option>Normal</option>
-                            <option>High</option>
-                            <option>Critical</option>
-                        </select>
-                    </label>
-                </div>
-
-                @if (!string.IsNullOrWhiteSpace(Error))
+                @if (Product is not null)
                 {
-                    <div class="error-card">@Error</div>
-                }
+                    <div class="setup-note">
+                        <strong>@Product.ShortDescription</strong>
+                        <span>@Product.HelpText</span>
+                    </div>
 
-                <button class="button" type="submit" disabled="@Saving">
-                    @(Saving ? "Starting..." : "Start following")
-                </button>
-            }
-        </EditForm>
-    </section>
+                    <label class="field">
+                        <span>Name</span>
+                        <input @bind="Form.Name" placeholder="A name you will recognize" />
+                    </label>
+
+                    <label class="field">
+                        <span>@Product.TargetLabel</span>
+                        <input @bind="Form.Target" placeholder="@Product.TargetPlaceholder" />
+                    </label>
+
+                    <div class="form-grid">
+                        <label class="field">
+                            <span>Check every</span>
+                            <select @bind="Form.CadenceMinutes">
+                                @foreach (var cadence in AvailableCadences)
+                                {
+                                    <option value="@cadence">@FormatCadence(cadence)</option>
+                                }
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Importance</span>
+                            <select @bind="Form.Importance">
+                                <option>Low</option>
+                                <option>Normal</option>
+                                <option>High</option>
+                                <option>Critical</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Error))
+                    {
+                        <div class="error-card">@Error</div>
+                    }
+
+                    <button class="button" type="submit" disabled="@Saving">
+                        @(Saving ? "Starting..." : "Start following")
+                    </button>
+                }
+            </EditForm>
+        </section>
+    }
 </div>
 
 @code {
     [SupplyParameterFromQuery(Name = "product")]
     public string? ProductQuery { get; set; }
 
+    private static readonly int[] CadenceChoices = [5, 15, 60, 360, 720, 1440, 10080];
     private AddFollowForm Form { get; } = new();
     private ClarityProduct? Product => Catalog.GetBySlug(Form.ProductSlug);
+    private AccountSession? Account { get; set; }
+    private MembershipSummary? Membership { get; set; }
     private string? Error { get; set; }
     private bool Saving { get; set; }
 
-    protected override void OnInitialized()
+    private IEnumerable<int> AvailableCadences => Membership is null
+        ? CadenceChoices
+        : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
+
+    protected override async Task OnInitializedAsync()
     {
+        Account = await CurrentAccount.RequireAsync();
+        Membership = await Memberships.GetAsync(
+            Account.UserId,
+            Account.WorkspaceId);
+
         Form.ProductSlug = Catalog.GetBySlug(ProductQuery)?.Slug
             ?? Catalog.GetAll().First().Slug;
 
@@ -111,7 +136,11 @@
             Form.Name = product.Name;
         }
 
-        Form.CadenceMinutes = product.DefaultCadenceMinutes;
+        Form.CadenceMinutes = Membership is null
+            ? product.DefaultCadenceMinutes
+            : Math.Max(
+                product.DefaultCadenceMinutes,
+                Membership.Plan.MinimumCadenceMinutes);
         Form.Importance = product.DefaultImportance;
     }
 
@@ -119,7 +148,7 @@
     {
         var product = Product;
 
-        if (product is null)
+        if (product is null || Account is null)
             return;
 
         if (string.IsNullOrWhiteSpace(Form.Name)
@@ -135,6 +164,8 @@
         try
         {
             var followId = await Follows.CreateAsync(
+                Account.UserId,
+                Account.WorkspaceId,
                 new CreateFollowInput(
                     Form.Name,
                     Form.Target,
@@ -155,12 +186,26 @@
         }
     }
 
+    private static string FormatCadence(int minutes)
+    {
+        if (minutes >= 10080)
+            return "1 week";
+
+        if (minutes >= 1440)
+            return $"{minutes / 1440} day";
+
+        if (minutes >= 60)
+            return $"{minutes / 60} hour";
+
+        return $"{minutes} minutes";
+    }
+
     private sealed class AddFollowForm
     {
         public string ProductSlug { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Target { get; set; } = string.Empty;
-        public int CadenceMinutes { get; set; } = 60;
+        public int CadenceMinutes { get; set; } = 360;
         public string Importance { get; set; } = "Normal";
     }
 }
