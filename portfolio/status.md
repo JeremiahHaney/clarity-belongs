@@ -2,7 +2,7 @@
 
 ## Current milestone
 
-**Core Observation Engine + My Clarity design complete — ready for implementation.**
+**Core Observation Engine + My Clarity design complete, ecosystem reuse review complete — ready for implementation.**
 
 ## Identity
 
@@ -28,7 +28,7 @@
 
 Defined:
 
-- User / Workspace ownership
+- UserId / WorkspaceId ownership boundary
 - Follow
 - Target
 - SourceDefinition
@@ -44,16 +44,28 @@ Defined:
 - monitor definition contract
 - scheduler/deduplication model
 - V1 boundaries
+- cross-ecosystem reuse rules
+
+Reuse findings:
+
+- AutoPilot IT already has production-oriented HTTP/website, TLS, DNS, domain, API, content, email-auth, heartbeat, security-header and endpoint-safety monitoring mechanics.
+- AutoPilot IT's due-target worker and notification deduplication patterns should guide Clarity's scheduler and delivery implementations.
+- Clarity should own the richer Follow -> Snapshot -> Change -> History awareness model instead of adopting APIT's operational incident model.
+- Software Belongs provides useful application/product patterns but does not yet contain a mature canonical shared account/workspace/billing platform.
+- Shared identity, membership and billing should remain behind boundaries and must not block Clarity's first build.
 
 Next implementation slice:
 
 1. app/solution shell + persistence
-2. User/Workspace
-3. Follow/Target/SourceDefinition
-4. ObservationRun/Snapshot
-5. scheduler + adapters
-6. HTTP adapter + first change detection
-7. My Clarity history and dashboard
+2. UserId / WorkspaceId boundary
+3. Follow / Target / SourceDefinition
+4. ObservationRun / Snapshot / Change
+5. reuse/extract APIT `PublicEndpointGuard`
+6. reuse/extract APIT website/TLS HTTP checking mechanics
+7. general scheduler using APIT's due-target pattern
+8. My Clarity history/dashboard
+9. alert rules + notification delivery
+10. DNS/domain adapters from APIT implementations
 
 ## Initial product cluster
 
