@@ -106,3 +106,8 @@
 - Expanded CI smoke coverage to request the homepage, public product route, Learn route/article, pricing, About, Support, Privacy, Terms, robots, sitemap, authenticated My Clarity, Account, and follow-creation API.
 - Added `08-PUBLIC-SITE-SEARCH-DISCOVERY.md` and advanced roadmap/status documentation through Launch Phase 7.
 - Kept final legal/contact details, approved paid prices, production deployment/indexing, reciprocal Software Belongs links, analytics/search-console configuration, and real-world browser/search validation marked Testing Required.
+
+## 0.5.1 - 2026-09-03
+
+- Fixed the Blazor programmatic heading focus outline that could draw a jagged border around page headings after navigation.
+- Reused the confirmed Software Belongs fix by suppressing the outline specifically for focused `h1[tabindex="-1"]` elements, preserving normal keyboard focus behavior elsewhere.
