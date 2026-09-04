@@ -1,0 +1,112 @@
+@page "/feedback"
+@rendermode InteractiveServer
+@using ClarityBelongs.Web.Data
+@using ClarityBelongs.Web.Domain
+@inject ClarityDbContext Db
+@inject NavigationManager Navigation
+
+<PageTitle>Feedback - Clarity Belongs</PageTitle>
+
+<div class="page-shell" style="max-width: 760px; margin: 0 auto; padding: 3rem 1.25rem 4rem;">
+    <h1>Help us improve</h1>
+    <p>
+        Tell us what worked, what did not, or what would make Clarity more useful.
+        We are actively reading feedback while these tools are early.
+    </p>
+
+    @if (_submitted)
+    {
+        <div class="panel" style="margin: 1.5rem 0;">
+            <strong>Thanks. Your feedback was received.</strong>
+        </div>
+    }
+
+    <div class="panel" style="display: grid; gap: 1rem; margin-top: 1.5rem;">
+        <label>
+            <span>Feedback type</span>
+            <select @bind="_kind" style="display: block; width: 100%; margin-top: .4rem;">
+                <option value="general">General feedback</option>
+                <option value="bug">Report a problem</option>
+                <option value="idea">Suggest an improvement</option>
+                <option value="positive">Something worked well</option>
+            </select>
+        </label>
+
+        <label>
+            <span>Your feedback</span>
+            <textarea @bind="_message" rows="6" maxlength="4000" style="display: block; width: 100%; margin-top: .4rem;"></textarea>
+        </label>
+
+        <label>
+            <span>Email (optional)</span>
+            <input @bind="_contact" type="email" maxlength="320" style="display: block; width: 100%; margin-top: .4rem;" />
+        </label>
+
+        <p style="margin: 0; opacity: .75;">
+            You can submit anonymously. Add an email only if you are okay with us contacting you about this feedback.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <p role="alert">@_error</p>
+        }
+
+        <div>
+            <button type="button" @onclick="SubmitAsync">Send feedback</button>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top: 1.5rem;">
+        <strong>Did Clarity work for you?</strong>
+        <div style="display: flex; gap: .75rem; margin-top: .75rem;">
+            <button type="button" @onclick='() => SubmitQuickAsync("useful-yes")'>Yes</button>
+            <button type="button" @onclick='() => SubmitQuickAsync("useful-no")'>No</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _kind = "general";
+    private string _message = string.Empty;
+    private string _contact = string.Empty;
+    private string? _error;
+    private bool _submitted;
+
+    private async Task SubmitAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_message))
+        {
+            _error = "Please include a short message.";
+            return;
+        }
+
+        await SaveAsync(_kind, _message);
+        _message = string.Empty;
+        _error = null;
+        _submitted = true;
+    }
+
+    private async Task SubmitQuickAsync(string kind)
+    {
+        await SaveAsync(kind, string.Empty);
+        _error = null;
+        _submitted = true;
+    }
+
+    private async Task SaveAsync(string kind, string message)
+    {
+        Db.FeedbackSubmissions.Add(new FeedbackSubmission
+        {
+            Kind = kind,
+            Message = message.Trim(),
+            ProductSlug = "clarity",
+            Path = Navigation.Uri,
+            Contact = string.IsNullOrWhiteSpace(_contact)
+                ? null
+                : _contact.Trim(),
+            CreatedUtc = DateTime.UtcNow
+        });
+
+        await Db.SaveChangesAsync();
+    }
+}
