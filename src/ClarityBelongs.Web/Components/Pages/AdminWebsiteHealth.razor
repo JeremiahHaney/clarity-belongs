@@ -1,0 +1,126 @@
+@page "/admin/health/website"
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IConfiguration Configuration
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@rendermode InteractiveServer
+
+<PageTitle>Website Health · Clarity Belongs</PageTitle>
+
+<div class="shell">
+    <header class="hero dashboard-hero">
+        <div>
+            <div class="eyebrow">ADMIN · WEBSITE HEALTH</div>
+            <h1>Website health</h1>
+            <p>Current process health plus database, monitoring, and delivery signals for the Clarity service.</p>
+        </div>
+        <a class="button secondary" href="/admin">Admin</a>
+    </header>
+
+    @if (_loading)
+    {
+        <section class="panel"><p>Loading website health...</p></section>
+    }
+    else if (!_authorized)
+    {
+        <section class="panel"><h2>Admin access required.</h2></section>
+    }
+    else if (_runtime is not null)
+    {
+        <section class="summary-grid">
+            <article class="summary-card"><strong>@_runtime.CpuPercent.ToString("N1")%</strong><span>CPU</span></article>
+            <article class="summary-card"><strong>@FormatBytes(_runtime.WorkingSetBytes)</strong><span>Working set</span></article>
+            <article class="summary-card"><strong>@FormatUptime(_runtime.Uptime)</strong><span>Process uptime</span></article>
+            <article class="summary-card"><strong>@(_databaseAvailable ? "Healthy" : "Unavailable")</strong><span>Database</span></article>
+        </section>
+
+        <section class="panel">
+            <div class="eyebrow">RUNTIME</div>
+            <h2>@_runtime.MachineName</h2>
+            <div class="row"><div><strong>Process</strong><div class="muted">PID @_runtime.ProcessId · started @_runtime.StartedUtc.ToLocalTime().ToString("g")</div></div><div class="badge">Running</div></div>
+            <div class="row"><div><strong>Memory</strong><div class="muted">Private @FormatBytes(_runtime.PrivateMemoryBytes) · GC @FormatBytes(_runtime.GcMemoryBytes)</div></div></div>
+            <div class="row"><div><strong>Runtime resources</strong><div class="muted">@_runtime.ThreadCount threads · @_runtime.HandleCount handles</div></div></div>
+        </section>
+
+        <section class="panel">
+            <div class="eyebrow">MONITORING HEALTH</div>
+            <h2>Current service signals</h2>
+            <div class="row"><div><strong>Active follows</strong><div class="muted">Monitoring jobs currently enabled</div></div><div class="badge">@_activeFollows.ToString("N0")</div></div>
+            <div class="row"><div><strong>Failed runs · 24h</strong><div class="muted">Observation runs that ended in failure</div></div><div class="badge">@_failedRuns24h.ToString("N0")</div></div>
+            <div class="row"><div><strong>Pending notifications</strong><div class="muted">Delivery work waiting to be sent</div></div><div class="badge">@_pendingNotifications.ToString("N0")</div></div>
+            <div class="row"><div><strong>Failed notifications · 24h</strong><div class="muted">Recent delivery failures</div></div><div class="badge">@_failedNotifications24h.ToString("N0")</div></div>
+        </section>
+
+        <section class="panel">
+            <div class="eyebrow">RECENT FAILURES</div>
+            <h2>Observation errors</h2>
+            @if (_recentFailures.Count == 0)
+            {
+                <p class="muted">No failed observation runs in the last 24 hours.</p>
+            }
+            else
+            {
+                @foreach (var run in _recentFailures)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@(string.IsNullOrWhiteSpace(run.ErrorCode) ? "Observation failure" : run.ErrorCode)</strong>
+                            <div class="muted">@run.StartedAtUtc.ToLocalTime().ToString("g") · @(run.ErrorMessage ?? "No error detail")</div>
+                        </div>
+                        <div class="badge">Failed</div>
+                    </div>
+                }
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private bool _authorized;
+    private bool _databaseAvailable;
+    private int _activeFollows;
+    private int _failedRuns24h;
+    private int _pendingNotifications;
+    private int _failedNotifications24h;
+    private WebsiteRuntimeSnapshot? _runtime;
+    private List<ObservationRun> _recentFailures = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _authorized = AdminAccess.IsAllowed(state.User, Configuration);
+
+        if (!_authorized)
+        {
+            _loading = false;
+            return;
+        }
+
+        _runtime = WebsiteRuntimeHealth.GetSnapshot();
+        _databaseAvailable = await Db.Database.CanConnectAsync();
+        var sinceUtc = DateTime.UtcNow.AddHours(-24);
+        _activeFollows = await Db.Follows.CountAsync(follow => follow.Status == FollowStatuses.Active);
+        _failedRuns24h = await Db.ObservationRuns.CountAsync(run => run.Status == ObservationStatuses.Failed && run.StartedAtUtc >= sinceUtc);
+        _pendingNotifications = await Db.Notifications.CountAsync(notification => notification.Status == "Pending");
+        _failedNotifications24h = await Db.Notifications.CountAsync(notification => notification.FailedAtUtc >= sinceUtc);
+        _recentFailures = await Db.ObservationRuns
+            .AsNoTracking()
+            .Where(run => run.Status == ObservationStatuses.Failed && run.StartedAtUtc >= sinceUtc)
+            .OrderByDescending(run => run.StartedAtUtc)
+            .Take(20)
+            .ToListAsync();
+        _loading = false;
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        var mb = bytes / 1024d / 1024d;
+        return mb >= 1024
+            ? $"{mb / 1024d:N1} GB"
+            : $"{mb:N0} MB";
+    }
+
+    private static string FormatUptime(TimeSpan uptime) =>
+        $"{(int)uptime.TotalDays}d {uptime.Hours}h {uptime.Minutes}m";
+}
