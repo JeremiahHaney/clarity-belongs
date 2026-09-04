@@ -1,0 +1,36 @@
+name: Feedback Contract
+
+on:
+  push:
+    paths:
+      - 'src/ClarityBelongs.Web/**'
+      - 'docs/FEEDBACK-STANDARD.md'
+      - '.github/workflows/feedback-contract.yml'
+  pull_request:
+    paths:
+      - 'src/ClarityBelongs.Web/**'
+      - 'docs/FEEDBACK-STANDARD.md'
+      - '.github/workflows/feedback-contract.yml'
+  workflow_dispatch:
+
+jobs:
+  feedback-contract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify feedback contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f docs/FEEDBACK-STANDARD.md
+          grep -q '@page "/feedback"' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q 'useful-yes' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q 'ProductSlug' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q 'FeedbackSubmissions' src/ClarityBelongs.Web/Data/ClarityDbContext.cs
+          grep -q 'FeedbackSubmissions' src/ClarityBelongs.Web/Data/DatabaseSchemaService.cs
+          grep -q 'href="/feedback"' src/ClarityBelongs.Web/Components/Layout/MainLayout.razor
+
+      - name: Build
+        run: dotnet build src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release
