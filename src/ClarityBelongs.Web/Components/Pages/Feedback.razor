@@ -66,6 +66,15 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? Product { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Source { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Version { get; set; }
+
     private string _kind = "general";
     private string _message = string.Empty;
     private string _contact = string.Empty;
@@ -95,12 +104,25 @@
 
     private async Task SaveAsync(string kind, string message)
     {
+        var storedMessage = message.Trim();
+
+        if (!string.IsNullOrWhiteSpace(Version))
+        {
+            storedMessage = string.IsNullOrWhiteSpace(storedMessage)
+                ? $"Version: {Version.Trim()}"
+                : $"{storedMessage}{Environment.NewLine}{Environment.NewLine}Version: {Version.Trim()}";
+        }
+
         Db.FeedbackSubmissions.Add(new FeedbackSubmission
         {
             Kind = kind,
-            Message = message.Trim(),
-            ProductSlug = "clarity",
-            Path = Navigation.Uri,
+            Message = storedMessage,
+            ProductSlug = string.IsNullOrWhiteSpace(Product)
+                ? "clarity"
+                : Product.Trim(),
+            Path = string.IsNullOrWhiteSpace(Source)
+                ? Navigation.Uri
+                : Source.Trim(),
             Contact = string.IsNullOrWhiteSpace(_contact)
                 ? null
                 : _contact.Trim(),
