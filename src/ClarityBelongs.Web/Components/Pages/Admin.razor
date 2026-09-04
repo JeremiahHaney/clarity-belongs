@@ -1,0 +1,274 @@
+@page "/admin"
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IConfiguration Configuration
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@rendermode InteractiveServer
+
+<PageTitle>Admin · Clarity Belongs</PageTitle>
+
+<div class="shell">
+    <header class="hero dashboard-hero">
+        <div>
+            <div class="eyebrow">CLARITY BELONGS ADMIN</div>
+            <h1>Operations</h1>
+            <p>Accounts, subscriptions, monitoring activity, delivery health, releases, and system status in one place.</p>
+        </div>
+        <a class="button secondary" href="/">Back to site</a>
+    </header>
+
+    @if (_loading)
+    {
+        <section class="panel">
+            <p>Loading admin...</p>
+        </section>
+    }
+    else if (!_authorized)
+    {
+        <section class="panel">
+            <div class="eyebrow">ADMIN ACCESS REQUIRED</div>
+            <h2>This account is not configured as an administrator.</h2>
+            <p class="muted">Admin access is controlled by the <code>Admin:Emails</code> configuration list.</p>
+        </section>
+    }
+    else
+    {
+        <nav class="action-row" aria-label="Admin sections">
+            <a class="button secondary" href="#accounts">Accounts</a>
+            <a class="button secondary" href="#memberships">Memberships</a>
+            <a class="button secondary" href="#monitoring">Monitoring</a>
+            <a class="button secondary" href="#delivery">Delivery</a>
+            <a class="button secondary" href="#system">System</a>
+        </nav>
+
+        <section class="summary-grid">
+            <article class="summary-card">
+                <strong>@_userCount</strong>
+                <span>Accounts</span>
+            </article>
+            <article class="summary-card">
+                <strong>@_paidMembershipCount</strong>
+                <span>Paid memberships</span>
+            </article>
+            <article class="summary-card">
+                <strong>@_activeFollowCount</strong>
+                <span>Active follows</span>
+            </article>
+            <article class="summary-card">
+                <strong>@_failedRunCount</strong>
+                <span>Failed runs · 24h</span>
+            </article>
+        </section>
+
+        <section class="panel" id="accounts">
+            <div class="section-heading">
+                <div>
+                    <div class="eyebrow">ACCOUNTS</div>
+                    <h2>Recent users</h2>
+                </div>
+            </div>
+
+            @if (_users.Count == 0)
+            {
+                <p class="muted">No user accounts yet.</p>
+            }
+            else
+            {
+                @foreach (var user in _users)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@user.DisplayName</strong>
+                            <div class="muted">@user.Email · last seen @user.LastSeenAtUtc.ToLocalTime().ToString("g")</div>
+                        </div>
+                        <div class="badge">@(user.EmailVerified ? "Verified" : "Unverified")</div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="panel" id="memberships">
+            <div class="eyebrow">MEMBERSHIPS & ENTITLEMENTS</div>
+            <h2>Subscription state</h2>
+            <div class="row">
+                <div>
+                    <strong>Free</strong>
+                    <div class="muted">Current free workspaces</div>
+                </div>
+                <div class="badge">@_freeMembershipCount</div>
+            </div>
+            <div class="row">
+                <div>
+                    <strong>Personal</strong>
+                    <div class="muted">Personal plan memberships</div>
+                </div>
+                <div class="badge">@_personalMembershipCount</div>
+            </div>
+            <div class="row">
+                <div>
+                    <strong>Business</strong>
+                    <div class="muted">Business plan memberships</div>
+                </div>
+                <div class="badge">@_businessMembershipCount</div>
+            </div>
+        </section>
+
+        <section class="panel" id="monitoring">
+            <div class="section-heading">
+                <div>
+                    <div class="eyebrow">MONITORING OPERATIONS</div>
+                    <h2>Recent follows</h2>
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <strong>Observation runs</strong>
+                    <div class="muted">Runs recorded across all configured sources</div>
+                </div>
+                <div class="badge">@_observationRunCount</div>
+            </div>
+            <div class="row">
+                <div>
+                    <strong>Meaningful changes</strong>
+                    <div class="muted">Changes retained by the observation engine</div>
+                </div>
+                <div class="badge">@_meaningfulChangeCount</div>
+            </div>
+
+            @foreach (var follow in _follows)
+            {
+                <div class="row">
+                    <div>
+                        <strong>@follow.Name</strong>
+                        <div class="muted">@follow.MonitorType · next @follow.NextCheckAtUtc.ToLocalTime().ToString("g")</div>
+                    </div>
+                    <div class="badge">@follow.Status</div>
+                </div>
+            }
+        </section>
+
+        <section class="panel" id="delivery">
+            <div class="eyebrow">ALERT & DELIVERY HEALTH</div>
+            <h2>Notifications</h2>
+            <div class="row">
+                <div>
+                    <strong>Pending</strong>
+                    <div class="muted">Queued notifications waiting for delivery</div>
+                </div>
+                <div class="badge">@_pendingNotificationCount</div>
+            </div>
+            <div class="row">
+                <div>
+                    <strong>Failed</strong>
+                    <div class="muted">Notifications with a recorded delivery failure</div>
+                </div>
+                <div class="badge">@_failedNotificationCount</div>
+            </div>
+        </section>
+
+        <section class="panel" id="system">
+            <div class="eyebrow">SYSTEM & RELEASES</div>
+            <h2>Clarity service</h2>
+            <div class="row">
+                <div>
+                    <strong>Database</strong>
+                    <div class="muted">Clarity operational store</div>
+                </div>
+                <div class="badge">@(_databaseAvailable ? "Healthy" : "Unavailable")</div>
+            </div>
+            <div class="row">
+                <div>
+                    <strong>Admin surface</strong>
+                    <div class="muted">Core operations dashboard</div>
+                </div>
+                <div class="badge">Active</div>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private bool _authorized;
+    private bool _databaseAvailable;
+    private int _userCount;
+    private int _freeMembershipCount;
+    private int _personalMembershipCount;
+    private int _businessMembershipCount;
+    private int _paidMembershipCount;
+    private int _activeFollowCount;
+    private int _observationRunCount;
+    private int _failedRunCount;
+    private int _meaningfulChangeCount;
+    private int _pendingNotificationCount;
+    private int _failedNotificationCount;
+    private List<AppUser> _users = [];
+    private List<Follow> _follows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authenticationState.User;
+        var email = principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+            ?? principal.Identity?.Name;
+        var adminEmails = Configuration
+            .GetSection("Admin:Emails")
+            .Get<string[]>()
+            ?? [];
+
+        _authorized = principal.Identity?.IsAuthenticated == true
+            && !string.IsNullOrWhiteSpace(email)
+            && adminEmails.Any(configured =>
+                string.Equals(
+                    configured,
+                    email,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (!_authorized)
+        {
+            _loading = false;
+            return;
+        }
+
+        _databaseAvailable = await Db.Database.CanConnectAsync();
+        if (_databaseAvailable)
+        {
+            var since = DateTime.UtcNow.AddHours(-24);
+
+            _userCount = await Db.Users.CountAsync();
+            _freeMembershipCount = await Db.Memberships
+                .CountAsync(membership => membership.PlanCode == MembershipPlans.Free);
+            _personalMembershipCount = await Db.Memberships
+                .CountAsync(membership => membership.PlanCode == MembershipPlans.Personal);
+            _businessMembershipCount = await Db.Memberships
+                .CountAsync(membership => membership.PlanCode == MembershipPlans.Business);
+            _paidMembershipCount = _personalMembershipCount + _businessMembershipCount;
+            _activeFollowCount = await Db.Follows
+                .CountAsync(follow => follow.Status == FollowStatuses.Active);
+            _observationRunCount = await Db.ObservationRuns.CountAsync();
+            _failedRunCount = await Db.ObservationRuns
+                .CountAsync(run =>
+                    run.Status == ObservationStatuses.Failed
+                    && run.StartedAtUtc >= since);
+            _meaningfulChangeCount = await Db.Changes
+                .CountAsync(change => change.IsMeaningful);
+            _pendingNotificationCount = await Db.Notifications
+                .CountAsync(notification => notification.Status == "Pending");
+            _failedNotificationCount = await Db.Notifications
+                .CountAsync(notification => notification.FailedAtUtc != null);
+            _users = await Db.Users
+                .AsNoTracking()
+                .OrderByDescending(user => user.CreatedAtUtc)
+                .Take(10)
+                .ToListAsync();
+            _follows = await Db.Follows
+                .AsNoTracking()
+                .OrderByDescending(follow => follow.CreatedAtUtc)
+                .Take(10)
+                .ToListAsync();
+        }
+
+        _loading = false;
+    }
+}
