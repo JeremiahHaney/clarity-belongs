@@ -5,12 +5,12 @@
     { "slug": "markdown-index-builder", "name": "Markdown Index Builder", "status": "Built / Testing Required", "entrypoint": "products/scripts/markdown-index-builder.ps1" },
     { "slug": "research-folder-inventory", "name": "Research Folder Inventory", "status": "Built / Testing Required", "entrypoint": "products/scripts/research-folder-inventory.ps1" },
     { "slug": "duplicate-note-finder", "name": "Duplicate Note Finder", "status": "Built / Testing Required", "entrypoint": "products/scripts/duplicate-note-finder.ps1" },
-    { "slug": "note-file-organizer", "name": "Note File Organizer", "status": "Planned" },
-    { "slug": "reading-folder-catalog", "name": "Reading Folder Catalog", "status": "Planned" },
-    { "slug": "document-name-cleaner", "name": "Document Name Cleaner", "status": "Planned" },
-    { "slug": "markdown-link-checker", "name": "Markdown Link Checker", "status": "Planned" },
-    { "slug": "text-file-merger", "name": "Text File Merger", "status": "Planned" },
-    { "slug": "transcript-batch-cleaner", "name": "Transcript Batch Cleaner", "status": "Planned" },
-    { "slug": "reference-file-sorter", "name": "Reference File Sorter", "status": "Planned" }
+    { "slug": "note-file-organizer", "name": "Note File Organizer", "status": "Built / Testing Required", "entrypoint": "products/scripts/note-file-organizer.ps1" },
+    { "slug": "reading-folder-catalog", "name": "Reading Folder Catalog", "status": "Built / Testing Required", "entrypoint": "products/scripts/reading-folder-catalog.ps1" },
+    { "slug": "document-name-cleaner", "name": "Document Name Cleaner", "status": "Built / Testing Required", "entrypoint": "products/scripts/document-name-cleaner.ps1" },
+    { "slug": "markdown-link-checker", "name": "Markdown Link Checker", "status": "Built / Testing Required", "entrypoint": "products/scripts/markdown-link-checker.ps1" },
+    { "slug": "text-file-merger", "name": "Text File Merger", "status": "Built / Testing Required", "entrypoint": "products/scripts/text-file-merger.ps1" },
+    { "slug": "transcript-batch-cleaner", "name": "Transcript Batch Cleaner", "status": "Built / Testing Required", "entrypoint": "products/scripts/transcript-batch-cleaner.ps1" },
+    { "slug": "reference-file-sorter", "name": "Reference File Sorter", "status": "Built / Testing Required", "entrypoint": "products/scripts/reference-file-sorter.ps1" }
   ]
 }
