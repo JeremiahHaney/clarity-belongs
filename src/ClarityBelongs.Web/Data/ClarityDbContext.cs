@@ -18,6 +18,7 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public DbSet<AlertRule> AlertRules => Set<AlertRule>();
     public DbSet<FollowChange> FollowChanges => Set<FollowChange>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,5 +72,28 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
         modelBuilder.Entity<Notification>()
             .HasIndex(x => x.DedupKey)
             .IsUnique();
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .Property(x => x.Kind)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .Property(x => x.Message)
+            .HasMaxLength(4000);
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .Property(x => x.ProductSlug)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .Property(x => x.Path)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .Property(x => x.Contact)
+            .HasMaxLength(320);
+
+        modelBuilder.Entity<FeedbackSubmission>()
+            .HasIndex(x => x.CreatedUtc);
     }
 }
