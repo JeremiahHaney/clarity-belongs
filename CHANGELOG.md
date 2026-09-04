@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.6 - 2026-09-04
+
+- Added the public `/tools` catalog for ten free local Clarity PowerShell utilities covering notes, research folders, Markdown, transcripts, reading files, and reference organization.
+- Added direct `.ps1` downloads sourced from the canonical `products/scripts` implementations so the public download matches the version in source control and QA.
+- Added Free Tools to authenticated navigation, public navigation, and the footer without mixing these local utilities into Clarity's recurring monitoring catalog.
+- Preserved the identity boundary: monitoring remains the core Clarity service while local document/information utilities are optional free tools.
+
 ## 0.6.5 - 2026-09-04
 
 - Added `portfolio/desktop.md` to define Clarity Belongs' focused desktop strategy for private, local, large, or awkward-to-upload documents.
