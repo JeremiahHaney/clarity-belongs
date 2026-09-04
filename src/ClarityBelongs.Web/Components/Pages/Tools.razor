@@ -1,0 +1,58 @@
+@page "/tools"
+
+<PageTitle>Free Local Tools | Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Download free local PowerShell tools from Clarity Belongs for notes, research folders, Markdown, transcripts, reading lists, and reference files." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://claritybelongs.com/tools" />
+</HeadContent>
+
+<div class="shell public-shell article-shell">
+    <header class="hero compact-hero article-hero">
+        <div class="eyebrow">FREE LOCAL TOOLS</div>
+        <h1>Organize information without uploading it.</h1>
+        <p class="public-lead">These small PowerShell utilities work on local notes, documents, research folders, Markdown, transcripts, and reference files. They are separate from Clarity's monitoring service and do not require an account.</p>
+    </header>
+
+    <article class="article-body">
+        <section>
+            <h2>Scripts & automation</h2>
+            <p>Download the script you need and review it before running. Tools that rename or move files preview their work first and require <code>-Apply</code> before changing anything.</p>
+            <div class="ecosystem-grid">
+                @foreach (var tool in Tools)
+                {
+                    <a href="@($"/downloads/scripts/{tool.Slug}.ps1")" download>
+                        <strong>@tool.Name</strong>
+                        <span>@tool.Description</span>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <section>
+            <h2>Local by default</h2>
+            <p>These tools are intended for files already on your computer. They do not need Clarity monitoring, hosted storage, or an AI service to perform their core jobs.</p>
+        </section>
+    </article>
+</div>
+
+@code {
+    private static IReadOnlyList<Tool> Tools { get; } =
+    [
+        new("note-file-organizer", "Note File Organizer", "Preview organizing note files into a cleaner folder structure."),
+        new("markdown-index-builder", "Markdown Index Builder", "Build an index of Markdown files for easier navigation."),
+        new("reading-folder-catalog", "Reading Folder Catalog", "Create a readable catalog of books, documents, and reading files."),
+        new("duplicate-note-finder", "Duplicate Note Finder", "Find duplicate notes by content without deleting anything."),
+        new("document-name-cleaner", "Document Name Cleaner", "Preview clearer document names and apply only when ready."),
+        new("research-folder-inventory", "Research Folder Inventory", "Export a structured inventory of a research folder."),
+        new("markdown-link-checker", "Markdown Link Checker", "Find local Markdown links that no longer resolve."),
+        new("text-file-merger", "Text File Merger", "Combine text files into one ordered output file."),
+        new("transcript-batch-cleaner", "Transcript Batch Cleaner", "Normalize batches of plain-text transcripts locally."),
+        new("reference-file-sorter", "Reference File Sorter", "Preview sorting reference files into useful groups.")
+    ];
+
+    private sealed record Tool(
+        string Slug,
+        string Name,
+        string Description);
+}
