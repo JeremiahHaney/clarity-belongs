@@ -14,26 +14,15 @@ Clarity extensions are browser companions for capturing, comparing, tracking and
 
 ## Catalog
 
+All eight products now have working Manifest V3 V1 implementations and are ready for hands-on Chrome/Edge QA.
+
 | # | Extension | Folder | Primary job | Status |
 | ---: | --- | --- | --- | --- |
-| 1 | Clarity Watch | `clarity-watch` | Select part of a page and create a change watch | Planned |
-| 2 | Clarity Compare | `clarity-compare` | Save a page snapshot and compare it later | Planned |
-| 3 | Clarity Explain | `clarity-explain` | Send selected text into an explanation workflow | Planned |
-| 4 | Clarity Capture | `clarity-capture` | Preserve URL, timestamp, screenshot and selected evidence | Planned |
-| 5 | Clarity Track | `clarity-track` | Turn a visible value/date/status into a tracked item | Planned |
-| 6 | Clarity Summarize | `clarity-summarize` | Send the current page into a summary workflow | Planned |
-| 7 | Clarity Source Check | `clarity-source-check` | Capture claims, links and source metadata | Planned |
-| 8 | Clarity Inbox | `clarity-inbox` | Save the current page or selection for later review | Planned |
-
-## Recommended build order
-
-1. Clarity Capture
-2. Clarity Inbox
-3. Clarity Watch
-4. Clarity Compare
-5. Clarity Track
-6. Clarity Summarize
-7. Clarity Explain
-8. Clarity Source Check
-
-The first four establish the shared capture, storage, screenshot and page-selection primitives that most of the remaining extensions can reuse.
+| 1 | Clarity Watch | `clarity-watch` | Save a page baseline and detect change | Working V1 / browser QA |
+| 2 | Clarity Compare | `clarity-compare` | Save a page snapshot and compare it later | Working V1 / browser QA |
+| 3 | Clarity Explain | `clarity-explain` | Capture selected text into a source-preserving explanation workflow | Working V1 / browser QA |
+| 4 | Clarity Capture | `clarity-capture` | Preserve URL, timestamp, screenshot and selected evidence | Working V1 / browser QA |
+| 5 | Clarity Track | `clarity-track` | Track a selected page value and compare it later | Working V1 / browser QA |
+| 6 | Clarity Summarize | `clarity-summarize` | Create a local extractive summary of the current page | Working V1 / browser QA |
+| 7 | Clarity Source Check | `clarity-source-check` | Capture source metadata and outbound-link signals | Working V1 / browser QA |
+| 8 | Clarity Inbox | `clarity-inbox` | Save the current page or selection for later review | Working V1 / browser QA |
