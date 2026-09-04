@@ -1,0 +1,42 @@
+name: Script Products
+
+on:
+  push:
+    paths:
+      - 'product-factory/powershell/**'
+      - 'products/scripts/**'
+      - '.github/workflows/script-products.yml'
+  pull_request:
+    paths:
+      - 'product-factory/powershell/**'
+      - 'products/scripts/**'
+      - '.github/workflows/script-products.yml'
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem product-factory/powershell, products/scripts -Filter *.ps1 -Recurse
+          $files += Get-ChildItem product-factory/powershell -Filter *.psm1 -Recurse
+          foreach ($file in $files) {
+              $tokens = $null
+              $errors = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors)
+              if ($errors.Count -gt 0) {
+                  $errors | ForEach-Object { Write-Error "$($file.FullName): $($_.Message)" }
+                  exit 1
+              }
+          }
+      - name: Validate catalog entrypoints
+        shell: pwsh
+        run: |
+          $catalog = Get-Content products/scripts/catalog.json -Raw | ConvertFrom-Json
+          foreach ($product in $catalog.products) {
+              if ($product.status -eq 'Built / Testing Required' -and -not (Test-Path $product.entrypoint)) {
+                  throw "Missing entrypoint for $($product.slug): $($product.entrypoint)"
+              }
+          }
