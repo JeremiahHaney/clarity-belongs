@@ -19,7 +19,7 @@
             <h2>Scripts & automation</h2>
             <p>Download the script you need and review it before running. Tools that rename or move files preview their work first and require <code>-Apply</code> before changing anything.</p>
             <div class="ecosystem-grid">
-                @foreach (var tool in Tools)
+                @foreach (var tool in ToolCatalog)
                 {
                     <a href="@($"/downloads/scripts/{tool.Slug}.ps1")" download>
                         <strong>@tool.Name</strong>
@@ -37,7 +37,7 @@
 </div>
 
 @code {
-    private static IReadOnlyList<Tool> Tools { get; } =
+    private static IReadOnlyList<Tool> ToolCatalog { get; } =
     [
         new("note-file-organizer", "Note File Organizer", "Preview organizing note files into a cleaner folder structure."),
         new("markdown-index-builder", "Markdown Index Builder", "Build an index of Markdown files for easier navigation."),
