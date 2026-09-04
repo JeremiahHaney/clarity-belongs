@@ -1,0 +1,59 @@
+@page "/api/feedback/recent"
+@layout FeedbackOpsLayout
+@using System.Text.Json
+@using Microsoft.EntityFrameworkCore
+@using ClarityBelongs.Web.Data
+@inject ClarityDbContext Db
+@inject IConfiguration Configuration
+@inject IHttpContextAccessor HttpContextAccessor
+
+@if (_authorized)
+{
+    <pre id="feedback-ops-json">@_json</pre>
+}
+else
+{
+    <span id="feedback-ops-unauthorized">Unauthorized</span>
+}
+
+@code {
+    private bool _authorized;
+    private string _json = "[]";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var expectedToken = Configuration["FeedbackOps:Token"];
+        var suppliedToken = HttpContextAccessor.HttpContext?
+            .Request
+            .Headers["X-Feedback-Ops-Token"]
+            .ToString();
+
+        _authorized = !string.IsNullOrWhiteSpace(expectedToken)
+            && string.Equals(
+                suppliedToken,
+                expectedToken,
+                StringComparison.Ordinal);
+
+        if (!_authorized)
+            return;
+
+        var feedback = await Db.FeedbackSubmissions
+            .AsNoTracking()
+            .OrderByDescending(item => item.CreatedUtc)
+            .Take(250)
+            .Select(item => new
+            {
+                Identity = "ClarityBelongs",
+                ProductId = item.ProductSlug ?? "clarity",
+                Kind = item.Kind,
+                Message = item.Message,
+                Contact = item.Contact,
+                Source = item.Path,
+                Version = (string?)null,
+                CreatedUtc = item.CreatedUtc
+            })
+            .ToListAsync();
+
+        _json = JsonSerializer.Serialize(feedback);
+    }
+}
