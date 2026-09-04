@@ -27,7 +27,7 @@ $parent = Split-Path -Parent $OutputPath
 if ($parent) { Ensure-ProductOutputDirectory -Path $parent | Out-Null }
 
 $lines = @('# Reading Folder Catalog', '', "Generated: $([DateTimeOffset]::UtcNow.ToString('u'))", '')
-$lines += @($items | ForEach-Object { "- **$($_.title)** [$($_.type)] — `$($($_.relativePath))`" })
+$lines += @($items | ForEach-Object { "- **$($_.title)** [$($_.type)] — $($_.relativePath)" })
 $lines | Set-Content -LiteralPath $OutputPath -Encoding UTF8
 
 $result = [pscustomobject]@{ itemCount = $items.Count; outputPath = (Resolve-Path -LiteralPath $OutputPath).Path }
