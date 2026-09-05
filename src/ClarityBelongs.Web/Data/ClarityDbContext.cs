@@ -69,6 +69,8 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
         modelBuilder.Entity<Change>()
             .HasIndex(x => new { x.TargetId, x.DetectedAtUtc });
 
+        modelBuilder.Entity<AlertRule>();
+
         modelBuilder.Entity<FollowChange>()
             .HasKey(x => new { x.FollowId, x.ChangeId });
 
