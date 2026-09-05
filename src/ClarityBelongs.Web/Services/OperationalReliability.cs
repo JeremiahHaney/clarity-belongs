@@ -56,6 +56,8 @@ public sealed record WorkerHeartbeat(
 
 public sealed class WorkerRuntimeState
 {
+    public static WorkerRuntimeState Current { get; } = new();
+
     private readonly ConcurrentDictionary<string, MutableHeartbeat> _workers = new();
 
     public void Started(string name)
