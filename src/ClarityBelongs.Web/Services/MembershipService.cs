@@ -39,7 +39,7 @@ public sealed class MembershipService(
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        var plan = plans.Get(membership.PlanCode);
+        var plan = GetEffectivePlan(membership, plans);
         var activeFollowCount = await db.Follows
             .CountAsync(
                 x => x.WorkspaceId == workspaceId
@@ -53,13 +53,52 @@ public sealed class MembershipService(
             Math.Max(0, plan.MaxActiveFollows - activeFollowCount));
     }
 
+    public async Task<PlanDefinition> GetEffectivePlanForWorkspaceAsync(
+        long workspaceId,
+        CancellationToken cancellationToken = default)
+    {
+        var workspace = await db.Workspaces
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.Id == workspaceId,
+                cancellationToken);
+
+        if (workspace is null)
+            return plans.Get(MembershipPlans.Free);
+
+        var membership = await db.Memberships
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.WorkspaceId == workspaceId
+                    && x.UserId == workspace.OwnerUserId,
+                cancellationToken);
+
+        return membership is null
+            ? plans.Get(MembershipPlans.Free)
+            : GetEffectivePlan(membership, plans);
+    }
+
+    public async Task<DateTime> GetHistoryCutoffUtcAsync(
+        long workspaceId,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        var plan = await GetEffectivePlanForWorkspaceAsync(
+            workspaceId,
+            cancellationToken);
+        return utcNow.AddDays(-plan.HistoryDays);
+    }
+
     public async Task ValidateNewFollowAsync(
         long userId,
         long workspaceId,
         int requestedCadenceMinutes,
         CancellationToken cancellationToken = default)
     {
-        var summary = await GetAsync(userId, workspaceId, cancellationToken);
+        var summary = await GetAsync(
+            userId,
+            workspaceId,
+            cancellationToken);
 
         if (summary.ActiveFollowCount >= summary.Plan.MaxActiveFollows)
         {
@@ -80,7 +119,10 @@ public sealed class MembershipService(
         int requestedCadenceMinutes,
         CancellationToken cancellationToken = default)
     {
-        var summary = await GetAsync(userId, workspaceId, cancellationToken);
+        var summary = await GetAsync(
+            userId,
+            workspaceId,
+            cancellationToken);
         return Math.Max(
             summary.Plan.MinimumCadenceMinutes,
             Math.Clamp(requestedCadenceMinutes, 1, 10080));
@@ -90,6 +132,15 @@ public sealed class MembershipService(
     {
         return membership.PlanCode != MembershipPlans.Free
             && membership.Status is MembershipStatuses.Active or MembershipStatuses.Trialing;
+    }
+
+    public static PlanDefinition GetEffectivePlan(
+        Membership membership,
+        PlanCatalog plans)
+    {
+        return IsPaidActive(membership)
+            ? plans.Get(membership.PlanCode)
+            : plans.Get(MembershipPlans.Free);
     }
 
     private static string FormatMinutes(int minutes)
