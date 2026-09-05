@@ -12,7 +12,7 @@
     <header class="hero compact-hero">
         <div class="eyebrow">SETTINGS</div>
         <h1>How should Clarity reach you?</h1>
-        <p>In-app alerts are always recorded. Paid plans can also deliver email when a provider is configured.</p>
+        <p>In-app alerts are always recorded. Email delivery is shown only when it is actually enabled for your plan and the current launch.</p>
     </header>
 
     <section class="panel">
@@ -23,7 +23,7 @@
         else
         {
             <label class="field">
-                <span>Account and notification email</span>
+                <span>Account email</span>
                 <input @bind="Email" type="email" placeholder="you@example.com" />
             </label>
 
@@ -44,7 +44,7 @@
     <section class="panel">
         <h2>Alert behavior</h2>
         <p>Clarity records in-app alerts for meaningful changes, failures, recoveries, and SSL/domain expiration thresholds.</p>
-        <p class="muted">Paid plans can also create email deliveries. Expiration reminders are deduplicated at 30, 14, 7, and 1 day.</p>
+        <p class="muted">Expiration reminders are deduplicated at 30, 14, 7, and 1 day. Email delivery is currently disabled for the public launch unless both the provider and public release gate are enabled.</p>
     </section>
 </div>
 
@@ -93,26 +93,28 @@
 
         User.Email = value;
         await Db.SaveChangesAsync();
-        Message = "Account and notification email saved. Sign in with this address next time.";
+        Message = "Account email saved. Sign in with this address next time.";
     }
 
     private string GetEmailDeliveryStatus()
     {
-        if (Membership?.Plan.EmailAlerts != true)
-            return "Paid plan required";
+        if (!EmailSender.IsEnabled)
+            return "Not enabled for this launch";
 
-        return EmailSender.IsEnabled
-            ? "Provider configured"
-            : "Provider not configured";
+        if (Membership?.Plan.EmailAlerts != true)
+            return "Not included in this plan";
+
+        return "Enabled";
     }
 
     private string GetEmailDeliveryMessage()
     {
-        if (Membership?.Plan.EmailAlerts != true)
-            return "In-app alerts remain available on Free. Personal and Business add email delivery.";
+        if (!EmailSender.IsEnabled)
+            return "Clarity will continue recording in-app alerts without promising email delivery.";
 
-        return EmailSender.IsEnabled
-            ? "Clarity can deliver pending email alerts to the address above."
-            : "Set the Email section in environment configuration before production email can send.";
+        if (Membership?.Plan.EmailAlerts != true)
+            return "This plan uses in-app alerts only.";
+
+        return "Clarity can deliver pending email alerts to the address above.";
     }
 }
