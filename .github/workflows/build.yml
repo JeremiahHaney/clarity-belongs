@@ -24,6 +24,9 @@ jobs:
       - name: Build
         run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
 
+      - name: Test
+        run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
+
       - name: Runtime, public-site, and account smoke test
         shell: bash
         run: |
@@ -42,9 +45,14 @@ jobs:
 
           cat /tmp/clarity-health.json
 
-          for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
+          for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /contact /feedback /privacy /terms /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
           done
+
+          curl --silent --show-error http://127.0.0.1:5080/sitemap.xml -o /tmp/clarity-sitemap.xml
+          grep -q 'https://claritybelongs.com/contact' /tmp/clarity-sitemap.xml
+          ! grep -qi '/owner' /tmp/clarity-sitemap.xml
+          ! grep -qi '/api/feedback/recent' /tmp/clarity-sitemap.xml
 
           curl --fail --silent --show-error \
             -c /tmp/clarity-cookies.txt \
