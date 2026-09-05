@@ -40,10 +40,17 @@ public sealed class PublicEndpointGuard
                 "Only http and https targets are supported.");
         }
 
-        await ValidateHostAsync(uri.Host, cancellationToken);
+        await ResolvePublicAddressesAsync(uri.Host, cancellationToken);
     }
 
     public async Task ValidateHostAsync(
+        string host,
+        CancellationToken cancellationToken = default)
+    {
+        await ResolvePublicAddressesAsync(host, cancellationToken);
+    }
+
+    public async Task<IPAddress[]> ResolvePublicAddressesAsync(
         string host,
         CancellationToken cancellationToken = default)
     {
@@ -55,7 +62,7 @@ public sealed class PublicEndpointGuard
         if (IPAddress.TryParse(normalizedHost, out var literal))
         {
             EnsurePublic(literal);
-            return;
+            return [literal];
         }
 
         var addresses = await Dns.GetHostAddressesAsync(
@@ -67,6 +74,8 @@ public sealed class PublicEndpointGuard
 
         foreach (var address in addresses)
             EnsurePublic(address);
+
+        return addresses;
     }
 
     private static void EnsurePublic(IPAddress address)
@@ -162,6 +171,57 @@ public sealed class PublicEndpointGuard
     }
 }
 
+public static class PublicHttpMessageHandlerFactory
+{
+    public static HttpMessageHandler Create()
+    {
+        var guard = new PublicEndpointGuard();
+
+        return new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            UseProxy = false,
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                var addresses = await guard.ResolvePublicAddressesAsync(
+                    context.DnsEndPoint.Host,
+                    cancellationToken);
+                Exception? lastError = null;
+
+                foreach (var address in addresses)
+                {
+                    var socket = new Socket(
+                        address.AddressFamily,
+                        SocketType.Stream,
+                        ProtocolType.Tcp);
+
+                    try
+                    {
+                        await socket.ConnectAsync(
+                            new IPEndPoint(
+                                address,
+                                context.DnsEndPoint.Port),
+                            cancellationToken);
+
+                        return new NetworkStream(
+                            socket,
+                            ownsSocket: true);
+                    }
+                    catch (Exception ex) when (ex is SocketException or IOException)
+                    {
+                        lastError = ex;
+                        socket.Dispose();
+                    }
+                }
+
+                throw new HttpRequestException(
+                    "The public target could not be reached.",
+                    lastError);
+            }
+        };
+    }
+}
+
 public sealed class HttpObservationEngine(
     HttpClient http,
     PublicEndpointGuard guard)
@@ -230,11 +290,12 @@ public sealed class TlsObservationEngine(
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        await guard.ValidateAsync(uri, cancellationToken);
-
-        using var tcp = new TcpClient();
-        await tcp.ConnectAsync(
+        var addresses = await guard.ResolvePublicAddressesAsync(
             uri.Host,
+            cancellationToken);
+        using var tcp = new TcpClient(addresses[0].AddressFamily);
+        await tcp.ConnectAsync(
+            addresses[0],
             uri.IsDefaultPort ? 443 : uri.Port,
             cancellationToken);
 
@@ -275,9 +336,7 @@ public sealed class DnsObservationEngine
     {
         var host = NormalizeHost(input);
         var guard = new PublicEndpointGuard();
-        await guard.ValidateHostAsync(host, cancellationToken);
-
-        var addresses = await Dns.GetHostAddressesAsync(
+        var addresses = await guard.ResolvePublicAddressesAsync(
             host,
             cancellationToken);
 
