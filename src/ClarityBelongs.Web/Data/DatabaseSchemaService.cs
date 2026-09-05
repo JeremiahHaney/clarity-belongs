@@ -71,6 +71,20 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
                 cancellationToken);
 
             await ExecuteAsync(
+                """
+                CREATE TABLE IF NOT EXISTS ContactSubmissions (
+                    Id INTEGER NOT NULL CONSTRAINT PK_ContactSubmissions PRIMARY KEY AUTOINCREMENT,
+                    UserId INTEGER NULL,
+                    Category TEXT NOT NULL,
+                    Message TEXT NOT NULL,
+                    ContactEmail TEXT NULL,
+                    SourcePath TEXT NULL,
+                    CreatedUtc TEXT NOT NULL
+                );
+                """,
+                cancellationToken);
+
+            await ExecuteAsync(
                 "CREATE UNIQUE INDEX IF NOT EXISTS IX_Memberships_UserId ON Memberships (UserId);",
                 cancellationToken);
             await ExecuteAsync(
@@ -87,6 +101,9 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
                 cancellationToken);
             await ExecuteAsync(
                 "CREATE INDEX IF NOT EXISTS IX_FeedbackSubmissions_CreatedUtc ON FeedbackSubmissions (CreatedUtc);",
+                cancellationToken);
+            await ExecuteAsync(
+                "CREATE INDEX IF NOT EXISTS IX_ContactSubmissions_CreatedUtc ON ContactSubmissions (CreatedUtc);",
                 cancellationToken);
         }
         finally
