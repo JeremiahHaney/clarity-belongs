@@ -9,6 +9,26 @@ public sealed class ObservationEngine(
     ClarityDbContext db,
     IEnumerable<IObservationAdapter> adapters)
 {
+    public async Task<bool> RunOwnedFollowAsync(
+        long workspaceId,
+        long followId,
+        CancellationToken cancellationToken = default)
+    {
+        var owned = await db.Follows
+            .AnyAsync(
+                x => x.Id == followId
+                    && x.WorkspaceId == workspaceId,
+                cancellationToken);
+
+        if (!owned)
+            return false;
+
+        await RunFollowAsync(
+            followId,
+            cancellationToken);
+        return true;
+    }
+
     public async Task RunFollowAsync(
         long followId,
         CancellationToken cancellationToken = default)
@@ -56,17 +76,41 @@ public sealed class ObservationEngine(
             TargetId = target.Id,
             SourceDefinitionId = source.Id,
             StartedAtUtc = DateTime.UtcNow,
-            Status = ObservationStatuses.Running
+            Status = ObservationStatuses.Queued
         };
 
         db.ObservationRuns.Add(run);
         await db.SaveChangesAsync(cancellationToken);
 
+        run.Status = ObservationStatuses.Running;
+        await db.SaveChangesAsync(cancellationToken);
+
         var started = DateTime.UtcNow;
-        var result = await adapter.ObserveAsync(
-            target,
-            source,
-            cancellationToken);
+        ObservationResult result;
+
+        try
+        {
+            result = await adapter.ObserveAsync(
+                target,
+                source,
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            result = new ObservationResult(
+                false,
+                "Down",
+                "application/json",
+                "{}",
+                ex.Message,
+                ErrorCode: "adapter_exception",
+                ErrorMessage: ex.Message);
+        }
+
         var completed = DateTime.UtcNow;
 
         run.CompletedAtUtc = completed;
@@ -353,6 +397,11 @@ public sealed class ObservationEngine(
         SourceDefinition source) => follow.MonitorType switch
     {
         "WebsiteUptime" => "StatusChanged",
+        "HttpStatus" => "StatusChanged",
+        "RedirectChain" => "StatusChanged",
+        "BrokenLink" => "StatusChanged",
+        "ApiEndpointUptime" => "StatusChanged",
+        "ServiceOutage" => "StatusChanged",
         "WebsiteChange" => "ContentChanged",
         "SslExpiration" => "CertificateChanged",
         "DomainExpiration" => "ExpirationChanged",
@@ -360,6 +409,7 @@ public sealed class ObservationEngine(
         _ => source.AdapterType switch
         {
             AdapterTypes.Dns => "DnsChanged",
+            AdapterTypes.DnsRecord => "DnsChanged",
             AdapterTypes.Tls => "CertificateChanged",
             AdapterTypes.Domain => "ExpirationChanged",
             _ => "ContentChanged"
@@ -371,6 +421,10 @@ public sealed class ObservationEngine(
         SourceDefinition source) => follow.MonitorType switch
     {
         "WebsiteUptime" => ChangeSeverities.Important,
+        "HttpStatus" => ChangeSeverities.Important,
+        "BrokenLink" => ChangeSeverities.Important,
+        "ApiEndpointUptime" => ChangeSeverities.Important,
+        "ServiceOutage" => ChangeSeverities.Important,
         "SslExpiration" => ChangeSeverities.Important,
         "DomainExpiration" => ChangeSeverities.Important,
         "DnsChange" => ChangeSeverities.Important,
