@@ -1,0 +1,111 @@
+name: clarity-seo-release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  seo-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore ClarityBelongs.slnx
+
+      - name: Build
+        run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
+
+      - name: Automated tests
+        run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
+
+      - name: Inspect sitemap and robots
+        shell: bash
+        run: |
+          cat src/ClarityBelongs.Web/wwwroot/robots.txt
+          cat src/ClarityBelongs.Web/wwwroot/sitemap.xml
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          root = ET.parse('src/ClarityBelongs.Web/wwwroot/sitemap.xml').getroot()
+          ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+          urls = [node.text for node in root.findall('s:url/s:loc', ns)]
+          assert len(urls) == len(set(urls))
+          assert 'https://claritybelongs.com/contact' in urls
+          assert 'https://claritybelongs.com/products/product-price' not in urls
+          assert 'https://claritybelongs.com/tools' not in urls
+          robots = Path('src/ClarityBelongs.Web/wwwroot/robots.txt').read_text(encoding='utf-8')
+          assert robots.count('Sitemap:') == 1
+          assert 'Sitemap: https://claritybelongs.com/sitemap.xml' in robots
+          PY
+
+      - name: Runtime SEO and 404 checks
+        shell: bash
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          CLARITY_DB_PATH: /tmp/clarity-seo/clarity.db
+          CLARITY_BACKUP_DIR: /tmp/clarity-seo/backups
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/clarity-seo
+          mkdir -p /tmp/clarity-seo
+          dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5081 > /tmp/clarity-seo.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+
+          READY=false
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5081/health > /dev/null; then
+              READY=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$READY" != "true" ]; then
+            cat /tmp/clarity-seo.log
+            exit 1
+          fi
+
+          for route in / /products /products/website-uptime /products/http-status /learn /learn/dns-change-monitor /pricing /about /support /contact /privacy /terms; do
+            echo "Checking public SEO $route"
+            STATUS=$(curl --silent --show-error -o /tmp/seo-public.html -w '%{http_code}' "http://127.0.0.1:5081$route")
+            echo "Status: $STATUS"
+            grep -E 'rel="canonical"|property="og:(title|description|url)"' /tmp/seo-public.html || true
+            test "$STATUS" = "200"
+            grep -q 'rel="canonical"' /tmp/seo-public.html
+            grep -q 'property="og:title"' /tmp/seo-public.html
+            grep -q 'property="og:description"' /tmp/seo-public.html
+            grep -q 'property="og:url"' /tmp/seo-public.html
+          done
+
+          for route in /login /signup /forgot-password /reset-password /feedback; do
+            echo "Checking private noindex $route"
+            STATUS=$(curl --silent --show-error -o /tmp/seo-private.html -w '%{http_code}' "http://127.0.0.1:5081$route")
+            echo "Status: $STATUS"
+            grep -E 'name="robots"' /tmp/seo-private.html || true
+            test "$STATUS" = "200"
+            grep -q 'noindex, nofollow' /tmp/seo-private.html
+          done
+
+          # Dynamic hidden/invalid content routes carry an explicit robots header in addition to 404.
+          for route in /products/product-price /products/not-a-real-product /learn/not-a-real-guide; do
+            echo "Checking protected hard 404 $route"
+            STATUS=$(curl --silent --show-error -D /tmp/seo-404.headers -o /tmp/seo-404.html -w '%{http_code}' "http://127.0.0.1:5081$route")
+            echo "Status: $STATUS"
+            cat /tmp/seo-404.headers
+            test "$STATUS" = "404"
+            grep -qi '^x-robots-tag: noindex, nofollow' /tmp/seo-404.headers
+          done
+
+          # A generic unknown route is already non-indexable by HTTP semantics; require a true 404, not a soft 404.
+          STATUS=$(curl --silent --show-error -o /tmp/seo-generic-404.html -w '%{http_code}' http://127.0.0.1:5081/definitely-not-a-route)
+          echo "Generic unknown route status: $STATUS"
+          test "$STATUS" = "404"
