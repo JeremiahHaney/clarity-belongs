@@ -78,7 +78,9 @@ public sealed class FollowManagementService(
         var canonicalKey = $"{input.AdapterType}:{input.SourceConfigurationJson}:{normalizedTarget.ToLowerInvariant()}";
 
         var target = await db.Targets
-            .FirstOrDefaultAsync(x => x.CanonicalKey == canonicalKey, cancellationToken);
+            .FirstOrDefaultAsync(
+                x => x.CanonicalKey == canonicalKey,
+                cancellationToken);
 
         if (target is null)
         {
@@ -160,19 +162,29 @@ public sealed class FollowManagementService(
         if (follow is null)
             return null;
 
+        var cutoffUtc = await memberships.GetHistoryCutoffUtcAsync(
+            workspaceId,
+            DateTime.UtcNow,
+            cancellationToken);
         var target = await db.Targets
-            .FirstAsync(x => x.Id == follow.TargetId, cancellationToken);
+            .FirstAsync(
+                x => x.Id == follow.TargetId,
+                cancellationToken);
         var source = await db.SourceDefinitions
-            .FirstAsync(x => x.Id == follow.SourceDefinitionId, cancellationToken);
+            .FirstAsync(
+                x => x.Id == follow.SourceDefinitionId,
+                cancellationToken);
 
         var links = await db.FollowChanges
             .Where(x => x.FollowId == follow.Id)
+            .Where(x => x.CreatedAtUtc >= cutoffUtc)
             .OrderByDescending(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
 
         var changeIds = links.Select(x => x.ChangeId).ToArray();
         var changes = await db.Changes
             .Where(x => changeIds.Contains(x.Id))
+            .Where(x => x.DetectedAtUtc >= cutoffUtc)
             .OrderByDescending(x => x.DetectedAtUtc)
             .ToListAsync(cancellationToken);
 
@@ -192,6 +204,7 @@ public sealed class FollowManagementService(
         var notifications = await db.Notifications
             .Where(x => x.FollowId == follow.Id)
             .Where(x => x.WorkspaceId == workspaceId)
+            .Where(x => x.CreatedAtUtc >= cutoffUtc)
             .OrderByDescending(x => x.CreatedAtUtc)
             .Take(50)
             .ToListAsync(cancellationToken);
@@ -342,6 +355,8 @@ public sealed class FollowManagementService(
     private static bool IsSafeCustomerMessage(string message)
     {
         return message.StartsWith("Your ", StringComparison.Ordinal)
-            || message.StartsWith("The fastest check cadence", StringComparison.Ordinal);
+            || message.StartsWith(
+                "The fastest check cadence",
+                StringComparison.Ordinal);
     }
 }
