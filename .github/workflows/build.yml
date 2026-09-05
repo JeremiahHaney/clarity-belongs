@@ -65,24 +65,29 @@ jobs:
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
           done
 
+          echo "Checking signup page"
           curl --fail --silent --show-error \
             -c /tmp/clarity-cookies.txt \
             http://127.0.0.1:5080/signup \
             -o /tmp/clarity-signup.html
 
+          echo "Checking login noindex"
           curl --fail --silent --show-error \
             http://127.0.0.1:5080/login \
             -o /tmp/clarity-login.html
           grep -q 'noindex, nofollow' /tmp/clarity-login.html
 
+          echo "Checking missing-CSRF rejection"
           NO_CSRF_CODE=$(curl --silent \
             -o /tmp/clarity-no-csrf.html \
             -w '%{http_code}' \
             -H 'Content-Type: application/x-www-form-urlencoded' \
             --data 'displayName=Blocked&email=blocked%40claritybelongs.test&password=ClarityTest12345' \
             http://127.0.0.1:5080/auth/signup)
+          echo "Missing-CSRF status: $NO_CSRF_CODE"
           test "$NO_CSRF_CODE" = "400"
 
+          echo "Checking unauthenticated API rejection"
           UNAUTH_API_CODE=$(curl --silent \
             -o /tmp/clarity-unauth-api.json \
             -w '%{http_code}' \
@@ -90,13 +95,16 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"name":"Unauthorized","target":"https://example.com","checkCadenceMinutes":360}' \
             http://127.0.0.1:5080/api/follows)
+          echo "Unauthenticated API status: $UNAUTH_API_CODE"
           case "$UNAUTH_API_CODE" in
             200|201|202|204) exit 1 ;;
           esac
 
+          echo "Checking signup antiforgery token"
           CSRF_TOKEN=$(sed -n 's/.*name="__RequestVerificationToken" type="hidden" value="\([^"]*\)".*/\1/p' /tmp/clarity-signup.html | head -1)
           test -n "$CSRF_TOKEN"
 
+          echo "Creating smoke account"
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
             -c /tmp/clarity-cookies.txt \
@@ -106,17 +114,20 @@ jobs:
             http://127.0.0.1:5080/auth/signup \
             -o /dev/null
 
+          echo "Checking authenticated workspace"
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
             http://127.0.0.1:5080/my-clarity \
             -o /tmp/clarity-dashboard.html
 
+          echo "Checking account noindex"
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
             http://127.0.0.1:5080/account \
             -o /tmp/clarity-account.html
           grep -q 'noindex, nofollow' /tmp/clarity-account.html
 
+          echo "Creating smoke follow"
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
             -H 'Origin: http://127.0.0.1:5080' \
@@ -127,6 +138,7 @@ jobs:
 
           grep -q '"id"' /tmp/clarity-follow.json
 
+          echo "Checking private-target rejection"
           PRIVATE_TARGET_CODE=$(curl --silent \
             -b /tmp/clarity-cookies.txt \
             -o /tmp/clarity-private-target.json \
@@ -135,6 +147,7 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"name":"Blocked target","target":"http://127.0.0.1","checkCadenceMinutes":360}' \
             http://127.0.0.1:5080/api/follows)
+          echo "Private-target status: $PRIVATE_TARGET_CODE"
           test "$PRIVATE_TARGET_CODE" = "400"
           grep -q 'could not be created' /tmp/clarity-private-target.json
 
@@ -142,10 +155,12 @@ jobs:
           wait $APP_PID || true
           trap - EXIT
 
+          echo "Creating database backup"
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build -- --backup-database > /tmp/clarity-backup.log
           cat /tmp/clarity-backup.log
           ls "$CLARITY_BACKUP_DIR"/clarity-*.db > /dev/null
 
+          echo "Restarting against persisted database"
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity-restart.log 2>&1 &
           APP_PID=$!
           trap 'kill $APP_PID || true' EXIT
