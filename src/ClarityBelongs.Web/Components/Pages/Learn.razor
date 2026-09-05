@@ -3,17 +3,34 @@
 
 <PageTitle>@PageTitleText</PageTitle>
 
-@if (Entry is null)
+@if (!IsDetailRequest)
+{
+    <HeadContent>
+        <meta name="description" content="Plain-language guides for public monitoring problems Clarity Belongs can solve today." />
+    </HeadContent>
+}
+else if (Entry is not null)
+{
+    <HeadContent>
+        <meta name="description" content="@Entry.Description" />
+    </HeadContent>
+}
+
+@if (IsDetailRequest && Entry is null)
+{
+    <NotFoundRoute />
+}
+else if (!IsDetailRequest)
 {
     <div class="shell public-shell">
         <header class="hero compact-hero">
             <div class="eyebrow">LEARN</div>
             <h1>Start with the problem.</h1>
-            <p>Plain-language guides for things people keep checking manually today.</p>
+            <p>Plain-language guides for monitoring capabilities available in Phase 1.</p>
         </header>
 
         <section class="learn-grid">
-            @foreach (var entry in LearnCatalog.GetAll())
+            @foreach (var entry in PublicEntries)
             {
                 <a class="learn-card" href="/learn/@entry.Slug">
                     <div class="eyebrow">@entry.SearchIntent</div>
@@ -25,12 +42,8 @@
         </section>
     </div>
 }
-else
+else if (Entry is not null)
 {
-    <HeadContent>
-        <meta name="description" content="@Entry.Description" />
-    </HeadContent>
-
     <div class="shell public-shell article-shell">
         <header class="hero compact-hero article-hero">
             <div class="eyebrow">CLARITY GUIDE</div>
@@ -78,7 +91,7 @@ else
 
             <section class="related-links">
                 <h2>Related guides</h2>
-                @foreach (var related in LearnCatalog.GetAll().Where(x => x.Slug != Entry.Slug).Take(5))
+                @foreach (var related in PublicEntries.Where(x => x.Slug != Entry.Slug).Take(5))
                 {
                     <a href="/learn/@related.Slug">@related.Title</a>
                 }
@@ -92,8 +105,12 @@ else
     public string? Slug { get; set; }
 
     private LearnContentCatalog LearnCatalog { get; } = new();
-    private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
-    private string PageTitleText => Entry is null
-        ? "Learn - Clarity Belongs"
-        : $"{Entry.Title} - Clarity Belongs";
+    private IReadOnlyList<LearnEntry> PublicEntries => PublicSiteCatalog.GetLearnEntries(LearnCatalog);
+    private bool IsDetailRequest => !string.IsNullOrWhiteSpace(Slug);
+    private LearnEntry? Entry => PublicSiteCatalog.GetLearnEntry(LearnCatalog, Slug);
+    private string PageTitleText => IsDetailRequest
+        ? Entry is null
+            ? "Not Found - Clarity Belongs"
+            : $"{Entry.Title} - Clarity Belongs"
+        : "Learn - Clarity Belongs";
 }
