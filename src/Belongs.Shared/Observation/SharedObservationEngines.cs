@@ -40,35 +40,45 @@ public sealed class PublicEndpointGuard
                 "Only http and https targets are supported.");
         }
 
-        if (string.IsNullOrWhiteSpace(uri.Host))
+        await ValidateHostAsync(uri.Host, cancellationToken);
+    }
+
+    public async Task ValidateHostAsync(
+        string host,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(host))
             throw new InvalidOperationException("A host name is required.");
 
-        if (IPAddress.TryParse(uri.Host, out var literal))
-        {
-            if (!IsPublic(literal))
-            {
-                throw new InvalidOperationException(
-                    "Private, loopback, link-local, and unspecified addresses cannot be monitored.");
-            }
+        var normalizedHost = host.Trim().TrimEnd('.');
 
+        if (IPAddress.TryParse(normalizedHost, out var literal))
+        {
+            EnsurePublic(literal);
             return;
         }
 
         var addresses = await Dns.GetHostAddressesAsync(
-            uri.Host,
+            normalizedHost,
             cancellationToken);
 
         if (addresses.Length == 0)
             throw new InvalidOperationException("The target host did not resolve.");
 
-        if (addresses.Any(address => !IsPublic(address)))
+        foreach (var address in addresses)
+            EnsurePublic(address);
+    }
+
+    private static void EnsurePublic(IPAddress address)
+    {
+        if (!IsPublic(address))
         {
             throw new InvalidOperationException(
-                "The target resolves to a private or local address and cannot be monitored.");
+                "Private, loopback, link-local, multicast, and other non-public addresses cannot be monitored.");
         }
     }
 
-    private static bool IsPublic(IPAddress ip)
+    internal static bool IsPublic(IPAddress ip)
     {
         if (IPAddress.IsLoopback(ip)
             || ip.Equals(IPAddress.Any)
@@ -77,6 +87,9 @@ public sealed class PublicEndpointGuard
         {
             return false;
         }
+
+        if (ip.IsIPv4MappedToIPv6)
+            return IsPublic(ip.MapToIPv4());
 
         if (ip.AddressFamily == AddressFamily.InterNetwork)
         {
@@ -132,7 +145,17 @@ public sealed class PublicEndpointGuard
             }
 
             var bytes = ip.GetAddressBytes();
-            return (bytes[0] & 0xFE) != 0xFC;
+
+            if ((bytes[0] & 0xFE) == 0xFC)
+                return false;
+
+            if (bytes.Take(15).All(x => x == 0)
+                && bytes[15] <= 1)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         return false;
@@ -251,6 +274,9 @@ public sealed class DnsObservationEngine
         CancellationToken cancellationToken = default)
     {
         var host = NormalizeHost(input);
+        var guard = new PublicEndpointGuard();
+        await guard.ValidateHostAsync(host, cancellationToken);
+
         var addresses = await Dns.GetHostAddressesAsync(
             host,
             cancellationToken);
