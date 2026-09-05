@@ -29,6 +29,7 @@ public sealed class Membership
     public string? StripePriceId { get; set; }
     public DateTime? CurrentPeriodEndUtc { get; set; }
     public bool CancelAtPeriodEnd { get; set; }
+    public DateTime? LastStripeEventCreatedUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }
