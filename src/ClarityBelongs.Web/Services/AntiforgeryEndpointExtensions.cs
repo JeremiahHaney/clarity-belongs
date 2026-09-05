@@ -4,7 +4,7 @@ namespace ClarityBelongs.Web.Services;
 
 public static class AntiforgeryEndpointExtensions
 {
-    public static RouteHandlerBuilder RequireValidatedAntiforgery(
+    public static RouteHandlerBuilder RequireAntiforgery(
         this RouteHandlerBuilder builder)
     {
         return builder.AddEndpointFilter(
