@@ -1,5 +1,6 @@
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
+using ClarityBelongs.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClarityBelongs.Web.Observation;
@@ -15,6 +16,7 @@ public sealed class ObservationWorker(
             try
             {
                 await RunDueFollowsAsync(stoppingToken);
+                WorkerHealth.Registry.Mark("observation");
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
