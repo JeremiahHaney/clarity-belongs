@@ -47,7 +47,7 @@ public sealed class PublicClarityProductCatalog(ClarityProductCatalog catalog)
 
     private static ClarityProduct CleanPublicCopy(ClarityProduct product)
     {
-        return product.Slug.ToLowerInvariant() switch
+        var publicProduct = product.Slug.ToLowerInvariant() switch
         {
             "website-change" => product with
             {
@@ -80,5 +80,17 @@ public sealed class PublicClarityProductCatalog(ClarityProductCatalog catalog)
             },
             _ => product
         };
+
+        return publicProduct with
+        {
+            ShortDescription = CleanText(publicProduct.ShortDescription),
+            Outcome = CleanText(publicProduct.Outcome),
+            HelpText = CleanText(publicProduct.HelpText)
+        };
     }
+
+    private static string CleanText(string value) => value
+        .Replace("V1 ", string.Empty, StringComparison.OrdinalIgnoreCase)
+        .Replace(" V1", string.Empty, StringComparison.OrdinalIgnoreCase)
+        .Replace("testing", "available", StringComparison.OrdinalIgnoreCase);
 }
