@@ -2,52 +2,60 @@
 
 <PageTitle>Support - Clarity Belongs</PageTitle>
 <HeadContent>
-    <meta name="description" content="Clarity Belongs support and help for accounts, follows, monitoring history, and alerts." />
+    <meta name="description" content="Clarity Belongs support and help for accounts, monitors, monitoring history, and alerts." />
 </HeadContent>
 
 <div class="shell public-shell article-shell">
     <header class="hero compact-hero article-hero">
         <div class="eyebrow">SUPPORT</div>
-        <h1>Simple help for simple tools.</h1>
-        <p class="public-lead">Clarity is designed to be self-service. Start with these common questions and the Learn library.</p>
+        <h1>Help with your account, monitors, and alerts.</h1>
+        <p class="public-lead">Start with the checks below. If you still need help, send a support request through Contact.</p>
     </header>
 
     <article class="article-body">
         <section>
             <h2>Start here</h2>
             <div class="support-grid">
-                <a class="learn-card" href="/learn/how-to-monitor-a-website-for-changes"><strong>Set up your first follow</strong><span>Learn how the baseline and history work.</span></a>
-                <a class="learn-card" href="/learn/website-change-monitor-vs-uptime-monitor"><strong>Choose the right monitor</strong><span>Separate availability from content changes.</span></a>
-                <a class="learn-card" href="/account"><strong>Account and membership</strong><span>Review plan limits and billing state.</span></a>
-                <a class="learn-card" href="/settings"><strong>Notification settings</strong><span>Set the email address Clarity should use.</span></a>
+                <a class="learn-card" href="/learn/how-to-monitor-a-website-for-changes"><strong>Set up a monitor</strong><span>Learn how the first baseline and later history work.</span></a>
+                <a class="learn-card" href="/learn/website-change-monitor-vs-uptime-monitor"><strong>Choose the right monitor</strong><span>Separate availability checks from page-change checks.</span></a>
+                <a class="learn-card" href="/account"><strong>Account and membership</strong><span>Review your plan and account state.</span></a>
+                <a class="learn-card" href="/settings"><strong>Notification settings</strong><span>Review where Clarity should send alerts.</span></a>
             </div>
         </section>
 
         <section>
-            <h2>How Clarity behaves</h2>
+            <h2>Troubleshooting</h2>
             <div class="faq-list">
                 <details open>
                     <summary>Why is there no change after the first check?</summary>
-                    <p>The first successful observation establishes the baseline. Clarity needs a later observation to compare against it.</p>
+                    <p>The first successful observation establishes the baseline. Clarity needs a later successful observation before it can record a difference.</p>
                 </details>
                 <details>
-                    <summary>Why did a follow enter Error?</summary>
-                    <p>The latest observation could not complete successfully. Error follows remain eligible for retry, and recovery is recorded when the source becomes observable again.</p>
+                    <summary>Why did a monitor enter Error or Needs Attention?</summary>
+                    <p>Open the monitor and review its latest run. Common causes include an unreachable public target, a changed URL, DNS or certificate problems, or a temporary response from the monitored service. Clarity will retry active monitors on their normal cadence.</p>
                 </details>
                 <details>
-                    <summary>Why is email not arriving?</summary>
-                    <p>In-app alerts are independent. External email requires a paid entitlement plus a configured production email provider.</p>
+                    <summary>Why has a monitor not run yet?</summary>
+                    <p>Check that the monitor is active rather than paused or archived, then review its next-check time. A newly created monitor may still be waiting for its first scheduled observation.</p>
+                </details>
+                <details>
+                    <summary>Why did I not receive an email alert?</summary>
+                    <p>First check My Clarity for the in-app notification and confirm your notification settings. Email delivery also depends on the email entitlement and configured delivery service for your account.</p>
                 </details>
                 <details>
                     <summary>What targets can Clarity monitor?</summary>
-                    <p>V1 is intentionally limited to public targets. Private and local endpoints are blocked by the public-endpoint safety boundary.</p>
+                    <p>Clarity monitors public targets. Private, loopback, local-network, and other non-public endpoints are blocked by the endpoint safety boundary.</p>
+                </details>
+                <details>
+                    <summary>I cannot sign in. What should I do?</summary>
+                    <p>Use the password-reset flow from the sign-in page. If you still cannot access the account, send a Contact request and include the account email you use with Clarity.</p>
                 </details>
             </div>
         </section>
 
         <section>
-            <h2>Still need help?</h2>
-            <p>For the public V1, support is intentionally lightweight while the product is being tested. Use the product and Learn pages first; a production contact channel will be published before the public release gate is marked complete.</p>
+            <h2>Contact or feedback?</h2>
+            <p><a href="/contact">Contact</a> is for account, billing, monitor, alert, privacy, and customer-support requests. <a href="/feedback">Feedback</a> is for product suggestions, bug reports, and comments about how Clarity could be better.</p>
         </section>
     </article>
 </div>
