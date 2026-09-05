@@ -1,6 +1,6 @@
 @page "/contact"
 @rendermode InteractiveServer
-@inject ContactService ContactService
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
 @inject CurrentAccountService CurrentAccount
 @inject NavigationManager Navigation
 
@@ -101,7 +101,8 @@
 
         try
         {
-            await ContactService.SubmitAsync(
+            var contactService = new ContactService(Db);
+            await contactService.SubmitAsync(
                 _userId,
                 _category,
                 _message,
