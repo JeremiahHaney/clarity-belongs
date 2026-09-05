@@ -22,17 +22,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var context = HttpContextAccessor.HttpContext;
         var expectedToken = Configuration["FeedbackOps:Token"];
-        var suppliedToken = HttpContextAccessor.HttpContext?
+        var suppliedToken = context?
             .Request
             .Headers["X-Feedback-Ops-Token"]
             .ToString();
-
-        _authorized = !string.IsNullOrWhiteSpace(expectedToken)
+        var tokenAuthorized = !string.IsNullOrWhiteSpace(expectedToken)
             && string.Equals(
                 suppliedToken,
                 expectedToken,
                 StringComparison.Ordinal);
+        var ownerAuthorized = context is not null
+            && ClarityBelongs.Web.Services.OwnerAccess.IsOwner(
+                context.User,
+                Configuration);
+
+        _authorized = tokenAuthorized || ownerAuthorized;
 
         if (!_authorized)
             return;
