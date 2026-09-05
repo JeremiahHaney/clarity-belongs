@@ -5,6 +5,12 @@
 - Added deterministic automated behavioral coverage for the Phase 1 HTTP, TLS, RDAP/domain, DNS address, and DNS record monitoring engines, including all 14 approved Phase 1 service identities.
 - Added end-to-end observation lifecycle tests proving queued/running/succeeded/failed transitions, snapshot persistence, no-change deduplication, single-change creation, FollowChange linkage, alert-rule matching, notification queueing, failure state, and recovery state.
 - Added file-backed SQLite restart coverage proving follows, observation history, and scheduling survive service-host recreation, plus workspace-isolation and pause/resume/archive scheduler tests.
+- Added configurable durable SQLite storage outside the publish tree, with production OS-level defaults and explicit `CLARITY_DB_PATH` / `CLARITY_BACKUP_DIR` overrides.
+- Added the EF Core `20260905183011_InitialClarityBaseline` migration and a legacy adoption bridge so existing V1 databases are upgraded and stamped without rebuilding customer tables or discarding data; future schema evolution now belongs to EF migrations.
+- Added safe SQLite online backup and offline restore commands using the SQLite backup API, integrity validation, timestamped/versioned backups, and a pre-restore safety backup.
+- Added fail-fast database startup validation for migration state, connectivity, and writability plus non-sensitive database/backup status in `/health`.
+- Added integration coverage for fresh migration, pre-migration adoption, older supported schema upgrade, schema idempotence, backup/restore, restart continuity, persisted `NextCheckAtUtc`, and migration/startup failure behavior.
+- Added the production database operations runbook covering IIS permissions, backup/restore, deployment continuity, single-instance SQLite limits, and the eventual SQL Server/PostgreSQL scale-up boundary.
 - Fixed HTTP status monitoring so received 4xx/5xx responses are preserved as observable Down states rather than being discarded as transport failures, allowing Broken Link and HTTP Status monitors to retain meaningful status history and recovery transitions.
 - Added injectable TLS and DNS test seams while preserving the production public-IP validation and pinned outbound transport security boundary.
 - Hardened CI to run the monitoring behavioral suite alongside the existing runtime, public-site, account, security, database backup, and persistence smoke checks.
