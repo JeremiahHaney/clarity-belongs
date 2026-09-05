@@ -156,12 +156,25 @@ public sealed class AccountService(
 
     public ClaimsPrincipal CreatePrincipal(AppUser user)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.DisplayName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.DisplayName),
+            new(ClaimTypes.Email, user.Email)
         };
+        var ownerEmails = configuration
+            .GetSection("Admin:Emails")
+            .Get<string[]>()
+            ?? [];
+
+        if (ownerEmails.Any(value =>
+            string.Equals(
+                value,
+                user.Email,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Owner"));
+        }
 
         var identity = new ClaimsIdentity(
             claims,
