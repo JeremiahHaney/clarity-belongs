@@ -18,13 +18,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Verify generated public sitemap
+        run: |
+          python3 scripts/generate-public-sitemap.py
+          git diff --exit-code -- src/ClarityBelongs.Web/wwwroot/sitemap.xml
+
       - name: Restore
         run: dotnet restore ClarityBelongs.slnx
 
       - name: Build
         run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
 
-      - name: Runtime, public-site, and account smoke test
+      - name: Runtime, public-site, catalog, and account tests
         shell: bash
         run: |
           rm -f src/ClarityBelongs.Web/clarity.db /tmp/clarity-cookies.txt
@@ -41,6 +46,8 @@ jobs:
           done
 
           cat /tmp/clarity-health.json
+
+          bash scripts/test-public-catalog.sh http://127.0.0.1:5080
 
           for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.7 - 2026-09-05
+
+- Added one explicit Phase 1 public monitoring catalog so future internal product definitions do not become public automatically.
+- Reduced the public monitoring catalog from 64 internal identities to 15 direct capabilities centered on website availability, website change, domains/certificates, DNS records, API endpoints, and service outages.
+- Kept the broader internal catalog intact for future phases while public product pages resolve only approved Phase 1 slugs.
+- Rewrote Website Change copy to describe whole-page normalized fingerprint comparison without claiming semantic intelligence or smart filtering.
+- Added canonical metadata for public product and Learn pages plus real not-found handling/noindex metadata for invalid product and guide slugs.
+- Replaced the broad product sitemap with a generated Phase 1 sitemap sourced from the explicit public allowlist.
+- Tightened homepage copy around the direct capabilities actually backed by current adapters instead of broader use-case wrappers.
+- Added public catalog integration tests for approved visibility, hidden routes, 404/noindex behavior, sitemap alignment, launch-language cleanup, canonical URLs, and adapter-contract truth.
+
 ## 0.6.6 - 2026-09-04
 
 - Added the public `/tools` catalog for ten free local Clarity PowerShell utilities covering notes, research folders, Markdown, transcripts, reading files, and reference organization.

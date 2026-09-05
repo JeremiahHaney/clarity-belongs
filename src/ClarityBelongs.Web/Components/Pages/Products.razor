@@ -1,164 +1,188 @@
 @page "/products"
 @page "/products/{Slug}"
 @inject ClarityProductCatalog Catalog
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 <PageTitle>@TitleText</PageTitle>
 
-@if (Product is not null)
+@if (IsNotFound)
 {
     <HeadContent>
-        <meta name="description" content="@Product.ShortDescription" />
+        <meta name="robots" content="noindex, nofollow" />
     </HeadContent>
 }
+else
+{
+    <HeadContent>
+        <meta name="description" content="@DescriptionText" />
+        <link rel="canonical" href="@CanonicalUrl" />
+    </HeadContent>
 
-<div class="shell public-shell">
-    @if (Product is null)
-    {
-        <header class="hero compact-hero">
-            <div class="eyebrow">WHAT CLARITY CAN WATCH</div>
-            <h1>Start with what matters to you.</h1>
-            <p class="public-lead">Clarity has many monitoring capabilities underneath, but you do not need to learn them first. Pick the kind of thing you care about and Clarity uses the right checks, history, evidence, and alerts behind the scenes.</p>
-            <div class="action-row">
-                <AuthorizeView>
-                    <Authorized>
-                        <a class="button" href="/add">Watch something</a>
-                    </Authorized>
-                    <NotAuthorized>
-                        <a class="button" href="/signup">Start free</a>
-                    </NotAuthorized>
-                </AuthorizeView>
-            </div>
-        </header>
-
-        @foreach (var family in Catalog.GetAll()
-            .GroupBy(x => x.Family)
-            .OrderBy(x => x.Key))
+    <div class="shell public-shell">
+        @if (Product is null)
         {
+            <header class="hero compact-hero">
+                <div class="eyebrow">WHAT CLARITY CAN WATCH</div>
+                <h1>Focused monitoring for the public things that matter.</h1>
+                <p class="public-lead">Clarity starts with a focused set of direct monitoring capabilities for public websites, endpoints, domains, certificates, DNS records, and status sources.</p>
+                <p class="muted">@PublicProducts.Count public monitoring capabilities.</p>
+                <div class="action-row">
+                    <AuthorizeView>
+                        <Authorized>
+                            <a class="button" href="/add">Watch something</a>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a class="button" href="/signup">Start free</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </header>
+
+            @foreach (var family in PublicProducts
+                .GroupBy(x => x.Family)
+                .OrderBy(x => x.Key))
+            {
+                <section class="public-section">
+                    <div class="section-intro">
+                        <div class="eyebrow">@family.Key.ToUpperInvariant()</div>
+                    </div>
+
+                    <div class="product-grid">
+                        @foreach (var product in family)
+                        {
+                            <a class="product-card" href="/products/@product.Slug">
+                                <h2>@product.Name</h2>
+                                <p>@product.ShortDescription</p>
+                                <span>See how Clarity watches this →</span>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
+
             <section class="public-section">
                 <div class="section-intro">
-                    <div class="eyebrow">@family.Key.ToUpperInvariant()</div>
-                </div>
-
-                <div class="product-grid">
-                    @foreach (var product in family)
-                    {
-                        <a class="product-card" href="/products/@product.Slug">
-                            <h2>@product.Name</h2>
-                            <p>@product.ShortDescription</p>
-                            <span>See how Clarity watches this →</span>
-                        </a>
-                    }
+                    <div class="eyebrow">ONE SERVICE</div>
+                    <h2>These are capabilities, not separate apps you have to manage.</h2>
+                    <p>Everything you follow ends up in the same My Clarity experience. Clarity observes, stores history, compares observations, and records detected changes while the monitor details stay underneath.</p>
                 </div>
             </section>
         }
+        else
+        {
+            <header class="hero compact-hero product-public-hero">
+                <div class="eyebrow">@Product.Family.ToUpperInvariant()</div>
+                <h1>@Product.Name</h1>
+                <p class="public-lead">@Product.ShortDescription</p>
+                <div class="action-row">
+                    <AuthorizeView>
+                        <Authorized>
+                            <a class="button" href="/add?product=@Product.Slug">Watch this</a>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a class="button" href="/signup">Start free</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                    <a class="button secondary" href="/learn">Learn first</a>
+                </div>
+            </header>
 
-        <section class="public-section">
-            <div class="section-intro">
-                <div class="eyebrow">ONE SERVICE</div>
-                <h2>These are capabilities, not separate apps you have to manage.</h2>
-                <p>Everything you follow ends up in the same My Clarity experience. Clarity observes, remembers, compares, and surfaces what changed while the technical monitor types stay underneath.</p>
-            </div>
-        </section>
-    }
-    else
-    {
-        <header class="hero compact-hero product-public-hero">
-            <div class="eyebrow">@Product.Family.ToUpperInvariant()</div>
-            <h1>@Product.Name</h1>
-            <p class="public-lead">@Product.ShortDescription</p>
-            <div class="action-row">
+            <section class="panel product-detail public-product-detail">
+                <h2>What Clarity keeps an eye on</h2>
+                <p>@Product.Outcome</p>
+                <p class="muted">@Product.HelpText</p>
+                <div class="product-meta">
+                    <span><strong>Typical check:</strong> every @FormatCadence(Product.DefaultCadenceMinutes)</span>
+                    <span><strong>Importance:</strong> @Product.DefaultImportance</span>
+                    <span><strong>History:</strong> included</span>
+                    <span><strong>Evidence:</strong> preserved</span>
+                </div>
+            </section>
+
+            <section class="public-section">
+                <div class="three-column-info">
+                    <article>
+                        <div class="eyebrow">WATCH</div>
+                        <h2>Establish what is true now</h2>
+                        <p>Clarity records a first observation so it has a factual baseline for subsequent checks.</p>
+                    </article>
+                    <article>
+                        <div class="eyebrow">COMPARE</div>
+                        <h2>Record observed differences</h2>
+                        <p>Clarity compares the normalized state produced by the selected monitor and records a change when that observed state differs.</p>
+                    </article>
+                    <article>
+                        <div class="eyebrow">REMEMBER</div>
+                        <h2>Keep the history</h2>
+                        <p>Changes stay in My Clarity with evidence instead of disappearing after a notification.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="public-section">
+                <h2>Common questions</h2>
+                <div class="faq-list">
+                    <details open>
+                        <summary>What happens on the first check?</summary>
+                        <p>The first successful observation establishes the baseline. A subsequent observation is required before Clarity can identify a change.</p>
+                    </details>
+                    <details>
+                        <summary>Can I pause or stop this watch?</summary>
+                        <p>Yes. Anything you follow can be paused, resumed, reviewed, or archived from My Clarity.</p>
+                    </details>
+                    <details>
+                        <summary>Does Clarity keep evidence?</summary>
+                        <p>Yes. Clarity stores snapshots and before/after evidence so a detected change can be reviewed.</p>
+                    </details>
+                    <details>
+                        <summary>Can I start without paying?</summary>
+                        <p>Yes. The Free plan supports up to five active follows with a slower minimum cadence and in-app alerts.</p>
+                    </details>
+                </div>
+            </section>
+
+            <section class="article-cta">
+                <div>
+                    <div class="eyebrow">STOP CHECKING</div>
+                    <h2>Let Clarity keep an eye on this.</h2>
+                    <p>Start with one target and let Clarity begin building the history.</p>
+                </div>
                 <AuthorizeView>
                     <Authorized>
                         <a class="button" href="/add?product=@Product.Slug">Watch this</a>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="button" href="/signup">Start free</a>
+                        <a class="button" href="/signup">Create free account</a>
                     </NotAuthorized>
                 </AuthorizeView>
-                <a class="button secondary" href="/learn">Learn first</a>
-            </div>
-        </header>
-
-        <section class="panel product-detail public-product-detail">
-            <h2>What Clarity keeps an eye on</h2>
-            <p>@Product.Outcome</p>
-            <p class="muted">@Product.HelpText</p>
-            <div class="product-meta">
-                <span><strong>Typical check:</strong> every @FormatCadence(Product.DefaultCadenceMinutes)</span>
-                <span><strong>Importance:</strong> @Product.DefaultImportance</span>
-                <span><strong>History:</strong> included</span>
-                <span><strong>Evidence:</strong> preserved</span>
-            </div>
-        </section>
-
-        <section class="public-section">
-            <div class="three-column-info">
-                <article>
-                    <div class="eyebrow">WATCH</div>
-                    <h2>Establish what is true now</h2>
-                    <p>Clarity records a first observation so it has a factual baseline for later checks.</p>
-                </article>
-                <article>
-                    <div class="eyebrow">COMPARE</div>
-                    <h2>Notice meaningful differences</h2>
-                    <p>Clarity compares later observations and tries to avoid turning ordinary noise into constant alerts.</p>
-                </article>
-                <article>
-                    <div class="eyebrow">REMEMBER</div>
-                    <h2>Keep the history</h2>
-                    <p>Changes stay in My Clarity with evidence instead of disappearing after a notification.</p>
-                </article>
-            </div>
-        </section>
-
-        <section class="public-section">
-            <h2>Common questions</h2>
-            <div class="faq-list">
-                <details open>
-                    <summary>What happens on the first check?</summary>
-                    <p>The first successful observation establishes the baseline. A later observation is required before Clarity can identify a change.</p>
-                </details>
-                <details>
-                    <summary>Can I pause or stop this later?</summary>
-                    <p>Yes. Anything you follow can be paused, resumed, reviewed, or archived from My Clarity.</p>
-                </details>
-                <details>
-                    <summary>Does Clarity keep evidence?</summary>
-                    <p>Yes. Clarity stores snapshots and before/after evidence so a later alert can be explained.</p>
-                </details>
-                <details>
-                    <summary>Can I start without paying?</summary>
-                    <p>Yes. The Free plan supports up to five active follows with a slower minimum cadence and in-app alerts.</p>
-                </details>
-            </div>
-        </section>
-
-        <section class="article-cta">
-            <div>
-                <div class="eyebrow">STOP CHECKING</div>
-                <h2>Let Clarity keep an eye on this.</h2>
-                <p>Start with one target and let Clarity begin building the history.</p>
-            </div>
-            <AuthorizeView>
-                <Authorized>
-                    <a class="button" href="/add?product=@Product.Slug">Watch this</a>
-                </Authorized>
-                <NotAuthorized>
-                    <a class="button" href="/signup">Create free account</a>
-                </NotAuthorized>
-            </AuthorizeView>
-        </section>
-    }
-</div>
+            </section>
+        }
+    </div>
+}
 
 @code {
     [Parameter]
     public string? Slug { get; set; }
 
-    private ClarityProduct? Product => Catalog.GetBySlug(Slug);
+    private IReadOnlyList<ClarityProduct> PublicProducts => ClarityPublicCatalog.GetAll(Catalog);
+    private ClarityProduct? Product => ClarityPublicCatalog.GetBySlug(Catalog, Slug);
+    private bool IsNotFound => !string.IsNullOrWhiteSpace(Slug) && Product is null;
+    private string BaseUrl => (Configuration["PublicBaseUrl"] ?? "https://claritybelongs.com").TrimEnd('/');
+    private string CanonicalUrl => Product is null
+        ? $"{BaseUrl}/products"
+        : $"{BaseUrl}/products/{Product.Slug}";
+    private string DescriptionText => Product?.ShortDescription
+        ?? "Focused monitoring for public websites, endpoints, domains, certificates, DNS records, and status sources.";
     private string TitleText => Product is null
         ? "What Clarity Can Watch - Clarity Belongs"
         : $"{Product.Name} - Clarity Belongs";
+
+    protected override void OnParametersSet()
+    {
+        if (IsNotFound)
+            Navigation.NotFound();
+    }
 
     private static string FormatCadence(int minutes)
     {

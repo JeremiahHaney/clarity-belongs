@@ -1,15 +1,28 @@
 @page "/learn"
 @page "/learn/{Slug}"
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
 
 <PageTitle>@PageTitleText</PageTitle>
 
-@if (Entry is null)
+@if (IsNotFound)
 {
+    <HeadContent>
+        <meta name="robots" content="noindex, nofollow" />
+    </HeadContent>
+}
+else if (Entry is null)
+{
+    <HeadContent>
+        <meta name="description" content="Plain-language guides to Clarity's public monitoring capabilities." />
+        <link rel="canonical" href="@($"{BaseUrl}/learn")" />
+    </HeadContent>
+
     <div class="shell public-shell">
         <header class="hero compact-hero">
             <div class="eyebrow">LEARN</div>
             <h1>Start with the problem.</h1>
-            <p>Plain-language guides for things people keep checking manually today.</p>
+            <p>Plain-language guides for public information people otherwise keep checking manually.</p>
         </header>
 
         <section class="learn-grid">
@@ -18,7 +31,7 @@
                 <a class="learn-card" href="/learn/@entry.Slug">
                     <div class="eyebrow">@entry.SearchIntent</div>
                     <h2>@entry.Title</h2>
-                    <p>@entry.Description</p>
+                    <p>@CleanPublicText(entry.Description)</p>
                     <span>Read guide →</span>
                 </a>
             }
@@ -28,20 +41,21 @@
 else
 {
     <HeadContent>
-        <meta name="description" content="@Entry.Description" />
+        <meta name="description" content="@CleanPublicText(Entry.Description)" />
+        <link rel="canonical" href="@($"{BaseUrl}/learn/{Entry.Slug}")" />
     </HeadContent>
 
     <div class="shell public-shell article-shell">
         <header class="hero compact-hero article-hero">
             <div class="eyebrow">CLARITY GUIDE</div>
             <h1>@Entry.Title</h1>
-            <p class="public-lead">@Entry.Description</p>
+            <p class="public-lead">@CleanPublicText(Entry.Description)</p>
         </header>
 
         <article class="article-body">
             <section>
                 <h2>The simple answer</h2>
-                <p>Instead of revisiting the same public source yourself, give Clarity the target once. Clarity establishes a baseline, observes it on a schedule, stores history, compares new observations, and surfaces meaningful differences.</p>
+                <p>Instead of revisiting the same public source yourself, give Clarity the target once. Clarity establishes a baseline, observes it on a schedule, stores history, compares new observations, and records detected differences.</p>
             </section>
 
             <section>
@@ -49,7 +63,7 @@ else
                 <ol class="steps-list">
                     @foreach (var step in Entry.Steps)
                     {
-                        <li>@step</li>
+                        <li>@CleanPublicText(step)</li>
                     }
                 </ol>
             </section>
@@ -60,7 +74,7 @@ else
                     @foreach (var question in Entry.Questions)
                     {
                         <details>
-                            <summary>@question</summary>
+                            <summary>@CleanPublicText(question)</summary>
                             <p>Clarity is designed around factual observation, history, comparison, and notification. The exact behavior depends on the selected monitor and the public data the source makes available.</p>
                         </details>
                     }
@@ -71,9 +85,9 @@ else
                 <div>
                     <div class="eyebrow">TRY IT</div>
                     <h2>@Entry.ProductName</h2>
-                    <p>Start free and turn this repeated manual check into something Clarity keeps track of for you.</p>
+                    <p>Turn this repeated manual check into something Clarity keeps track of for you.</p>
                 </div>
-                <a class="button" href="/products/@Entry.ProductSlug">See the product</a>
+                <a class="button" href="/products/@Entry.ProductSlug">See the capability</a>
             </section>
 
             <section class="related-links">
@@ -93,7 +107,21 @@ else
 
     private LearnContentCatalog LearnCatalog { get; } = new();
     private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
+    private bool IsNotFound => !string.IsNullOrWhiteSpace(Slug) && Entry is null;
+    private string BaseUrl => (Configuration["PublicBaseUrl"] ?? "https://claritybelongs.com").TrimEnd('/');
     private string PageTitleText => Entry is null
         ? "Learn - Clarity Belongs"
         : $"{Entry.Title} - Clarity Belongs";
+
+    protected override void OnParametersSet()
+    {
+        if (IsNotFound)
+            Navigation.NotFound();
+    }
+
+    private static string CleanPublicText(string value) => value
+        .Replace("V1", "Clarity", StringComparison.OrdinalIgnoreCase)
+        .Replace("meaningful differences", "observed differences", StringComparison.OrdinalIgnoreCase)
+        .Replace("meaningful changes", "observed changes", StringComparison.OrdinalIgnoreCase)
+        .Replace("something meaningful differs", "the observed state differs", StringComparison.OrdinalIgnoreCase);
 }
