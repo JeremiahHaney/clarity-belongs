@@ -14,7 +14,7 @@
     <header class="hero compact-hero">
         <div class="eyebrow">ACCOUNT</div>
         <h1>Your Clarity membership</h1>
-        <p>See your plan, capacity, and billing state in one place.</p>
+        <p>See your current plan and monitoring capacity in one place.</p>
     </header>
 
     @if (Session is null || Summary is null)
@@ -23,7 +23,7 @@
     }
     else
     {
-        @if (Checkout == "success")
+        @if (Checkout == "success" && Stripe.IsPublicBillingEnabled)
         {
             <div class="setup-note">
                 <strong>Checkout completed</strong>
@@ -52,19 +52,21 @@
                 </div>
                 <div>
                     <strong>@Summary.Membership.Status</strong>
-                    <span>billing status</span>
+                    <span>membership status</span>
                 </div>
             </div>
 
             <p>@Summary.Plan.Description</p>
-            <p class="muted">Fastest cadence: @FormatCadence(Summary.Plan.MinimumCadenceMinutes). History target: @Summary.Plan.HistoryDays days.</p>
+            <p class="muted">Fastest cadence: @FormatCadence(Summary.Plan.MinimumCadenceMinutes). Visible history: @Summary.Plan.HistoryDays days.</p>
 
             <div class="action-row">
-                @if (Summary.Plan.Code == MembershipPlans.Free)
+                @if (Summary.Plan.Code == MembershipPlans.Free && Stripe.IsPublicBillingEnabled)
                 {
                     <a class="button" href="/pricing">See paid plans</a>
                 }
-                else if (Stripe.IsConfigured && !string.IsNullOrWhiteSpace(Summary.Membership.StripeCustomerId))
+                else if (Stripe.IsPublicBillingEnabled
+                    && Summary.Plan.Code != MembershipPlans.Free
+                    && !string.IsNullOrWhiteSpace(Summary.Membership.StripeCustomerId))
                 {
                     <form method="post" action="/billing/portal">
                         <AntiforgeryToken />
@@ -80,9 +82,16 @@
             <h2>Plan limits</h2>
             <div class="limit-row"><span>Active follows</span><strong>@Summary.Plan.MaxActiveFollows</strong></div>
             <div class="limit-row"><span>Minimum cadence</span><strong>@FormatCadence(Summary.Plan.MinimumCadenceMinutes)</strong></div>
-            <div class="limit-row"><span>Email alerts</span><strong>@(Summary.Plan.EmailAlerts ? "Included" : "Paid plans")</strong></div>
-            <div class="limit-row"><span>Daily digest</span><strong>@(Summary.Plan.DailyDigest ? "Available" : "Paid plans")</strong></div>
+            <div class="limit-row"><span>Email alerts</span><strong>@(Summary.Plan.EmailAlerts ? "Included" : "Not included")</strong></div>
+            <div class="limit-row"><span>Daily digest</span><strong>@(Summary.Plan.DailyDigest ? "Available" : "Not included")</strong></div>
         </section>
+
+        @if (!Stripe.IsPublicBillingEnabled)
+        {
+            <section class="setup-note">
+                Paid billing is not enabled for the current public launch.
+            </section>
+        }
 
         <section class="panel">
             <h2>Sign out</h2>
