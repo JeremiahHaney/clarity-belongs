@@ -12,7 +12,7 @@ public sealed class ObservationEngine(
     FollowExecutionCoordinator? executionCoordinator = null)
 {
     private readonly FollowExecutionCoordinator _executionCoordinator =
-        executionCoordinator ?? new FollowExecutionCoordinator();
+        executionCoordinator ?? FollowExecutionCoordinator.Current;
 
     public async Task<bool> RunOwnedFollowAsync(
         long workspaceId,
