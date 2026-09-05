@@ -34,7 +34,8 @@ public interface IObservationAdapter
 }
 
 public sealed class HttpObservationAdapter(
-    HttpClient http) : IObservationAdapter
+    HttpClient http,
+    ILogger<HttpObservationAdapter> logger) : IObservationAdapter
 {
     private readonly HttpObservationEngine _shared =
         new(
@@ -91,7 +92,13 @@ public sealed class HttpObservationAdapter(
                 or InvalidOperationException
                 or TaskCanceledException)
         {
-            return Failure("http_exception", ex.Message);
+            logger.LogWarning(
+                ex,
+                "HTTP observation failed for target {TargetId}.",
+                target.Id);
+            return Failure(
+                "http_exception",
+                "The public target could not be checked.");
         }
     }
 
@@ -127,7 +134,8 @@ public sealed class HttpObservationAdapter(
             ErrorMessage: message);
 }
 
-public sealed class TlsObservationAdapter : IObservationAdapter
+public sealed class TlsObservationAdapter(
+    ILogger<TlsObservationAdapter> logger) : IObservationAdapter
 {
     private readonly TlsObservationEngine _shared =
         new(new Belongs.Shared.Observation.PublicEndpointGuard());
@@ -178,19 +186,24 @@ public sealed class TlsObservationAdapter : IObservationAdapter
                 or IOException
                 or InvalidOperationException)
         {
+            logger.LogWarning(
+                ex,
+                "TLS observation failed for target {TargetId}.",
+                target.Id);
             return new ObservationResult(
                 false,
                 "Down",
                 "application/json",
                 "{}",
-                ex.Message,
+                "The public TLS endpoint could not be checked.",
                 ErrorCode: "tls_error",
-                ErrorMessage: ex.Message);
+                ErrorMessage: "The public TLS endpoint could not be checked.");
         }
     }
 }
 
-public sealed class DnsObservationAdapter : IObservationAdapter
+public sealed class DnsObservationAdapter(
+    ILogger<DnsObservationAdapter> logger) : IObservationAdapter
 {
     private readonly DnsObservationEngine _shared = new();
 
@@ -225,16 +238,21 @@ public sealed class DnsObservationAdapter : IObservationAdapter
         }
         catch (Exception ex) when (
             ex is SocketException
-                or ArgumentException)
+                or ArgumentException
+                or InvalidOperationException)
         {
+            logger.LogWarning(
+                ex,
+                "DNS observation failed for target {TargetId}.",
+                target.Id);
             return new ObservationResult(
                 false,
                 "Down",
                 "application/json",
                 "{}",
-                ex.Message,
+                "The public DNS target could not be checked.",
                 ErrorCode: "dns_error",
-                ErrorMessage: ex.Message);
+                ErrorMessage: "The public DNS target could not be checked.");
         }
     }
 
@@ -243,7 +261,8 @@ public sealed class DnsObservationAdapter : IObservationAdapter
 }
 
 public sealed class DomainObservationAdapter(
-    HttpClient http) : IObservationAdapter
+    HttpClient http,
+    ILogger<DomainObservationAdapter> logger) : IObservationAdapter
 {
     private readonly DomainObservationEngine _shared = new(http);
 
@@ -286,7 +305,13 @@ public sealed class DomainObservationAdapter(
                 or InvalidOperationException
                 or TaskCanceledException)
         {
-            return Failure("rdap_error", ex.Message);
+            logger.LogWarning(
+                ex,
+                "RDAP observation failed for target {TargetId}.",
+                target.Id);
+            return Failure(
+                "rdap_error",
+                "The public domain registry data could not be checked.");
         }
     }
 
