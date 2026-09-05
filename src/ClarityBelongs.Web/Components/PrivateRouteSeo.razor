@@ -1,0 +1,31 @@
+@inject NavigationManager Navigation
+
+@if (IsPrivateRoute)
+{
+    <HeadContent>
+        <meta name="robots" content="noindex, nofollow" />
+    </HeadContent>
+}
+
+@code {
+    private bool IsPrivateRoute
+    {
+        get
+        {
+            var path = "/" + Navigation.ToBaseRelativePath(Navigation.Uri)
+                .Split('?', '#')[0]
+                .TrimStart('/');
+
+            return path.Equals("/login", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/signup", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/forgot-password", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/reset-password", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/account", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/settings", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/my-clarity", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/add", StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith("/follows/", StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith("/feedback-ops", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+}
