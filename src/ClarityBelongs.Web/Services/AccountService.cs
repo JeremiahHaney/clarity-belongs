@@ -163,9 +163,19 @@ public sealed class AccountService(
             new(ClaimTypes.Name, user.DisplayName),
             new(ClaimTypes.Email, user.Email)
         };
+        var ownerEmails = configuration
+            .GetSection("Admin:Emails")
+            .Get<string[]>()
+            ?? [];
 
-        if (OwnerAuthorization.IsAllowedEmail(user.Email, configuration))
-            claims.Add(new Claim(ClaimTypes.Role, OwnerAuthorization.RoleName));
+        if (ownerEmails.Any(value =>
+            string.Equals(
+                value,
+                user.Email,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, "Owner"));
+        }
 
         var identity = new ClaimsIdentity(
             claims,
