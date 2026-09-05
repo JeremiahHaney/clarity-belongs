@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.8 - 2026-09-05
+
+- Completed the final public launch copy pass across Home, What It Watches, Pricing, About, Learn, Support, Contact, Product Feedback, authentication, account/settings, My Clarity, follow detail, header/navigation, footer, and not-found states.
+- Locked the public monitoring catalog to the 15 approved launch watches while preserving broader use-case definitions internally, and aligned the sitemap so hidden product identities are no longer indexed.
+- Removed unsupported public claims around meaningful-change filtering, smart specialization, paid billing, and email delivery; launch pricing is now Free-only and customer notification surfaces show in-app delivery only.
+- Added a distinct Contact experience for account/support messages while keeping Product Feedback focused on ideas, bugs, and product experience.
+- Added responsive navigation with active states and a mobile menu, covering desktop, tablet, and phone layouts without header crowding or wrapping.
+- Added coherent not-found experiences for unknown or hidden products, unknown Learn guides, generic bad routes, and unavailable follow IDs.
+- Added public launch regression tests for banned development-state language, exact public catalog membership, Website Change whole-page truth, responsive navigation contracts, and sitemap consistency.
+- Expanded runtime smoke coverage across launch routes, hidden and unknown 404 behavior, authenticated follow-not-found behavior, security checks, database backup, and restart continuity.
+
 ## 0.6.7 - 2026-09-05
 
 - Added deterministic automated behavioral coverage for the Phase 1 HTTP, TLS, RDAP/domain, DNS address, and DNS record monitoring engines, including all 14 approved Phase 1 service identities.
