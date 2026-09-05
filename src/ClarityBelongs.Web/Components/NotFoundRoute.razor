@@ -1,0 +1,25 @@
+@inject IHttpContextAccessor HttpContextAccessor
+
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
+
+<div class="shell public-shell article-shell">
+    <header class="hero compact-hero article-hero">
+        <div class="eyebrow">NOT FOUND</div>
+        <h1>That page does not exist.</h1>
+        <p class="public-lead">Check the address or return to the public Clarity catalog.</p>
+        <div class="action-row">
+            <a class="button" href="/products">View monitoring</a>
+            <a class="button secondary" href="/">Home</a>
+        </div>
+    </header>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (HttpContextAccessor.HttpContext is not null)
+            HttpContextAccessor.HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+    }
+}
