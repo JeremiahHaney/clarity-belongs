@@ -9,5 +9,10 @@ Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
 Disallow: /reset-password
+Disallow: /feedback-ops
+Disallow: /api/
+Disallow: /auth/
+Disallow: /billing/
+Disallow: /dev/
 
 Sitemap: https://claritybelongs.com/sitemap.xml
