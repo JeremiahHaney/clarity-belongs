@@ -1,13 +1,16 @@
 @page "/"
 
 <PageTitle>Clarity Belongs - Keep an eye on what matters</PageTitle>
+<HeadContent>
+    <meta name="description" content="Clarity Belongs monitors public websites, endpoints, certificates, domains, and DNS so you can review status and changes over time." />
+</HeadContent>
 
 <div class="shell public-shell">
     <section class="public-hero public-hero-grid">
         <div class="hero-copy">
             <div class="eyebrow">CLARITY BELONGS</div>
             <h1>Tell Clarity what matters. We keep an eye on it.</h1>
-            <p class="public-lead">Websites, domains, prices, companies, public notices, opportunities, services and more. Clarity checks them over time, remembers what it saw, and tells you when something worth knowing changes.</p>
+            <p class="public-lead">Monitor public websites, endpoints, certificates, domains, DNS records, and service status. Clarity checks them over time, saves what it observes, and shows you when the recorded result changes.</p>
             <div class="action-row public-actions">
                 <AuthorizeView>
                     <Authorized>
@@ -20,21 +23,21 @@
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
-            <p class="microcopy">Start with five things for free. No card required.</p>
+            <p class="microcopy">Start with five active follows for free. No card required.</p>
         </div>
 
         <div class="hero-visual" aria-label="Example Clarity activity">
             <div class="hero-visual-topline">
                 <span class="status-dot"></span>
                 <span>Clarity is watching</span>
-                <span class="hero-live-pill">Live</span>
+                <span class="hero-live-pill">Active</span>
             </div>
             <div class="hero-watch-card hero-watch-card-featured">
                 <div class="watch-icon">↗</div>
                 <div>
                     <small>Something changed</small>
-                    <strong>Pricing page updated</strong>
-                    <span>Before and after saved</span>
+                    <strong>Website content updated</strong>
+                    <span>Change evidence saved</span>
                 </div>
                 <span class="watch-state changed">Changed</span>
             </div>
@@ -42,35 +45,35 @@
                 <div class="watch-icon">✓</div>
                 <div>
                     <small>Still healthy</small>
-                    <strong>softwarebelongs.com</strong>
-                    <span>Checked 2 minutes ago</span>
+                    <strong>Public website</strong>
+                    <span>Latest check succeeded</span>
                 </div>
                 <span class="watch-state healthy">Healthy</span>
             </div>
             <div class="hero-watch-card">
                 <div class="watch-icon">◷</div>
                 <div>
-                    <small>Needs attention soon</small>
-                    <strong>Certificate renewal</strong>
-                    <span>14 days remaining</span>
+                    <small>Certificate status</small>
+                    <strong>SSL expiration</strong>
+                    <span>Expiration remains visible</span>
                 </div>
-                <span class="watch-state reminder">Reminder</span>
+                <span class="watch-state reminder">Tracked</span>
             </div>
-            <p>One calm place instead of checking everything yourself.</p>
+            <p>One place to review what Clarity checked and what changed.</p>
         </div>
     </section>
 
     <section class="public-section idea-section">
         <div class="section-intro">
             <div class="eyebrow">HOW IT WORKS</div>
-            <h2>You choose the thing. Clarity handles the watching.</h2>
-            <p>You should not need to understand monitoring technology or pick from dozens of monitor types. Start with what you care about and Clarity uses the right checks underneath.</p>
+            <h2>Choose the thing. Clarity keeps checking it.</h2>
+            <p>Pick a supported public target, choose the watch that matches it, and Clarity records scheduled observations in your account.</p>
         </div>
         <div class="flow-grid">
-            <div><strong>1</strong><span>Tell us what matters</span></div>
+            <div><strong>1</strong><span>Choose what to watch</span></div>
             <div><strong>2</strong><span>Clarity checks it</span></div>
-            <div><strong>3</strong><span>History builds quietly</span></div>
-            <div><strong>4</strong><span>See what changed</span></div>
+            <div><strong>3</strong><span>History builds</span></div>
+            <div><strong>4</strong><span>Review what changed</span></div>
         </div>
     </section>
 
@@ -78,38 +81,38 @@
         <div class="section-heading">
             <div>
                 <div class="eyebrow">WHAT CAN CLARITY WATCH?</div>
-                <h2>Start with the thing you care about.</h2>
+                <h2>Launch-ready monitoring for public internet targets.</h2>
             </div>
             <a href="/products">Browse all capabilities</a>
         </div>
         <div class="product-grid public-product-grid">
-            <a class="product-card monitor-card" href="/add">
+            <a class="product-card monitor-card" href="/products/website-uptime">
                 <div class="monitor-icon">◎</div>
-                <div class="eyebrow">WEBSITES & DOMAINS</div>
-                <h2>My website</h2>
-                <p>Watch uptime, changes, SSL, domain expiration and DNS together instead of configuring each one separately.</p>
-                <span class="monitor-link">Watch a website →</span>
+                <div class="eyebrow">AVAILABILITY</div>
+                <h2>Website uptime</h2>
+                <p>Record whether a public website or endpoint responds, including recovery after a failure.</p>
+                <span class="monitor-link">See uptime monitoring →</span>
             </a>
-            <a class="product-card monitor-card" href="/products">
-                <div class="monitor-icon">$</div>
-                <div class="eyebrow">PRICES & AVAILABILITY</div>
-                <h2>Something I may buy</h2>
-                <p>Keep a history of a public price or availability source and know when it changes.</p>
-                <span class="monitor-link">See price watches →</span>
-            </a>
-            <a class="product-card monitor-card" href="/products">
+            <a class="product-card monitor-card" href="/products/website-change">
                 <div class="monitor-icon">↗</div>
-                <div class="eyebrow">COMPANIES & CHANGES</div>
-                <h2>A company or service</h2>
-                <p>Keep an eye on public pages, pricing, releases, policies, status information and other useful changes.</p>
-                <span class="monitor-link">See company watches →</span>
+                <div class="eyebrow">CONTENT</div>
+                <h2>Website changes</h2>
+                <p>Store whole-page content observations and review before-and-after evidence when the recorded page changes.</p>
+                <span class="monitor-link">See website change monitoring →</span>
             </a>
-            <a class="product-card monitor-card" href="/products">
-                <div class="monitor-icon">!</div>
-                <div class="eyebrow">PUBLIC INFORMATION</div>
-                <h2>A notice or opportunity</h2>
-                <p>Watch public meetings, filings, recalls, deadlines, local projects and other information you do not want to keep checking manually.</p>
-                <span class="monitor-link">See public watches →</span>
+            <a class="product-card monitor-card" href="/products/ssl-expiration">
+                <div class="monitor-icon">◷</div>
+                <div class="eyebrow">CERTIFICATES & DOMAINS</div>
+                <h2>Expiration tracking</h2>
+                <p>Keep certificate and domain expiration information visible alongside the rest of your monitoring history.</p>
+                <span class="monitor-link">See expiration watches →</span>
+            </a>
+            <a class="product-card monitor-card" href="/products/dns-change">
+                <div class="monitor-icon">≋</div>
+                <div class="eyebrow">DNS</div>
+                <h2>DNS changes</h2>
+                <p>Record public address, nameserver, MX, SPF, DKIM, and DMARC answers and surface changes over time.</p>
+                <span class="monitor-link">See DNS monitoring →</span>
             </a>
         </div>
     </section>
@@ -117,13 +120,13 @@
     <section class="public-section split-callout">
         <div>
             <div class="eyebrow">MY CLARITY</div>
-            <h2>Everything you asked us to keep an eye on.</h2>
-            <p>My Clarity is your personal view of what needs attention, what changed recently, what is still healthy, and the history Clarity has built for you.</p>
+            <h2>Your follows and their history in one place.</h2>
+            <p>My Clarity shows what you asked Clarity to watch, the latest status, recorded changes, and saved history.</p>
         </div>
         <div class="mock-feed">
-            <div><span class="badge">Changed</span><strong>Pricing page updated</strong><small>Before and after saved</small></div>
-            <div><span class="badge">Recovered</span><strong>Website responding again</strong><small>4 minutes ago</small></div>
-            <div><span class="badge">Reminder</span><strong>SSL expires in 14 days</strong><small>Worth handling soon</small></div>
+            <div><span class="badge">Changed</span><strong>Website content updated</strong><small>Evidence saved</small></div>
+            <div><span class="badge">Recovered</span><strong>Website responding again</strong><small>Recovery recorded</small></div>
+            <div><span class="badge">Healthy</span><strong>DNS answer unchanged</strong><small>Latest check succeeded</small></div>
         </div>
     </section>
 
@@ -131,7 +134,7 @@
         <div class="section-intro">
             <div class="eyebrow">HOW CLARITY FITS</div>
             <h2>Software Belongs helps you do. Clarity helps you know.</h2>
-            <p>Software Belongs gives people useful tools. Clarity keeps watch over things that change over time. AutoPilot IT brings the same self-service philosophy to business technology.</p>
+            <p>Software Belongs gives people useful tools. Clarity keeps watch over supported public targets that change over time. AutoPilot IT applies the same self-service philosophy to business technology.</p>
         </div>
         <div class="ecosystem-grid">
             <a href="https://softwarebelongs.com"><strong>Software Belongs</strong><span>DO — useful tools that help you act.</span></a>
@@ -143,7 +146,7 @@
     <section class="public-cta">
         <div class="eyebrow">STOP CHECKING</div>
         <h2>Give Clarity something to keep an eye on.</h2>
-        <p>Start with one website, domain, price, company, notice, opportunity or service. Clarity builds the history from there.</p>
+        <p>Start with a supported website, endpoint, certificate, domain, DNS record, or service-status source.</p>
         <AuthorizeView>
             <Authorized>
                 <a class="button" href="/add">Watch something</a>
