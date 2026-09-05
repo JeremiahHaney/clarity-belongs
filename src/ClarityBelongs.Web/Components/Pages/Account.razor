@@ -64,6 +64,7 @@
                 else if (Stripe.IsConfigured && !string.IsNullOrWhiteSpace(Summary.Membership.StripeCustomerId))
                 {
                     <form method="post" action="/billing/portal">
+                        <AntiforgeryToken />
                         <button class="button" type="submit">Manage billing</button>
                     </form>
                 }
@@ -83,6 +84,7 @@
         <section class="panel">
             <h2>Sign out</h2>
             <form method="post" action="/auth/logout">
+                <AntiforgeryToken />
                 <button class="button secondary" type="submit">Sign out</button>
             </form>
         </section>
