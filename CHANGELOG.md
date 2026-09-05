@@ -2,15 +2,14 @@
 
 ## 0.6.8 - 2026-09-05
 
-- Hardened SMTP configuration validation, sender/from/reply-to behavior, subject/body sanitization, and launch gating so email delivery is never advertised or attempted publicly without a complete secure configuration.
-- Added durable notification delivery attempts with atomic claims, stale-claim recovery, bounded exponential backoff, terminal dead-letter handling, sanitized failure details, and existing deduplication preserved across change, failure, recovery, and expiration notifications.
-- Replaced the in-memory daily-digest sent flag with durable per-user/per-day digest execution state so digest delivery is restart-safe and duplicate-resistant.
-- Hardened Stripe webhook processing with signature validation, durable event replay protection, event ordering guards, safer configured-price plan mapping, cancellation/past-due downgrade behavior, and generic customer-facing provider failures with actionable internal logging.
-- Enforced effective plan entitlements so only active/trialing paid memberships receive paid follow limits, cadence, visible history, email, and digest capabilities; inactive paid memberships fall back to Free behavior.
-- Made the public launch explicitly Free-only by default: paid checkout and billing-management affordances are hidden, paid plan placeholders are removed, approved display prices are required before paid plans can be exposed, and email delivery remains disabled behind an explicit public gate.
-- Made password-reset UX truthful when email is disabled by withholding unusable reset tokens and directing customers to support instead of claiming a reset email was sent.
-- Added automated billing/email coverage for configuration validation, success/failure/retry/dead-letter delivery, duplicate prevention, restart-safe digest state, reset email generation, Stripe signature/replay/order handling, inactive-plan entitlements, pricing gating, and sanitization.
-- Added the EF Core `20260905185427_HardenBillingAndEmailDelivery` migration and compatibility handling for existing pre-migration databases that already contain the hardened delivery/billing schema.
+- Completed the final public launch copy pass across Home, What It Watches, Pricing, About, Learn, Support, Contact, Product Feedback, authentication, account/settings, My Clarity, follow detail, header/navigation, footer, and not-found states.
+- Locked the public monitoring catalog to the 15 approved launch watches while preserving broader use-case definitions internally, and aligned the sitemap so hidden product identities are no longer indexed.
+- Removed unsupported public claims around meaningful-change filtering, smart specialization, paid billing, and email delivery; launch pricing is now Free-only and customer notification surfaces show in-app delivery only.
+- Added a distinct Contact experience for account/support messages while keeping Product Feedback focused on ideas, bugs, and product experience.
+- Added responsive navigation with active states and a mobile menu, covering desktop, tablet, and phone layouts without header crowding or wrapping.
+- Added coherent not-found experiences for unknown or hidden products, unknown Learn guides, generic bad routes, and unavailable follow IDs.
+- Added public launch regression tests for banned development-state language, exact public catalog membership, Website Change whole-page truth, responsive navigation contracts, and sitemap consistency.
+- Expanded runtime smoke coverage across launch routes, hidden and unknown 404 behavior, authenticated follow-not-found behavior, security checks, database backup, and restart continuity.
 
 ## 0.6.7 - 2026-09-05
 
