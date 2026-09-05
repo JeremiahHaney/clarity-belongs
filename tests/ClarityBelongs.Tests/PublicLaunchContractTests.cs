@@ -39,6 +39,8 @@ public sealed class PublicLaunchContractTests
         "src/ClarityBelongs.Web/Components/Pages/ResetPassword.razor",
         "src/ClarityBelongs.Web/Components/Pages/Account.razor",
         "src/ClarityBelongs.Web/Components/Pages/Settings.razor",
+        "src/ClarityBelongs.Web/Components/Pages/MyClarity.razor",
+        "src/ClarityBelongs.Web/Components/Pages/FollowDetail.razor",
         "src/ClarityBelongs.Web/Components/Layout/MainLayout.razor",
         "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs"
     ];
@@ -129,6 +131,21 @@ public sealed class PublicLaunchContractTests
                     StringComparison.OrdinalIgnoreCase);
             }
         }
+    }
+
+    [Fact]
+    public void Navigation_has_desktop_tablet_and_mobile_launch_breakpoints()
+    {
+        var root = FindRepositoryRoot();
+        var layout = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Layout/MainLayout.razor"));
+
+        Assert.Contains("site-nav-menu", layout, StringComparison.Ordinal);
+        Assert.Contains("max-width: 1050px", layout, StringComparison.Ordinal);
+        Assert.Contains("max-width: 820px", layout, StringComparison.Ordinal);
+        Assert.Contains("max-width: 430px", layout, StringComparison.Ordinal);
+        Assert.Contains("flex-direction: row", layout, StringComparison.Ordinal);
+        Assert.Contains("width: min(320px, calc(100vw - 32px))", layout, StringComparison.Ordinal);
     }
 
     [Fact]
