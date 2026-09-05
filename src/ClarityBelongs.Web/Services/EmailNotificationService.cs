@@ -215,59 +215,23 @@ public sealed class SmtpClarityEmailSender(
         message.To.Add(new MailAddress(recipient));
         cancellationToken.ThrowIfCancellationRequested();
 
-public sealed class NotificationDeliveryWorker(
-    IServiceScopeFactory scopeFactory,
-    IOptions<EmailOptions> options,
-    ILogger<NotificationDeliveryWorker> logger) : BackgroundService
-{
-    public const string WorkerName = "notification-delivery";
-    private readonly EmailOptions _options = options.Value;
-    private readonly WorkerRuntimeState _runtimeState = WorkerRuntimeState.Current;
-    private DateOnly? _lastDigestDateUtc;
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _runtimeState.Started(WorkerName);
-        logger.LogInformation("Notification delivery worker started");
-
         try
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _runtimeState.Pulse(WorkerName);
-
-                try
-                {
-                    await DeliverPendingAsync(stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        ex,
-                        "Notification delivery worker cycle failed");
-                }
-
-                await Task.Delay(
-                    TimeSpan.FromSeconds(30),
-                    stoppingToken);
-            }
+            await client.SendMailAsync(message, cancellationToken);
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (Exception ex) when (ex is SmtpException or InvalidOperationException)
         {
-        }
-        finally
-        {
-            _runtimeState.Stopped(WorkerName);
-            logger.LogInformation("Notification delivery worker stopped");
+            logger.LogWarning(
+                ex,
+                "SMTP delivery failed for recipient domain {RecipientDomain}.",
+                GetDomain(recipient));
+            throw;
         }
     }
 
-    internal async Task DeliverPendingAsync(
-        CancellationToken cancellationToken = default)
+    internal static string SanitizeHeader(
+        string value,
+        int maxLength)
     {
         var sanitized = new string(
             (value ?? string.Empty)
@@ -386,9 +350,20 @@ public static class NotificationDeliveryCoordinator
 
         foreach (var id in ids)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (!await TryClaimAsync(
+                    db,
+                    id,
+                    options,
+                    utcNow,
+                    cancellationToken))
+            {
+                continue;
+            }
 
-            var user = await GetDeliverableUserAsync(
+            db.ChangeTracker.Clear();
+            var notification = await db.Notifications
+                .FirstAsync(x => x.Id == id, cancellationToken);
+            var account = await GetDeliveryAccountAsync(
                 db,
                 notification.UserId,
                 plans,
@@ -397,7 +372,9 @@ public static class NotificationDeliveryCoordinator
             if (account is null
                 || !account.Plan.EmailAlerts)
             {
-                Suppress(notification);
+                Suppress(
+                    notification,
+                    "Email delivery is not included for this account or plan.");
                 await db.SaveChangesAsync(cancellationToken);
                 continue;
             }
@@ -410,8 +387,7 @@ public static class NotificationDeliveryCoordinator
                     $"{notification.BodySummary}\n\nOpen My Clarity to review the evidence and history.",
                     cancellationToken);
 
-                MarkSent(notification);
-                await db.SaveChangesAsync(cancellationToken);
+                MarkSent(notification, utcNow);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -419,11 +395,16 @@ public static class NotificationDeliveryCoordinator
             }
             catch (Exception ex)
             {
-                MarkFailed(notification, ex);
-                await db.SaveChangesAsync(CancellationToken.None);
+                MarkFailed(
+                    notification,
+                    options,
+                    logger,
+                    utcNow,
+                    ex);
             }
 
-        _runtimeState.Pulse(WorkerName);
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private static async Task DeliverDigestAsync(
@@ -445,9 +426,7 @@ public static class NotificationDeliveryCoordinator
 
         foreach (var userId in userIds)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var user = await GetDeliverableUserAsync(
+            var account = await GetDeliveryAccountAsync(
                 db,
                 userId,
                 plans,
@@ -457,10 +436,13 @@ public static class NotificationDeliveryCoordinator
                 || !account.Plan.EmailAlerts
                 || !account.Plan.DailyDigest)
             {
-                foreach (var notification in userGroup)
-                    Suppress(notification);
-
-                await db.SaveChangesAsync(cancellationToken);
+                await SuppressUserNotificationsAsync(
+                    db,
+                    userId,
+                    options,
+                    utcNow,
+                    "Daily digest delivery is not included for this account or plan.",
+                    cancellationToken);
                 continue;
             }
 
@@ -544,17 +526,29 @@ public static class NotificationDeliveryCoordinator
                     continue;
                 }
 
+                db.ChangeTracker.Clear();
                 claimed.Add(await db.Notifications
                     .FirstAsync(x => x.Id == id, cancellationToken));
             }
 
             if (claimed.Count == 0)
             {
+                state = await db.DigestDeliveryStates
+                    .FirstAsync(
+                        x => x.UserId == userId
+                            && x.DigestDateUtc == digestDate,
+                        cancellationToken);
                 state.Status = DigestDeliveryStatuses.Completed;
                 state.CompletedAtUtc = utcNow;
                 await db.SaveChangesAsync(cancellationToken);
                 continue;
             }
+
+            state = await db.DigestDeliveryStates
+                .FirstAsync(
+                    x => x.UserId == userId
+                        && x.DigestDateUtc == digestDate,
+                    cancellationToken);
 
             try
             {
@@ -564,10 +558,13 @@ public static class NotificationDeliveryCoordinator
                     BuildDigest(claimed),
                     cancellationToken);
 
-                foreach (var notification in items)
-                    MarkSent(notification);
+                foreach (var notification in claimed)
+                    MarkSent(notification, utcNow);
 
-                await db.SaveChangesAsync(cancellationToken);
+                state.Status = DigestDeliveryStatuses.Completed;
+                state.CompletedAtUtc = utcNow;
+                state.NextAttemptAtUtc = null;
+                state.LastError = null;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -575,15 +572,25 @@ public static class NotificationDeliveryCoordinator
             }
             catch (Exception ex)
             {
-                foreach (var notification in items)
-                    MarkFailed(notification, ex);
+                foreach (var notification in claimed)
+                {
+                    MarkFailed(
+                        notification,
+                        options,
+                        logger,
+                        utcNow,
+                        ex);
+                }
 
-                await db.SaveChangesAsync(CancellationToken.None);
+                state.Status = DigestDeliveryStatuses.Failed;
+                state.NextAttemptAtUtc = utcNow + RetryDelay(
+                    state.AttemptCount,
+                    options);
+                state.LastError = SanitizeError(ex);
             }
-        }
 
-        _lastDigestDateUtc = today;
-        _runtimeState.Pulse(WorkerName);
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     private static IQueryable<Notification> EligibleNotifications(
@@ -793,14 +800,125 @@ public static class NotificationDeliveryCoordinator
         DateTime utcNow,
         Exception ex)
     {
-        notification.Status = "Failed";
-        notification.FailedAtUtc = DateTime.UtcNow;
-        notification.FailureReason = "Email delivery failed. Review server logs for details.";
+        notification.FailedAtUtc = utcNow;
+        notification.FailureReason = SanitizeError(ex);
+
+        if (notification.AttemptCount >= options.MaxDeliveryAttempts)
+        {
+            notification.Status = NotificationStatuses.DeadLetter;
+            notification.DeadLetterAtUtc = utcNow;
+            notification.NextAttemptAtUtc = null;
+        }
+        else
+        {
+            notification.Status = NotificationStatuses.Failed;
+            notification.NextAttemptAtUtc = utcNow + RetryDelay(
+                notification.AttemptCount,
+                options);
+        }
 
         logger.LogWarning(
             ex,
-            "Notification {NotificationId} delivery failed for user {UserId}",
+            "Email delivery attempt {AttemptCount} failed for notification {NotificationId}; next state {NotificationStatus}.",
+            notification.AttemptCount,
             notification.Id,
-            notification.UserId);
+            notification.Status);
+    }
+
+    internal static TimeSpan RetryDelay(
+        int attemptCount,
+        EmailOptions options)
+    {
+        var exponent = Math.Clamp(attemptCount - 1, 0, 16);
+        var multiplier = Math.Pow(2, exponent);
+        var seconds = Math.Min(
+            options.RetryMaxSeconds,
+            options.RetryBaseSeconds * multiplier);
+        return TimeSpan.FromSeconds(seconds);
+    }
+
+    internal static string SanitizeError(Exception ex)
+    {
+        var message = SmtpClarityEmailSender.SanitizeHeader(
+            ex.Message,
+            360);
+        var value = $"{ex.GetType().Name}: {message}";
+        return value.Length <= 400
+            ? value
+            : value[..400];
+    }
+
+    private sealed record DeliveryAccount(
+        AppUser User,
+        PlanDefinition Plan);
+}
+
+public sealed class NotificationDeliveryWorker(
+    IServiceScopeFactory scopeFactory,
+    IOptions<EmailOptions> options,
+    ILogger<NotificationDeliveryWorker> logger) : BackgroundService
+{
+    public const string WorkerName = "notification-delivery";
+    private readonly EmailOptions _options = options.Value;
+    private readonly WorkerRuntimeState _runtimeState = WorkerRuntimeState.Current;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _runtimeState.Started(WorkerName);
+        logger.LogInformation("Notification delivery worker started");
+
+        try
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _runtimeState.Pulse(WorkerName);
+
+                try
+                {
+                    await DeliverPendingAsync(stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(
+                        ex,
+                        "Clarity notification delivery cycle failed");
+                }
+
+                await Task.Delay(
+                    TimeSpan.FromSeconds(30),
+                    stoppingToken);
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            _runtimeState.Stopped(WorkerName);
+            logger.LogInformation("Notification delivery worker stopped");
+        }
+    }
+
+    internal async Task DeliverPendingAsync(
+        CancellationToken cancellationToken = default)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
+        var sender = scope.ServiceProvider.GetRequiredService<IClarityEmailSender>();
+        var plans = scope.ServiceProvider.GetRequiredService<PlanCatalog>();
+
+        await NotificationDeliveryCoordinator.DeliverAsync(
+            db,
+            sender,
+            _options,
+            plans,
+            logger,
+            DateTime.UtcNow,
+            cancellationToken);
+        _runtimeState.Pulse(WorkerName);
     }
 }
