@@ -222,10 +222,26 @@ public static class PublicHttpMessageHandlerFactory
     }
 }
 
-public sealed class HttpObservationEngine(
-    HttpClient http,
-    PublicEndpointGuard guard)
+public sealed class HttpObservationEngine
 {
+    private static readonly HttpClient PublicClient = new(
+        PublicHttpMessageHandlerFactory.Create(),
+        disposeHandler: true);
+
+    private readonly HttpClient _http;
+    private readonly PublicEndpointGuard _guard;
+
+    public HttpObservationEngine(
+        HttpClient http,
+        PublicEndpointGuard guard,
+        bool usePinnedTransport = true)
+    {
+        _http = usePinnedTransport
+            ? PublicClient
+            : http;
+        _guard = guard;
+    }
+
     public async Task<HttpProbeResult> ObserveAsync(
         Uri target,
         bool captureBody,
@@ -237,13 +253,13 @@ public sealed class HttpObservationEngine(
 
         for (var redirect = 0; redirect <= maxRedirects; redirect++)
         {
-            await guard.ValidateAsync(current, cancellationToken);
+            await _guard.ValidateAsync(current, cancellationToken);
 
             using var request = new HttpRequestMessage(HttpMethod.Get, current);
             request.Headers.UserAgent.ParseAdd(userAgent);
 
             var watch = Stopwatch.StartNew();
-            using var response = await http.SendAsync(
+            using var response = await _http.SendAsync(
                 request,
                 captureBody
                     ? HttpCompletionOption.ResponseContentRead
