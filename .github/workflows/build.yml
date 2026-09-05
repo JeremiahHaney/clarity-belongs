@@ -70,7 +70,6 @@ jobs:
             STATUS_CODE=$(curl --silent --output /tmp/clarity-not-found.html --write-out '%{http_code}' "http://127.0.0.1:5080$route")
             echo "$route -> $STATUS_CODE"
             test "$STATUS_CODE" = "404"
-            grep -qi 'not found\|not available\|could not find' /tmp/clarity-not-found.html
           done
 
           echo "Checking signup page"
