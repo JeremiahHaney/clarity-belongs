@@ -1,84 +1,27 @@
 @inject NavigationManager Navigation
 @inject ClarityProductCatalog Products
 
-@if (Metadata is not null)
-{
-    <HeadContent>
-        @if (Metadata.Indexable)
+<HeadContent>
+    @if (Metadata.Indexable)
+    {
+        <link rel="canonical" href="@Metadata.CanonicalUrl" />
+        @if (Metadata.CanonicalUrl == "https://claritybelongs.com/")
         {
-            <link rel="canonical" href="@Metadata.CanonicalUrl" />
-            <meta property="og:title" content="@Metadata.Title" />
-            <meta property="og:description" content="@Metadata.Description" />
-            <meta property="og:url" content="@Metadata.CanonicalUrl" />
-            <meta property="og:type" content="website" />
+            <meta name="description" content="@Metadata.Description" />
         }
-        else
-        {
-            <meta name="robots" content="noindex, nofollow" />
-        }
-    </HeadContent>
-}
+        <meta property="og:title" content="@Metadata.Title" />
+        <meta property="og:description" content="@Metadata.Description" />
+        <meta property="og:url" content="@Metadata.CanonicalUrl" />
+        <meta property="og:type" content="website" />
+    }
+    else
+    {
+        <meta name="robots" content="noindex, nofollow" />
+    }
+</HeadContent>
 
 @code {
-    private static readonly Dictionary<string, (string Title, string Description)> StaticMetadata =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["/"] = ("Clarity Belongs - Keep an eye on what matters", "Clarity Belongs monitors public websites, endpoints, domains, DNS, certificates, and service status so changes and outages stay visible."),
-            ["/products"] = ("What Clarity Can Watch - Clarity Belongs", "Explore the approved Phase 1 monitoring capabilities available in Clarity Belongs."),
-            ["/learn"] = ("Learn - Clarity Belongs", "Plain-language guides for public monitoring problems Clarity Belongs can solve today."),
-            ["/pricing"] = ("Pricing - Clarity Belongs", "Compare Clarity Belongs monitoring plans, limits, cadence, history, and notification options."),
-            ["/about"] = ("About Clarity Belongs", "Clarity Belongs helps people see what changed, understand what matters, and stop checking the same things manually."),
-            ["/support"] = ("Support - Clarity Belongs", "Clarity Belongs support and help for accounts, follows, monitoring history, and alerts."),
-            ["/contact"] = ("Contact - Clarity Belongs", "Contact Clarity Belongs for product feedback and support questions."),
-            ["/privacy"] = ("Privacy - Clarity Belongs", "Clarity Belongs privacy principles and the data used to provide accounts, monitoring history, alerts, and billing."),
-            ["/terms"] = ("Terms - Clarity Belongs", "Terms for using Clarity Belongs monitoring, account, notification, and billing services.")
-        };
-
-    private SeoMetadata? Metadata => Resolve();
-
-    private SeoMetadata Resolve()
-    {
-        var path = "/" + Navigation.ToBaseRelativePath(Navigation.Uri)
-            .Split('?', '#')[0]
-            .TrimStart('/');
-
-        if (path.Length > 1)
-            path = path.TrimEnd('/');
-
-        if (StaticMetadata.TryGetValue(path, out var item))
-            return Public(path, item.Title, item.Description);
-
-        if (path.StartsWith("/products/", StringComparison.OrdinalIgnoreCase))
-        {
-            var slug = path[10..];
-            var product = PublicSiteCatalog.GetProduct(Products, slug);
-            return product is null
-                ? Private()
-                : Public(path.ToLowerInvariant(), $"{product.Name} - Clarity Belongs", product.ShortDescription);
-        }
-
-        if (path.StartsWith("/learn/", StringComparison.OrdinalIgnoreCase))
-        {
-            var slug = path[7..];
-            var catalog = new LearnContentCatalog();
-            var entry = PublicSiteCatalog.GetLearnEntry(catalog, slug);
-            return entry is null
-                ? Private()
-                : Public(path.ToLowerInvariant(), $"{entry.Title} - Clarity Belongs", entry.Description);
-        }
-
-        return Private();
-    }
-
-    private static SeoMetadata Public(string path, string title, string description) =>
-        new(true, $"https://claritybelongs.com{(path == "/" ? "/" : path)}", title, description);
-
-    private static SeoMetadata Private() =>
-        new(false, string.Empty, string.Empty, string.Empty);
-
-    private sealed record SeoMetadata(
-        bool Indexable,
-        string CanonicalUrl,
-        string Title,
-        string Description);
+    private PublicSeoMetadata Metadata => PublicSiteSeoPolicy.Resolve(
+        "/" + Navigation.ToBaseRelativePath(Navigation.Uri),
+        Products);
 }
