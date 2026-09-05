@@ -9,34 +9,30 @@ public sealed class FollowExecutionCoordinator
 {
     public static FollowExecutionCoordinator Current { get; } = new();
 
-    private readonly ConcurrentDictionary<long, byte> _active = new();
+    private static readonly ConcurrentDictionary<long, byte> Active = new();
 
     public bool TryClaim(
         long followId,
         out IDisposable claim)
     {
-        if (!_active.TryAdd(followId, 0))
+        if (!Active.TryAdd(followId, 0))
         {
             claim = NullClaim.Instance;
             return false;
         }
 
-        claim = new Claim(
-            followId,
-            _active);
+        claim = new Claim(followId);
         return true;
     }
 
-    private sealed class Claim(
-        long followId,
-        ConcurrentDictionary<long, byte> active) : IDisposable
+    private sealed class Claim(long followId) : IDisposable
     {
         private int _disposed;
 
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
-                active.TryRemove(followId, out _);
+                Active.TryRemove(followId, out _);
         }
     }
 
