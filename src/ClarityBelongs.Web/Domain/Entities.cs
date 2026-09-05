@@ -18,6 +18,16 @@ public static class ObservationStatuses
     public const string Skipped = "Skipped";
 }
 
+public static class NotificationStatuses
+{
+    public const string Pending = "Pending";
+    public const string Sending = "Sending";
+    public const string Sent = "Sent";
+    public const string Failed = "Failed";
+    public const string Suppressed = "Suppressed";
+    public const string DeadLetter = "DeadLetter";
+}
+
 public static class ChangeSeverities
 {
     public const string Info = "Info";
@@ -171,7 +181,7 @@ public sealed class Notification
     public long FollowId { get; set; }
     public long ChangeId { get; set; }
     public string Channel { get; set; } = "InApp";
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = NotificationStatuses.Pending;
     public string DedupKey { get; set; } = string.Empty;
     public string Subject { get; set; } = string.Empty;
     public string BodySummary { get; set; } = string.Empty;
@@ -179,4 +189,8 @@ public sealed class Notification
     public DateTime? SentAtUtc { get; set; }
     public DateTime? FailedAtUtc { get; set; }
     public string? FailureReason { get; set; }
+    public int AttemptCount { get; set; }
+    public DateTime? LastAttemptAtUtc { get; set; }
+    public DateTime? NextAttemptAtUtc { get; set; }
+    public DateTime? DeadLetterAtUtc { get; set; }
 }
