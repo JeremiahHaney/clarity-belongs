@@ -25,13 +25,47 @@ public sealed record FollowDetailModel(
 
 public sealed class FollowManagementService(
     ClarityDbContext db,
-    MembershipService memberships)
+    MembershipService memberships,
+    ILogger<FollowManagementService>? logger = null)
 {
     public async Task<long> CreateAsync(
         long userId,
         long workspaceId,
         CreateFollowInput input,
         CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await CreateCoreAsync(
+                userId,
+                workspaceId,
+                input,
+                cancellationToken);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            throw;
+        }
+        catch (InvalidOperationException ex) when (IsSafeCustomerMessage(ex.Message))
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(
+                ex,
+                "Follow creation failed for workspace {WorkspaceId}.",
+                workspaceId);
+            throw new InvalidOperationException(
+                "We could not start this watch. Check the target and try again.");
+        }
+    }
+
+    private async Task<long> CreateCoreAsync(
+        long userId,
+        long workspaceId,
+        CreateFollowInput input,
+        CancellationToken cancellationToken)
     {
         await EnsureWorkspaceOwnerAsync(userId, workspaceId, cancellationToken);
         await memberships.ValidateNewFollowAsync(
@@ -303,5 +337,11 @@ public sealed class FollowManagementService(
 
         if (!ownsWorkspace)
             throw new UnauthorizedAccessException("Workspace access denied.");
+    }
+
+    private static bool IsSafeCustomerMessage(string message)
+    {
+        return message.StartsWith("Your ", StringComparison.Ordinal)
+            || message.StartsWith("The fastest check cadence", StringComparison.Ordinal);
     }
 }
