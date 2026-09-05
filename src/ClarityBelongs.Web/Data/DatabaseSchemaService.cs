@@ -6,7 +6,7 @@ namespace ClarityBelongs.Web.Data;
 
 public sealed class DatabaseSchemaService(ClarityDbContext db)
 {
-    public const string BaselineMigrationId = "202609050001_InitialClarityBaseline";
+    public const string BaselineMigrationId = "20260905183011_InitialClarityBaseline";
     private const string EfProductVersion = "10.0.0";
 
     public async Task PrepareForMigrationsAsync(CancellationToken cancellationToken = default)
