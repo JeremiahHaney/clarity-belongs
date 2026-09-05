@@ -1,0 +1,21 @@
+name: migration-probe
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore ClarityBelongs.slnx
+      - run: dotnet tool install --global dotnet-ef --version 10.0.0
+      - run: dotnet ef migrations add ModelAlignmentProbe --project src/ClarityBelongs.Web --startup-project src/ClarityBelongs.Web --output-dir MigrationsProbe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: migration-probe
+          path: src/ClarityBelongs.Web/MigrationsProbe
