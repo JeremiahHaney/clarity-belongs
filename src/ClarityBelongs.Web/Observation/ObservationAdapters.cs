@@ -35,12 +35,13 @@ public interface IObservationAdapter
 
 public sealed class HttpObservationAdapter(
     HttpClient http,
-    ILogger<HttpObservationAdapter> logger) : IObservationAdapter
+    bool usePinnedTransport = true) : IObservationAdapter
 {
     private readonly HttpObservationEngine _shared =
         new(
             http,
-            new Belongs.Shared.Observation.PublicEndpointGuard());
+            new Belongs.Shared.Observation.PublicEndpointGuard(),
+            usePinnedTransport);
 
     public string AdapterType => AdapterTypes.Http;
 
@@ -59,7 +60,7 @@ public sealed class HttpObservationAdapter(
             var result = await _shared.ObserveAsync(
                 uri,
                 mode == "content",
-                "ClarityBelongs/0.2",
+                "ClarityBelongs/0.6",
                 cancellationToken: cancellationToken);
 
             var normalized = mode == "content"
@@ -76,14 +77,12 @@ public sealed class HttpObservationAdapter(
                 });
 
             return new ObservationResult(
-                result.Success,
+                true,
                 result.Success ? "Healthy" : "Down",
                 result.ContentType ?? "text/plain",
                 normalized,
                 $"HTTP {result.StatusCode} in {result.DurationMilliseconds} ms",
-                result.StatusCode,
-                result.Success ? null : "http_error",
-                result.Success ? null : $"HTTP {result.StatusCode}");
+                result.StatusCode);
         }
         catch (Exception ex) when (
             ex is HttpRequestException
@@ -92,13 +91,7 @@ public sealed class HttpObservationAdapter(
                 or InvalidOperationException
                 or TaskCanceledException)
         {
-            logger.LogWarning(
-                ex,
-                "HTTP observation failed for target {TargetId}.",
-                target.Id);
-            return Failure(
-                "http_exception",
-                "The public target could not be checked.");
+            return Failure("http_exception", ex.Message);
         }
     }
 
@@ -134,11 +127,21 @@ public sealed class HttpObservationAdapter(
             ErrorMessage: message);
 }
 
-public sealed class TlsObservationAdapter(
-    ILogger<TlsObservationAdapter> logger) : IObservationAdapter
+public sealed class TlsObservationAdapter : IObservationAdapter
 {
-    private readonly TlsObservationEngine _shared =
-        new(new Belongs.Shared.Observation.PublicEndpointGuard());
+    private readonly TlsObservationEngine _shared;
+
+    public TlsObservationAdapter()
+        : this(
+            new TlsObservationEngine(
+                new Belongs.Shared.Observation.PublicEndpointGuard()))
+    {
+    }
+
+    internal TlsObservationAdapter(TlsObservationEngine shared)
+    {
+        _shared = shared;
+    }
 
     public string AdapterType => AdapterTypes.Tls;
 
@@ -147,9 +150,12 @@ public sealed class TlsObservationAdapter(
         SourceDefinition source,
         CancellationToken cancellationToken = default)
     {
-        var uri = Uri.TryCreate(target.PrimaryUri, UriKind.Absolute, out var absolute)
-            ? absolute
-            : new Uri($"https://{target.PrimaryUri.Trim()}");
+        if (!TryCreateHttpsUri(target.PrimaryUri, out var uri))
+        {
+            return Failure(
+                "invalid_uri",
+                "Enter a valid HTTPS site or host.");
+        }
 
         try
         {
@@ -178,7 +184,9 @@ public sealed class TlsObservationAdapter(
                         : "Healthy",
                 "application/json",
                 normalized,
-                $"TLS expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
+                $"TLS expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)",
+                ErrorCode: days >= 0 ? null : "tls_expired",
+                ErrorMessage: days >= 0 ? null : "The TLS certificate is expired.");
         }
         catch (Exception ex) when (
             ex is SocketException
@@ -186,26 +194,69 @@ public sealed class TlsObservationAdapter(
                 or IOException
                 or InvalidOperationException)
         {
-            logger.LogWarning(
-                ex,
-                "TLS observation failed for target {TargetId}.",
-                target.Id);
-            return new ObservationResult(
-                false,
-                "Down",
-                "application/json",
-                "{}",
-                "The public TLS endpoint could not be checked.",
-                ErrorCode: "tls_error",
-                ErrorMessage: "The public TLS endpoint could not be checked.");
+            return Failure(
+                "tls_error",
+                ex.Message);
         }
     }
+
+    private static bool TryCreateHttpsUri(
+        string input,
+        out Uri uri)
+    {
+        uri = null!;
+        var value = input.Trim();
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        {
+            if (absolute.Scheme != Uri.UriSchemeHttps)
+                return false;
+
+            uri = absolute;
+            return true;
+        }
+
+        if (!Uri.TryCreate(
+                $"https://{value}",
+                UriKind.Absolute,
+                out var created)
+            || created is null
+            || created.Scheme != Uri.UriSchemeHttps
+            || string.IsNullOrWhiteSpace(created.Host))
+        {
+            return false;
+        }
+
+        uri = created;
+        return true;
+    }
+
+    private static ObservationResult Failure(
+        string code,
+        string message) =>
+        new(
+            false,
+            "Down",
+            "application/json",
+            "{}",
+            message,
+            ErrorCode: code,
+            ErrorMessage: message);
 }
 
-public sealed class DnsObservationAdapter(
-    ILogger<DnsObservationAdapter> logger) : IObservationAdapter
+public sealed class DnsObservationAdapter : IObservationAdapter
 {
-    private readonly DnsObservationEngine _shared = new();
+    private readonly DnsObservationEngine _shared;
+
+    public DnsObservationAdapter()
+        : this(new DnsObservationEngine())
+    {
+    }
+
+    internal DnsObservationAdapter(DnsObservationEngine shared)
+    {
+        _shared = shared;
+    }
 
     public string AdapterType => AdapterTypes.Dns;
 
@@ -234,25 +285,23 @@ public sealed class DnsObservationAdapter(
                 json,
                 values.Length > 0
                     ? $"Resolved: {string.Join(", ", values)}"
-                    : "The hostname did not resolve.");
+                    : "The hostname did not resolve.",
+                ErrorCode: values.Length > 0 ? null : "dns_empty",
+                ErrorMessage: values.Length > 0 ? null : "The hostname did not resolve.");
         }
         catch (Exception ex) when (
             ex is SocketException
                 or ArgumentException
                 or InvalidOperationException)
         {
-            logger.LogWarning(
-                ex,
-                "DNS observation failed for target {TargetId}.",
-                target.Id);
             return new ObservationResult(
                 false,
                 "Down",
                 "application/json",
                 "{}",
-                "The public DNS target could not be checked.",
+                ex.Message,
                 ErrorCode: "dns_error",
-                ErrorMessage: "The public DNS target could not be checked.");
+                ErrorMessage: ex.Message);
         }
     }
 
@@ -261,8 +310,7 @@ public sealed class DnsObservationAdapter(
 }
 
 public sealed class DomainObservationAdapter(
-    HttpClient http,
-    ILogger<DomainObservationAdapter> logger) : IObservationAdapter
+    HttpClient http) : IObservationAdapter
 {
     private readonly DomainObservationEngine _shared = new(http);
 
@@ -297,7 +345,9 @@ public sealed class DomainObservationAdapter(
                         : "Healthy",
                 "application/json",
                 json,
-                $"Domain expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)");
+                $"Domain expires {result.ExpiresUtc:yyyy-MM-dd} UTC ({Math.Max(0, days)} days)",
+                ErrorCode: days >= 0 ? null : "domain_expired",
+                ErrorMessage: days >= 0 ? null : "The domain registration is expired.");
         }
         catch (Exception ex) when (
             ex is HttpRequestException
@@ -305,13 +355,7 @@ public sealed class DomainObservationAdapter(
                 or InvalidOperationException
                 or TaskCanceledException)
         {
-            logger.LogWarning(
-                ex,
-                "RDAP observation failed for target {TargetId}.",
-                target.Id);
-            return Failure(
-                "rdap_error",
-                "The public domain registry data could not be checked.");
+            return Failure("rdap_error", ex.Message);
         }
     }
 

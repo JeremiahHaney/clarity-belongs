@@ -40,14 +40,18 @@ public sealed class PublicEndpointGuard
                 "Only http and https targets are supported.");
         }
 
-        await ResolvePublicAddressesAsync(uri.Host, cancellationToken);
+        await ResolvePublicAddressesAsync(
+            uri.Host,
+            cancellationToken);
     }
 
     public async Task ValidateHostAsync(
         string host,
         CancellationToken cancellationToken = default)
     {
-        await ResolvePublicAddressesAsync(host, cancellationToken);
+        await ResolvePublicAddressesAsync(
+            host,
+            cancellationToken);
     }
 
     public async Task<IPAddress[]> ResolvePublicAddressesAsync(
@@ -253,9 +257,13 @@ public sealed class HttpObservationEngine
 
         for (var redirect = 0; redirect <= maxRedirects; redirect++)
         {
-            await _guard.ValidateAsync(current, cancellationToken);
+            await _guard.ValidateAsync(
+                current,
+                cancellationToken);
 
-            using var request = new HttpRequestMessage(HttpMethod.Get, current);
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                current);
             request.Headers.UserAgent.ParseAdd(userAgent);
 
             var watch = Stopwatch.StartNew();
@@ -275,7 +283,9 @@ public sealed class HttpObservationEngine
 
                 current = response.Headers.Location.IsAbsoluteUri
                     ? response.Headers.Location
-                    : new Uri(current, response.Headers.Location);
+                    : new Uri(
+                        current,
+                        response.Headers.Location);
 
                 continue;
             }
@@ -299,41 +309,97 @@ public sealed class HttpObservationEngine
     }
 }
 
-public sealed class TlsObservationEngine(
-    PublicEndpointGuard guard)
+public interface ITlsCertificateProbe
 {
+    Task<X509Certificate2> GetCertificateAsync(
+        Uri uri,
+        IReadOnlyList<IPAddress> validatedAddresses,
+        CancellationToken cancellationToken = default);
+}
+
+public sealed class SystemTlsCertificateProbe : ITlsCertificateProbe
+{
+    public async Task<X509Certificate2> GetCertificateAsync(
+        Uri uri,
+        IReadOnlyList<IPAddress> validatedAddresses,
+        CancellationToken cancellationToken = default)
+    {
+        Exception? lastError = null;
+
+        foreach (var address in validatedAddresses)
+        {
+            using var tcp = new TcpClient(address.AddressFamily);
+
+            try
+            {
+                await tcp.ConnectAsync(
+                    address,
+                    uri.IsDefaultPort ? 443 : uri.Port,
+                    cancellationToken);
+
+                await using var ssl = new SslStream(
+                    tcp.GetStream(),
+                    false,
+                    (_, _, _, errors) => errors == SslPolicyErrors.None);
+
+                await ssl.AuthenticateAsClientAsync(
+                    new SslClientAuthenticationOptions
+                    {
+                        TargetHost = uri.Host
+                    },
+                    cancellationToken);
+
+                if (ssl.RemoteCertificate is null)
+                {
+                    throw new AuthenticationException(
+                        "The server did not present an SSL certificate.");
+                }
+
+                return new X509Certificate2(ssl.RemoteCertificate);
+            }
+            catch (Exception ex) when (
+                ex is SocketException
+                    or IOException
+                    or AuthenticationException)
+            {
+                lastError = ex;
+            }
+        }
+
+        throw new AuthenticationException(
+            "The TLS endpoint could not be validated.",
+            lastError);
+    }
+}
+
+public sealed class TlsObservationEngine
+{
+    private readonly PublicEndpointGuard _guard;
+    private readonly ITlsCertificateProbe _probe;
+
+    public TlsObservationEngine(
+        PublicEndpointGuard guard,
+        ITlsCertificateProbe? probe = null)
+    {
+        _guard = guard;
+        _probe = probe ?? new SystemTlsCertificateProbe();
+    }
+
     public async Task<TlsProbeResult> ObserveAsync(
         Uri uri,
         CancellationToken cancellationToken = default)
     {
-        var addresses = await guard.ResolvePublicAddressesAsync(
+        if (uri.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException("TLS monitoring requires HTTPS.");
+
+        var addresses = await _guard.ResolvePublicAddressesAsync(
             uri.Host,
             cancellationToken);
-        using var tcp = new TcpClient(addresses[0].AddressFamily);
-        await tcp.ConnectAsync(
-            addresses[0],
-            uri.IsDefaultPort ? 443 : uri.Port,
+
+        using var cert = await _probe.GetCertificateAsync(
+            uri,
+            addresses,
             cancellationToken);
-
-        await using var ssl = new SslStream(
-            tcp.GetStream(),
-            false,
-            (_, _, _, errors) => errors == SslPolicyErrors.None);
-
-        await ssl.AuthenticateAsClientAsync(
-            new SslClientAuthenticationOptions
-            {
-                TargetHost = uri.Host
-            },
-            cancellationToken);
-
-        if (ssl.RemoteCertificate is null)
-        {
-            throw new AuthenticationException(
-                "The server did not present an SSL certificate.");
-        }
-
-        using var cert = new X509Certificate2(ssl.RemoteCertificate);
 
         return new TlsProbeResult(
             uri.Host,
@@ -344,22 +410,63 @@ public sealed class TlsObservationEngine(
     }
 }
 
+public interface IDnsAddressResolver
+{
+    Task<IPAddress[]> ResolveAsync(
+        string host,
+        CancellationToken cancellationToken = default);
+}
+
+public sealed class SystemDnsAddressResolver : IDnsAddressResolver
+{
+    private readonly PublicEndpointGuard _guard = new();
+
+    public Task<IPAddress[]> ResolveAsync(
+        string host,
+        CancellationToken cancellationToken = default) =>
+        _guard.ResolvePublicAddressesAsync(
+            host,
+            cancellationToken);
+}
+
 public sealed class DnsObservationEngine
 {
+    private readonly IDnsAddressResolver _resolver;
+
+    public DnsObservationEngine(IDnsAddressResolver? resolver = null)
+    {
+        _resolver = resolver ?? new SystemDnsAddressResolver();
+    }
+
     public async Task<string[]> ObserveAddressesAsync(
         string input,
         CancellationToken cancellationToken = default)
     {
         var host = NormalizeHost(input);
-        var guard = new PublicEndpointGuard();
-        var addresses = await guard.ResolvePublicAddressesAsync(
+
+        if (string.IsNullOrWhiteSpace(host))
+            throw new InvalidOperationException("A host name is required.");
+
+        var addresses = await _resolver.ResolveAsync(
             host,
             cancellationToken);
 
+        if (addresses.Length == 0)
+            return [];
+
+        foreach (var address in addresses)
+        {
+            if (!PublicEndpointGuard.IsPublic(address))
+            {
+                throw new InvalidOperationException(
+                    "Private, loopback, link-local, multicast, and other non-public addresses cannot be monitored.");
+            }
+        }
+
         return addresses
             .Select(address => address.ToString())
-            .Distinct()
-            .OrderBy(address => address)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(address => address, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 

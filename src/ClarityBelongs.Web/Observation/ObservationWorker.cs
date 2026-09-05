@@ -36,14 +36,10 @@ public sealed class ObservationWorker(
         var engine = scope.ServiceProvider.GetRequiredService<ObservationEngine>();
         var now = DateTime.UtcNow;
 
-        var followIds = await db.Follows
-            .Where(x => x.Status != FollowStatuses.Paused)
-            .Where(x => x.Status != FollowStatuses.Archived)
-            .Where(x => x.NextCheckAtUtc <= now)
-            .OrderBy(x => x.NextCheckAtUtc)
-            .Select(x => x.Id)
-            .Take(50)
-            .ToListAsync(cancellationToken);
+        var followIds = await GetDueFollowIdsAsync(
+            db,
+            now,
+            cancellationToken);
 
         foreach (var followId in followIds)
         {
@@ -56,5 +52,20 @@ public sealed class ObservationWorker(
                 logger.LogWarning(ex, "Follow {FollowId} failed to execute", followId);
             }
         }
+    }
+
+    internal static Task<List<long>> GetDueFollowIdsAsync(
+        ClarityDbContext db,
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
+    {
+        return db.Follows
+            .Where(x => x.Status != FollowStatuses.Paused)
+            .Where(x => x.Status != FollowStatuses.Archived)
+            .Where(x => x.NextCheckAtUtc <= nowUtc)
+            .OrderBy(x => x.NextCheckAtUtc)
+            .Select(x => x.Id)
+            .Take(50)
+            .ToListAsync(cancellationToken);
     }
 }
