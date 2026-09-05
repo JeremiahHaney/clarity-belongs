@@ -21,7 +21,7 @@ public sealed class DigestDeliveryState
     public string? LastError { get; set; }
 }
 
-// Stripe event IDs and timestamps make webhook processing replay-safe and order-aware.
+// Stripe event IDs and timestamps make webhook processing replay-safe and order-aware across restarts.
 public sealed class StripeWebhookEvent
 {
     public long Id { get; set; }
