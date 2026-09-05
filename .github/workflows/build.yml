@@ -60,9 +60,17 @@ jobs:
           PY
           ls -l "$CLARITY_DB_PATH"
 
-          for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
+          for route in / /products /products/website-change /products/website-uptime /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /contact /feedback /privacy /terms /robots.txt /sitemap.xml; do
             echo "Checking public route $route"
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
+          done
+
+          echo "Checking hidden and unknown routes return 404"
+          for route in /products/product-price /products/definitely-not-a-product /learn/definitely-not-a-guide /definitely-not-a-page; do
+            STATUS_CODE=$(curl --silent --output /tmp/clarity-not-found.html --write-out '%{http_code}' "http://127.0.0.1:5080$route")
+            echo "$route -> $STATUS_CODE"
+            test "$STATUS_CODE" = "404"
+            grep -qi 'not found\|not available\|could not find' /tmp/clarity-not-found.html
           done
 
           echo "Checking signup page"
@@ -146,6 +154,13 @@ jobs:
             http://127.0.0.1:5080/account \
             -o /tmp/clarity-account.html
           grep -q 'noindex, nofollow' /tmp/clarity-account.html
+
+          echo "Checking bad follow ID has coherent empty state"
+          curl --fail --silent --show-error \
+            -b /tmp/clarity-cookies.txt \
+            http://127.0.0.1:5080/follows/999999999 \
+            -o /tmp/clarity-missing-follow.html
+          grep -q 'That follow is not available' /tmp/clarity-missing-follow.html
 
           echo "Creating smoke follow"
           curl --fail --silent --show-error \
