@@ -8,4 +8,9 @@ public sealed class PublicEndpointGuard
         Uri uri,
         CancellationToken cancellationToken = default) =>
         _shared.ValidateAsync(uri, cancellationToken);
+
+    public Task ValidateHostAsync(
+        string host,
+        CancellationToken cancellationToken = default) =>
+        _shared.ValidateHostAsync(host, cancellationToken);
 }
