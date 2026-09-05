@@ -161,8 +161,7 @@ public sealed class OperationalMetricsService(ClarityDbContext db)
         var failedCount = await db.ObservationRuns
             .AsNoTracking()
             .CountAsync(
-                x => x.Status == ObservationStatuses.Failed
-                    || x.Status == ObservationStatuses.Abandoned,
+                x => x.Status == ObservationStatuses.Failed,
                 cancellationToken);
         var pendingNotifications = await db.Notifications
             .AsNoTracking()
@@ -211,7 +210,7 @@ public sealed class ObservationRecoveryService(
 
         foreach (var run in staleRuns)
         {
-            run.Status = ObservationStatuses.Abandoned;
+            run.Status = ObservationStatuses.Failed;
             run.CompletedAtUtc = nowUtc;
             run.ErrorCode = "stale_recovery";
             run.ErrorMessage = "Observation was abandoned after the worker stopped before completion.";
