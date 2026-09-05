@@ -20,7 +20,10 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+        ConfigureModel(modelBuilder);
+
+    public static void ConfigureModel(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AppUser>()
             .HasIndex(x => x.Email)
