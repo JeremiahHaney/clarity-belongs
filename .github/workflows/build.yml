@@ -27,12 +27,16 @@ jobs:
       - name: Automated tests
         run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
 
-      - name: Runtime, public-site, account, and security smoke test
+      - name: Runtime, public-site, account, security, and persistence smoke test
         shell: bash
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          CLARITY_DB_PATH: /tmp/clarity-smoke/clarity.db
+          CLARITY_BACKUP_DIR: /tmp/clarity-smoke/backups
         run: |
-          rm -f src/ClarityBelongs.Web/clarity.db /tmp/clarity-cookies.txt
+          rm -rf /tmp/clarity-smoke /tmp/clarity-cookies.txt
+          mkdir -p /tmp/clarity-smoke
+
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity.log 2>&1 &
           APP_PID=$!
           trap 'kill $APP_PID || true' EXIT
@@ -46,6 +50,9 @@ jobs:
           done
 
           cat /tmp/clarity-health.json
+          grep -q '"schemaCurrent":true' /tmp/clarity-health.json
+          grep -q '"writable":true' /tmp/clarity-health.json
+          test -f "$CLARITY_DB_PATH"
 
           for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
@@ -123,3 +130,29 @@ jobs:
             http://127.0.0.1:5080/api/follows)
           test "$PRIVATE_TARGET_CODE" = "400"
           grep -q 'could not be created' /tmp/clarity-private-target.json
+
+          kill $APP_PID
+          wait $APP_PID || true
+          trap - EXIT
+
+          dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build -- --backup-database > /tmp/clarity-backup.log
+          ls "$CLARITY_BACKUP_DIR"/clarity-*.db > /dev/null
+
+          dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity-restart.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5080/health > /tmp/clarity-restart-health.json; then
+              break
+            fi
+
+            sleep 1
+          done
+
+          grep -q '"schemaCurrent":true' /tmp/clarity-restart-health.json
+          curl --fail --silent --show-error \
+            -b /tmp/clarity-cookies.txt \
+            http://127.0.0.1:5080/my-clarity \
+            -o /tmp/clarity-restart-dashboard.html
+          grep -q 'CI Example' /tmp/clarity-restart-dashboard.html
