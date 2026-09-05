@@ -2,6 +2,8 @@
 
 Use this checklist after the Phase 1 SEO release is deployed to `https://claritybelongs.com`.
 
+No structured data was added for this release. The current site does not need synthetic review, rating, FAQ, or organization claims to be indexable.
+
 ## Submit the sitemap
 
 1. Open the `claritybelongs.com` property in Google Search Console.
