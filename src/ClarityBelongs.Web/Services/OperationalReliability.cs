@@ -7,32 +7,34 @@ namespace ClarityBelongs.Web.Services;
 
 public sealed class FollowExecutionCoordinator
 {
-    public static FollowExecutionCoordinator Current { get; } = new();
-
-    private static readonly ConcurrentDictionary<long, byte> Active = new();
+    private readonly ConcurrentDictionary<long, byte> _active = new();
 
     public bool TryClaim(
         long followId,
         out IDisposable claim)
     {
-        if (!Active.TryAdd(followId, 0))
+        if (!_active.TryAdd(followId, 0))
         {
             claim = NullClaim.Instance;
             return false;
         }
 
-        claim = new Claim(followId);
+        claim = new Claim(
+            followId,
+            _active);
         return true;
     }
 
-    private sealed class Claim(long followId) : IDisposable
+    private sealed class Claim(
+        long followId,
+        ConcurrentDictionary<long, byte> active) : IDisposable
     {
         private int _disposed;
 
         public void Dispose()
         {
             if (Interlocked.Exchange(ref _disposed, 1) == 0)
-                Active.TryRemove(followId, out _);
+                active.TryRemove(followId, out _);
         }
     }
 
