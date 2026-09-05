@@ -2,21 +2,22 @@
 @attribute [Authorize]
 @inject ClarityBelongs.Web.Data.ClarityDbContext Db
 @inject CurrentAccountService CurrentAccount
-@inject MembershipService Memberships
-@inject IClarityEmailSender EmailSender
 @rendermode InteractiveServer
 
-<PageTitle>Clarity Settings</PageTitle>
+<PageTitle>Settings - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
 
 <div class="shell narrow-shell">
     <header class="hero compact-hero">
         <div class="eyebrow">SETTINGS</div>
-        <h1>How should Clarity reach you?</h1>
-        <p>In-app alerts are always recorded. Email delivery is shown only when it is actually enabled for your plan and the current launch.</p>
+        <h1>Your account settings</h1>
+        <p>Update the email address used to sign in to Clarity. Launch notifications are available inside My Clarity.</p>
     </header>
 
     <section class="panel">
-        @if (User is null || Membership is null)
+        @if (User is null)
         {
             <p>Loading settings...</p>
         }
@@ -24,13 +25,8 @@
         {
             <label class="field">
                 <span>Account email</span>
-                <input @bind="Email" type="email" placeholder="you@example.com" />
+                <input @bind="Email" type="email" autocomplete="email" placeholder="you@example.com" />
             </label>
-
-            <div class="setup-note">
-                <strong>Email delivery: @GetEmailDeliveryStatus()</strong>
-                <span>@GetEmailDeliveryMessage()</span>
-            </div>
 
             @if (!string.IsNullOrWhiteSpace(Message))
             {
@@ -42,15 +38,14 @@
     </section>
 
     <section class="panel">
-        <h2>Alert behavior</h2>
-        <p>Clarity records in-app alerts for meaningful changes, failures, recoveries, and SSL/domain expiration thresholds.</p>
-        <p class="muted">Expiration reminders are deduplicated at 30, 14, 7, and 1 day. Email delivery is currently disabled for the public launch unless both the provider and public release gate are enabled.</p>
+        <h2>Notifications</h2>
+        <p>Clarity records in-app notifications for changes, failures, recoveries, and supported expiration thresholds.</p>
+        <p class="muted">Review notifications and history from My Clarity. Email delivery is not part of the current launch experience.</p>
     </section>
 </div>
 
 @code {
     private AppUser? User { get; set; }
-    private MembershipSummary? Membership { get; set; }
     private string Email { get; set; } = string.Empty;
     private string? Message { get; set; }
 
@@ -60,10 +55,6 @@
 
         User = await Db.Users
             .FirstOrDefaultAsync(x => x.Id == account.UserId);
-
-        Membership = await Memberships.GetAsync(
-            account.UserId,
-            account.WorkspaceId);
         Email = User?.Email ?? string.Empty;
     }
 
@@ -93,28 +84,6 @@
 
         User.Email = value;
         await Db.SaveChangesAsync();
-        Message = "Account email saved. Sign in with this address next time.";
-    }
-
-    private string GetEmailDeliveryStatus()
-    {
-        if (!EmailSender.IsEnabled)
-            return "Not enabled for this launch";
-
-        if (Membership?.Plan.EmailAlerts != true)
-            return "Not included in this plan";
-
-        return "Enabled";
-    }
-
-    private string GetEmailDeliveryMessage()
-    {
-        if (!EmailSender.IsEnabled)
-            return "Clarity will continue recording in-app alerts without promising email delivery.";
-
-        if (Membership?.Plan.EmailAlerts != true)
-            return "This plan uses in-app alerts only.";
-
-        return "Clarity can deliver pending email alerts to the address above.";
+        Message = "Account email saved. Use this address the next time you sign in.";
     }
 }

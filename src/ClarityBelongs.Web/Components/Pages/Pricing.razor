@@ -1,84 +1,46 @@
 @page "/pricing"
 @attribute [AllowAnonymous]
 @inject PlanCatalog Plans
-@inject Microsoft.Extensions.Options.IOptions<StripeOptions> StripeConfig
 
 <PageTitle>Pricing - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Start Clarity Belongs free with up to five active follows and in-app notifications." />
+</HeadContent>
 
 <div class="shell">
     <header class="hero compact-hero pricing-hero">
-        <div class="eyebrow">MEMBERSHIP</div>
-        @if (PaidReady)
-        {
-            <h1>Choose the amount of monitoring you need.</h1>
-            <p>Free is useful. Paid plans increase monitoring capacity and frequency and include email delivery.</p>
-        }
-        else
-        {
-            <h1>Clarity is launching free.</h1>
-            <p>The current public launch includes the Free plan only. Paid plans and email delivery are not being sold or advertised as available yet.</p>
-        }
+        <div class="eyebrow">PRICING</div>
+        <h1>Start free.</h1>
+        <p>Clarity is available on the Free plan. Watch up to five things, build history, and review changes in My Clarity without entering a card.</p>
     </header>
 
-    <section class="plan-grid">
-        @foreach (var plan in VisiblePlans)
-        {
-            <article class="plan-card @(PaidReady && plan.Code == MembershipPlans.Personal ? "featured-plan" : string.Empty)">
-                <div class="eyebrow">@plan.Code.ToUpperInvariant()</div>
-                <h2>@plan.Name</h2>
-                <div class="plan-price">@StripeConfiguration.GetDisplayPrice(Stripe, plan.Code)</div>
-                <p>@plan.Description</p>
-                <ul class="feature-list">
-                    <li>Up to @plan.MaxActiveFollows active follows</li>
-                    <li>Checks as often as every @FormatCadence(plan.MinimumCadenceMinutes)</li>
-                    <li>@plan.HistoryDays days of visible history</li>
-                    <li>@(plan.EmailAlerts ? "Email alerts included" : "In-app alerts")</li>
-                    <li>@(plan.DailyDigest ? "Daily digest available" : "Dashboard history")</li>
-                </ul>
-
-                @if (plan.Code == MembershipPlans.Free)
-                {
-                    <a class="button secondary full-button" href="/signup">Start free</a>
-                }
-                else if (PaidReady)
-                {
-                    <AuthorizeView>
-                        <Authorized>
-                            <form method="post" action="/billing/checkout/@plan.Code.ToLowerInvariant()">
-                                <AntiforgeryToken />
-                                <button class="button full-button" type="submit">Choose @plan.Name</button>
-                            </form>
-                        </Authorized>
-                        <NotAuthorized>
-                            <a class="button full-button" href="/signup">Create account</a>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                }
-            </article>
-        }
+    <section class="plan-grid" style="grid-template-columns:minmax(0, 520px);">
+        <article class="plan-card featured-plan">
+            <div class="eyebrow">FREE</div>
+            <h2>Free</h2>
+            <div class="plan-price">$0</div>
+            <p>Enough room to put Clarity to work on a few things that matter.</p>
+            <ul class="feature-list">
+                <li>Up to @FreePlan.MaxActiveFollows active follows</li>
+                <li>Checks as often as every @FormatCadence(FreePlan.MinimumCadenceMinutes)</li>
+                <li>Saved history in My Clarity</li>
+                <li>In-app notifications</li>
+                <li>No card required</li>
+            </ul>
+            <AuthorizeView>
+                <Authorized>
+                    <a class="button full-button" href="/add">Watch something</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a class="button full-button" href="/signup">Start free</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </article>
     </section>
-
-    @if (!PaidReady)
-    {
-        <section class="setup-note pricing-note">
-            Paid billing is deliberately disabled for this launch.
-        </section>
-    }
-    else if (Checkout == "canceled")
-    {
-        <section class="setup-note pricing-note">Checkout was canceled. Nothing changed on your account.</section>
-    }
 </div>
 
 @code {
-    [SupplyParameterFromQuery(Name = "checkout")]
-    public string? Checkout { get; set; }
-
-    private StripeOptions Stripe => StripeConfig.Value;
-    private bool PaidReady => StripeConfiguration.IsPublicReady(Stripe);
-    private IEnumerable<PlanDefinition> VisiblePlans => PaidReady
-        ? Plans.GetAll()
-        : Plans.GetAll().Where(plan => plan.Code == MembershipPlans.Free);
+    private PlanDefinition FreePlan => Plans.Get(MembershipPlans.Free);
 
     private static string FormatCadence(int minutes)
     {
@@ -86,7 +48,7 @@
             return $"{minutes / 1440} day";
 
         if (minutes >= 60)
-            return $"{minutes / 60} hour";
+            return $"{minutes / 60} hours";
 
         return $"{minutes} minutes";
     }

@@ -1,0 +1,41 @@
+@page "/contact"
+@attribute [AllowAnonymous]
+
+<PageTitle>Contact - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Contact Clarity Belongs about an account, support question, or other message." />
+</HeadContent>
+
+<div class="shell narrow-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">CONTACT</div>
+        <h1>Contact Clarity.</h1>
+        <p>Use this form for account questions, support requests, or anything that needs a direct reply. Product ideas and bug reports belong on the <a href="/feedback">Product feedback</a> page.</p>
+    </header>
+
+    <form method="post" action="/feedback/submit" class="panel feedback-form">
+        <AntiforgeryToken />
+        <input type="hidden" name="kind" value="contact" />
+        <input type="hidden" name="product" value="clarity" />
+        <input type="hidden" name="source" value="/contact" />
+
+        <label class="field">
+            <span>Email</span>
+            <input name="contact" type="email" maxlength="320" autocomplete="email" required />
+        </label>
+
+        <label class="field">
+            <span>How can we help?</span>
+            <textarea name="message" rows="7" maxlength="4000" required style="width:100%; padding:10px 11px; border:1px solid #cfd6dc; border-radius:9px; font:inherit; resize:vertical;"></textarea>
+        </label>
+
+        <p class="muted">Your message is stored with the email you provide so it can be reviewed and answered.</p>
+        <button class="button" type="submit">Send message</button>
+    </form>
+
+    <section class="panel">
+        <h2>Looking for a quick answer?</h2>
+        <p class="muted">The Support page covers first follows, error states, account capacity, and notifications.</p>
+        <a href="/support">Go to Support →</a>
+    </section>
+</div>

@@ -103,7 +103,8 @@ public sealed class PersistenceIsolationAndSchedulingTests
             () => TestData.Success("{\"state\":1}"));
         var engine = new ObservationEngine(
             store.Db,
-            [adapter]);
+            [adapter],
+            new FollowExecutionCoordinator());
         var followB = await service.CreateAsync(
             b.User.Id,
             b.Workspace.Id,

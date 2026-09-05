@@ -9,28 +9,51 @@ public sealed class ExpirationAlertWorker(
     IServiceScopeFactory scopeFactory,
     ILogger<ExpirationAlertWorker> logger) : BackgroundService
 {
+    public const string WorkerName = "expiration-alert";
+    private readonly WorkerRuntimeState _runtimeState = WorkerRuntimeState.Current;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await EvaluateAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Clarity expiration alert cycle failed");
-            }
+        _runtimeState.Started(WorkerName);
+        logger.LogInformation("Expiration alert worker started");
 
-            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+        try
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _runtimeState.Pulse(WorkerName);
+
+                try
+                {
+                    await EvaluateAsync(
+                        DateTime.UtcNow,
+                        stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Expiration alert worker cycle failed");
+                }
+
+                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            _runtimeState.Stopped(WorkerName);
+            logger.LogInformation("Expiration alert worker stopped");
         }
     }
 
-    private async Task EvaluateAsync(CancellationToken cancellationToken)
+    internal async Task EvaluateAsync(
+        DateTime nowUtc,
+        CancellationToken cancellationToken = default)
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
@@ -43,6 +66,8 @@ public sealed class ExpirationAlertWorker(
 
         foreach (var follow in follows)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var snapshot = await db.Snapshots
                 .Where(x => x.TargetId == follow.TargetId)
                 .OrderByDescending(x => x.ObservedAtUtc)
@@ -54,7 +79,7 @@ public sealed class ExpirationAlertWorker(
             if (!TryGetExpiration(snapshot.NormalizedDataJson, out var expiresUtc))
                 continue;
 
-            var days = (int)Math.Ceiling((expiresUtc - DateTime.UtcNow).TotalDays);
+            var days = (int)Math.Ceiling((expiresUtc - nowUtc).TotalDays);
             var threshold = GetThreshold(days);
 
             if (threshold == 0)
@@ -76,6 +101,7 @@ public sealed class ExpirationAlertWorker(
                 $"follow:{follow.Id}:expiry:{dateKey}:{threshold}:inapp",
                 subject,
                 body,
+                nowUtc,
                 cancellationToken);
 
             await AddIfMissingAsync(
@@ -87,10 +113,12 @@ public sealed class ExpirationAlertWorker(
                 $"follow:{follow.Id}:expiry:{dateKey}:{threshold}:email",
                 $"Clarity: {subject}",
                 body,
+                nowUtc,
                 cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
+        _runtimeState.Pulse(WorkerName);
     }
 
     private static async Task AddIfMissingAsync(
@@ -102,6 +130,7 @@ public sealed class ExpirationAlertWorker(
         string dedupKey,
         string subject,
         string body,
+        DateTime nowUtc,
         CancellationToken cancellationToken)
     {
         if (await db.Notifications.AnyAsync(x => x.DedupKey == dedupKey, cancellationToken))
@@ -118,8 +147,8 @@ public sealed class ExpirationAlertWorker(
             DedupKey = dedupKey,
             Subject = subject,
             BodySummary = body,
-            CreatedAtUtc = DateTime.UtcNow,
-            SentAtUtc = status == "Sent" ? DateTime.UtcNow : null
+            CreatedAtUtc = nowUtc,
+            SentAtUtc = status == "Sent" ? nowUtc : null
         });
     }
 

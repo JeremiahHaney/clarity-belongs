@@ -1,15 +1,34 @@
 @page "/learn"
 @page "/learn/{Slug}"
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>@PageTitleText</PageTitle>
 
-@if (Entry is null)
+@if (IsMissingArticle)
+{
+    <HeadContent>
+        <meta name="robots" content="noindex, nofollow" />
+    </HeadContent>
+
+    <div class="shell narrow-shell">
+        <section class="empty-state not-found-state">
+            <div class="eyebrow">NOT FOUND</div>
+            <h1>That guide is not available.</h1>
+            <p>The link may be old, or the guide may no longer be part of the public Learn library.</p>
+            <div class="action-row">
+                <a class="button" href="/learn">Browse Learn</a>
+                <a class="button secondary" href="/">Go home</a>
+            </div>
+        </section>
+    </div>
+}
+else if (Entry is null)
 {
     <div class="shell public-shell">
         <header class="hero compact-hero">
             <div class="eyebrow">LEARN</div>
             <h1>Start with the problem.</h1>
-            <p>Plain-language guides for things people keep checking manually today.</p>
+            <p>Plain-language guides for monitoring public websites, endpoints, domains, certificates, and DNS.</p>
         </header>
 
         <section class="learn-grid">
@@ -41,7 +60,7 @@ else
         <article class="article-body">
             <section>
                 <h2>The simple answer</h2>
-                <p>Instead of revisiting the same public source yourself, give Clarity the target once. Clarity establishes a baseline, observes it on a schedule, stores history, compares new observations, and surfaces meaningful differences.</p>
+                <p>Give Clarity a supported public target once. Clarity records a baseline, checks it on a schedule, saves later observations, and records a change when the stored result differs.</p>
             </section>
 
             <section>
@@ -61,7 +80,7 @@ else
                     {
                         <details>
                             <summary>@question</summary>
-                            <p>Clarity is designed around factual observation, history, comparison, and notification. The exact behavior depends on the selected monitor and the public data the source makes available.</p>
+                            <p>Clarity records factual observations and compares them over time. The exact result depends on the selected watch and the public data available from the target.</p>
                         </details>
                     }
                 </div>
@@ -71,9 +90,9 @@ else
                 <div>
                     <div class="eyebrow">TRY IT</div>
                     <h2>@Entry.ProductName</h2>
-                    <p>Start free and turn this repeated manual check into something Clarity keeps track of for you.</p>
+                    <p>See whether this watch is in Clarity's current public catalog and start free if it is available.</p>
                 </div>
-                <a class="button" href="/products/@Entry.ProductSlug">See the product</a>
+                <a class="button" href="/products/@Entry.ProductSlug">See the watch</a>
             </section>
 
             <section class="related-links">
@@ -93,7 +112,20 @@ else
 
     private LearnContentCatalog LearnCatalog { get; } = new();
     private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
-    private string PageTitleText => Entry is null
-        ? "Learn - Clarity Belongs"
-        : $"{Entry.Title} - Clarity Belongs";
+    private bool IsMissingArticle => !string.IsNullOrWhiteSpace(Slug)
+        && Entry is null;
+    private string PageTitleText => IsMissingArticle
+        ? "Guide not found - Clarity Belongs"
+        : Entry is null
+            ? "Learn - Clarity Belongs"
+            : $"{Entry.Title} - Clarity Belongs";
+
+    protected override void OnParametersSet()
+    {
+        if (IsMissingArticle
+            && HttpContextAccessor.HttpContext is { Response.HasStarted: false } context)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+        }
+    }
 }

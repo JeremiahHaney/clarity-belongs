@@ -1,0 +1,60 @@
+@page "/health/operations"
+@layout ClarityBelongs.Web.Components.Layout.FeedbackOpsLayout
+@using System.Text.Json
+@using ClarityBelongs.Web.Services
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
+
+<pre id="operational-health-json">@_json</pre>
+
+@code {
+    private string _json = "{}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var now = DateTime.UtcNow;
+        var metrics = await new OperationalMetricsService(Db)
+            .GetAsync(now);
+        var observation = WorkerRuntimeState.Current.Get(
+            ClarityBelongs.Web.Observation.ObservationWorker.WorkerName);
+        var notifications = WorkerRuntimeState.Current.Get(
+            NotificationDeliveryWorker.WorkerName);
+        var expiration = WorkerRuntimeState.Current.Get(
+            ExpirationAlertWorker.WorkerName);
+
+        _json = JsonSerializer.Serialize(
+            new
+            {
+                utc = now,
+                observationWorkerAlive = IsAlive(
+                    observation,
+                    now,
+                    TimeSpan.FromMinutes(3)),
+                notificationWorkerAlive = IsAlive(
+                    notifications,
+                    now,
+                    TimeSpan.FromMinutes(2)),
+                expirationWorkerAlive = IsAlive(
+                    expiration,
+                    now,
+                    TimeSpan.FromHours(2)),
+                dueCount = metrics.DueFollowCount,
+                oldestDueAgeMinutes = metrics.OldestDueAgeMinutes,
+                staleObservationCount = metrics.StaleObservationCount,
+                pendingNotificationCount = metrics.PendingNotificationCount
+            });
+    }
+
+    private static bool IsAlive(
+        WorkerHeartbeat heartbeat,
+        DateTime nowUtc,
+        TimeSpan maximumAge)
+    {
+        return heartbeat.Running
+            && heartbeat.LastHeartbeatUtc.HasValue
+            && nowUtc - heartbeat.LastHeartbeatUtc.Value <= maximumAge;
+    }
+}

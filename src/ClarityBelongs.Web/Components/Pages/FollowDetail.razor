@@ -7,20 +7,35 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Follow</PageTitle>
+<PageTitle>Follow - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
 
 <div class="shell">
-    @if (Model is null)
+    @if (!Loaded)
     {
         <section class="panel">
             <p>Loading follow...</p>
+        </section>
+    }
+    else if (Model is null)
+    {
+        <section class="empty-state not-found-state">
+            <div class="eyebrow">NOT FOUND</div>
+            <h1>That follow is not available.</h1>
+            <p>It may have been archived, removed, or belong to a different workspace.</p>
+            <div class="action-row">
+                <a class="button" href="/my-clarity">Back to My Clarity</a>
+                <a class="button secondary" href="/add">Watch something</a>
+            </div>
         </section>
     }
     else
     {
         <header class="hero compact-hero detail-hero">
             <div>
-                <div class="eyebrow">@Model.Follow.MonitorType</div>
+                <div class="eyebrow">FOLLOW</div>
                 <h1>@Model.Follow.Name</h1>
                 <p>@Model.Target.PrimaryUri</p>
             </div>
@@ -55,7 +70,7 @@
         {
             <section class="setup-note plan-notice">
                 <strong>@Membership.Plan.Name plan</strong>
-                <span>Fastest available cadence: @FormatCadence(Membership.Plan.MinimumCadenceMinutes). <a href="/pricing">Compare plans</a>.</span>
+                <span>Fastest available cadence: @FormatCadence(Membership.Plan.MinimumCadenceMinutes). <a href="/pricing">See pricing</a>.</span>
             </section>
         }
 
@@ -82,7 +97,7 @@
                 </label>
                 <label class="check-field">
                     <input type="checkbox" @bind="AlertsEnabled" />
-                    <span>Create alerts for meaningful changes</span>
+                    <span>Create in-app notifications for recorded changes</span>
                 </label>
             </div>
             <button class="button secondary" @onclick="SaveSettingsAsync" disabled="@Busy">Save settings</button>
@@ -92,7 +107,7 @@
             <h2>History</h2>
             @if (Model.Changes.Count == 0)
             {
-                <p class="muted">No meaningful changes yet. The first successful check establishes the baseline.</p>
+                <p class="muted">No changes recorded yet. The first successful check establishes the baseline.</p>
             }
             else
             {
@@ -122,19 +137,19 @@
         </section>
 
         <section class="panel">
-            <h2>Alerts</h2>
-            @if (Model.Notifications.Count == 0)
+            <h2>In-app notifications</h2>
+            @if (VisibleNotifications.Count == 0)
             {
-                <p class="muted">No notifications have been created yet.</p>
+                <p class="muted">No in-app notifications have been created yet.</p>
             }
             else
             {
-                @foreach (var notification in Model.Notifications)
+                @foreach (var notification in VisibleNotifications)
                 {
                     <div class="row">
                         <div>
                             <strong>@notification.Subject</strong>
-                            <div class="muted">@notification.Channel · @notification.Status</div>
+                            <div class="muted">@notification.Status</div>
                         </div>
                         <span>@notification.CreatedAtUtc.ToLocalTime().ToString("g")</span>
                     </div>
@@ -160,18 +175,29 @@
     private string Importance { get; set; } = "Normal";
     private bool AlertsEnabled { get; set; } = true;
     private bool Busy { get; set; }
+    private bool Loaded { get; set; }
 
     private IEnumerable<int> AvailableCadences => Membership is null
         ? CadenceChoices
         : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
 
+    private IReadOnlyList<Notification> VisibleNotifications => Model?.Notifications
+        .Where(notification => string.Equals(
+            notification.Channel,
+            "InApp",
+            StringComparison.OrdinalIgnoreCase))
+        .ToList()
+        ?? [];
+
     protected override async Task OnParametersSetAsync()
     {
+        Loaded = false;
         Account = await CurrentAccount.RequireAsync();
         Membership = await Memberships.GetAsync(
             Account.UserId,
             Account.WorkspaceId);
         await ReloadAsync();
+        Loaded = true;
     }
 
     private async Task ReloadAsync()
@@ -184,10 +210,7 @@
             FollowId);
 
         if (Model is null)
-        {
-            Navigation.NavigateTo("/");
             return;
-        }
 
         CadenceMinutes = Model.Follow.CheckCadenceMinutes;
         Importance = Model.Follow.Importance;
@@ -253,7 +276,7 @@
         await Follows.ArchiveAsync(
             Account.WorkspaceId,
             FollowId);
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/my-clarity");
     }
 
     private static string FormatTime(DateTime? value) => value.HasValue

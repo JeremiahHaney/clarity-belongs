@@ -1,14 +1,19 @@
 using Belongs.Shared.Observation;
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
+using ClarityBelongs.Web.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClarityBelongs.Web.Observation;
 
 public sealed class ObservationEngine(
     ClarityDbContext db,
-    IEnumerable<IObservationAdapter> adapters)
+    IEnumerable<IObservationAdapter> adapters,
+    FollowExecutionCoordinator? executionCoordinator = null)
 {
+    private readonly FollowExecutionCoordinator _executionCoordinator =
+        executionCoordinator ?? FollowExecutionCoordinator.Current;
+
     public async Task<bool> RunOwnedFollowAsync(
         long workspaceId,
         long followId,
@@ -32,6 +37,21 @@ public sealed class ObservationEngine(
     public async Task RunFollowAsync(
         long followId,
         CancellationToken cancellationToken = default)
+    {
+        if (!_executionCoordinator.TryClaim(followId, out var claim))
+            return;
+
+        using (claim)
+        {
+            await RunClaimedFollowAsync(
+                followId,
+                cancellationToken);
+        }
+    }
+
+    private async Task RunClaimedFollowAsync(
+        long followId,
+        CancellationToken cancellationToken)
     {
         var follow = await db.Follows
             .FirstOrDefaultAsync(x => x.Id == followId, cancellationToken);
@@ -97,6 +117,16 @@ public sealed class ObservationEngine(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            var interruptedAtUtc = DateTime.UtcNow;
+            run.Status = ObservationStatuses.Failed;
+            run.CompletedAtUtc = interruptedAtUtc;
+            run.DurationMilliseconds = (long)(interruptedAtUtc - started).TotalMilliseconds;
+            run.ErrorCode = "worker_cancelled";
+            run.ErrorMessage = "Observation stopped before completion and will be retried.";
+            follow.NextCheckAtUtc = interruptedAtUtc;
+            follow.UpdatedAtUtc = interruptedAtUtc;
+
+            await db.SaveChangesAsync(CancellationToken.None);
             throw;
         }
         catch (Exception ex)
