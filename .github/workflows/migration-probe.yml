@@ -13,8 +13,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet restore ClarityBelongs.slnx
+      - run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
       - run: dotnet tool install --global dotnet-ef --version 10.0.0
-      - run: dotnet ef migrations add ModelAlignmentProbe --project src/ClarityBelongs.Web --startup-project src/ClarityBelongs.Web --output-dir MigrationsProbe
+      - run: dotnet ef migrations add ModelAlignmentProbe --project src/ClarityBelongs.Web --startup-project src/ClarityBelongs.Web --output-dir MigrationsProbe --configuration Release --no-build
       - uses: actions/upload-artifact@v4
         with:
           name: migration-probe
