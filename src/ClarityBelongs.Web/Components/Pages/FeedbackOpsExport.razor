@@ -1,42 +1,22 @@
 @page "/api/feedback/recent"
+@attribute [Authorize(Roles = "Owner")]
 @layout ClarityBelongs.Web.Components.Layout.FeedbackOpsLayout
 @using System.Text.Json
 @using Microsoft.EntityFrameworkCore
 @using ClarityBelongs.Web.Data
 @inject ClarityDbContext Db
-@inject IConfiguration Configuration
-@inject IHttpContextAccessor HttpContextAccessor
 
-@if (_authorized)
-{
-    <pre id="feedback-ops-json">@_json</pre>
-}
-else
-{
-    <span id="feedback-ops-unauthorized">Unauthorized</span>
-}
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
+
+<pre id="feedback-ops-json">@_json</pre>
 
 @code {
-    private bool _authorized;
     private string _json = "[]";
 
     protected override async Task OnInitializedAsync()
     {
-        var expectedToken = Configuration["FeedbackOps:Token"];
-        var suppliedToken = HttpContextAccessor.HttpContext?
-            .Request
-            .Headers["X-Feedback-Ops-Token"]
-            .ToString();
-
-        _authorized = !string.IsNullOrWhiteSpace(expectedToken)
-            && string.Equals(
-                suppliedToken,
-                expectedToken,
-                StringComparison.Ordinal);
-
-        if (!_authorized)
-            return;
-
         var feedback = await Db.FeedbackSubmissions
             .AsNoTracking()
             .OrderByDescending(item => item.CreatedUtc)
