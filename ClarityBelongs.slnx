@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/Belongs.Shared/Belongs.Shared.csproj" />
   <Project Path="src/ClarityBelongs.Web/ClarityBelongs.Web.csproj" />
+  <Project Path="tests/ClarityBelongs.Tests/ClarityBelongs.Tests.csproj" />
 </Solution>
