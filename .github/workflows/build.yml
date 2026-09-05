@@ -24,8 +24,13 @@ jobs:
       - name: Build
         run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
 
-      - name: Runtime, public-site, and account smoke test
+      - name: Automated tests
+        run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
+
+      - name: Runtime, public-site, account, and security smoke test
         shell: bash
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
         run: |
           rm -f src/ClarityBelongs.Web/clarity.db /tmp/clarity-cookies.txt
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity.log 2>&1 &
@@ -48,8 +53,41 @@ jobs:
 
           curl --fail --silent --show-error \
             -c /tmp/clarity-cookies.txt \
-            -H 'Origin: http://127.0.0.1:5080' \
+            http://127.0.0.1:5080/signup \
+            -o /tmp/clarity-signup.html
+
+          curl --fail --silent --show-error \
+            http://127.0.0.1:5080/login \
+            -o /tmp/clarity-login.html
+          grep -q 'noindex, nofollow' /tmp/clarity-login.html
+
+          NO_CSRF_CODE=$(curl --silent \
+            -o /tmp/clarity-no-csrf.html \
+            -w '%{http_code}' \
             -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data 'displayName=Blocked&email=blocked%40claritybelongs.test&password=ClarityTest12345' \
+            http://127.0.0.1:5080/auth/signup)
+          test "$NO_CSRF_CODE" = "400"
+
+          UNAUTH_API_CODE=$(curl --silent \
+            -o /tmp/clarity-unauth-api.json \
+            -w '%{http_code}' \
+            -H 'Origin: http://127.0.0.1:5080' \
+            -H 'Content-Type: application/json' \
+            --data '{"name":"Unauthorized","target":"https://example.com","checkCadenceMinutes":360}' \
+            http://127.0.0.1:5080/api/follows)
+          case "$UNAUTH_API_CODE" in
+            200|201|202|204) exit 1 ;;
+          esac
+
+          CSRF_TOKEN=$(sed -n 's/.*name="__RequestVerificationToken" type="hidden" value="\([^"]*\)".*/\1/p' /tmp/clarity-signup.html | head -1)
+          test -n "$CSRF_TOKEN"
+
+          curl --fail --silent --show-error \
+            -b /tmp/clarity-cookies.txt \
+            -c /tmp/clarity-cookies.txt \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data-urlencode "__RequestVerificationToken=$CSRF_TOKEN" \
             --data 'displayName=CI+User&email=ci%40claritybelongs.test&password=ClarityTest12345' \
             http://127.0.0.1:5080/auth/signup \
             -o /dev/null
@@ -63,12 +101,25 @@ jobs:
             -b /tmp/clarity-cookies.txt \
             http://127.0.0.1:5080/account \
             -o /tmp/clarity-account.html
+          grep -q 'noindex, nofollow' /tmp/clarity-account.html
 
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
+            -H 'Origin: http://127.0.0.1:5080' \
             -H 'Content-Type: application/json' \
             --data '{"name":"CI Example","target":"https://example.com","checkCadenceMinutes":360}' \
             http://127.0.0.1:5080/api/follows \
             -o /tmp/clarity-follow.json
 
           grep -q '"id"' /tmp/clarity-follow.json
+
+          PRIVATE_TARGET_CODE=$(curl --silent \
+            -b /tmp/clarity-cookies.txt \
+            -o /tmp/clarity-private-target.json \
+            -w '%{http_code}' \
+            -H 'Origin: http://127.0.0.1:5080' \
+            -H 'Content-Type: application/json' \
+            --data '{"name":"Blocked target","target":"http://127.0.0.1","checkCadenceMinutes":360}' \
+            http://127.0.0.1:5080/api/follows)
+          test "$PRIVATE_TARGET_CODE" = "400"
+          grep -q 'could not be created' /tmp/clarity-private-target.json
