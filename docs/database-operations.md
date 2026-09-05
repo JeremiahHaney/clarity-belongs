@@ -49,7 +49,7 @@ Set `CLARITY_DB_PATH` to `%ProgramData%\ClarityBelongs\Data\clarity.db` and `CLA
 
 ## Schema evolution
 
-`202609050001_InitialClarityBaseline` is the EF Core migration baseline.
+`20260905183011_InitialClarityBaseline` is the EF Core migration baseline.
 
 Fresh databases are created by `Database.MigrateAsync()`. Existing databases created by the pre-migration V1 code are adopted without rebuilding their tables:
 
@@ -96,7 +96,7 @@ Restore is an offline operator action. Do not restore while the IIS application 
 3. From the deployed application directory, run:
 
 ```powershell
-dotnet ClarityBelongs.Web.dll --restore-database clarity-<timestamp>-<schema>.db
+dotnet ClarityBelongs.Web.dll --restore-database <backup-file-name>.db
 ```
 
 4. The restore command first creates a safety backup of the current database when one exists.
