@@ -18,6 +18,8 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public DbSet<AlertRule> AlertRules => Set<AlertRule>();
     public DbSet<FollowChange> FollowChanges => Set<FollowChange>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<DigestDeliveryState> DigestDeliveryStates => Set<DigestDeliveryState>();
+    public DbSet<StripeWebhookEvent> StripeWebhookEvents => Set<StripeWebhookEvent>();
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
@@ -77,6 +79,20 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
         modelBuilder.Entity<Notification>()
             .HasIndex(x => x.DedupKey)
             .IsUnique();
+
+        modelBuilder.Entity<Notification>()
+            .HasIndex(x => new { x.Channel, x.Status, x.NextAttemptAtUtc });
+
+        modelBuilder.Entity<DigestDeliveryState>()
+            .HasIndex(x => new { x.UserId, x.DigestDateUtc })
+            .IsUnique();
+
+        modelBuilder.Entity<StripeWebhookEvent>()
+            .HasIndex(x => x.EventId)
+            .IsUnique();
+
+        modelBuilder.Entity<StripeWebhookEvent>()
+            .HasIndex(x => x.StripeCreatedUtc);
 
         modelBuilder.Entity<FeedbackSubmission>()
             .Property(x => x.Kind)
