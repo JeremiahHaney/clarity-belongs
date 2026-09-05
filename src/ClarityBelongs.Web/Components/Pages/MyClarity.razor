@@ -165,7 +165,7 @@
 @code {
     private MyClarityDashboard? _dashboard;
 
-    private IReadOnlyList<NotificationItem> VisibleNotifications => _dashboard?.Notifications
+    private IReadOnlyList<Notification> VisibleNotifications => _dashboard?.Notifications
         .Where(notification => string.Equals(
             notification.Channel,
             "InApp",
