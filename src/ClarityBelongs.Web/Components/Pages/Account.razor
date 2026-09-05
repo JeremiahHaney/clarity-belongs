@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @inject CurrentAccountService CurrentAccount
 @inject MembershipService Memberships
-@inject StripeBillingService Stripe
 @rendermode InteractiveServer
 
 <PageTitle>Account - Clarity Belongs</PageTitle>
@@ -13,24 +12,16 @@
 <div class="shell narrow-shell">
     <header class="hero compact-hero">
         <div class="eyebrow">ACCOUNT</div>
-        <h1>Your Clarity membership</h1>
-        <p>See your plan, capacity, and billing state in one place.</p>
+        <h1>Your Clarity account</h1>
+        <p>Review your current plan, capacity, and account settings.</p>
     </header>
 
     @if (Session is null || Summary is null)
     {
-        <section class="panel"><p>Loading account...</p></section>
+        <section class="panel"><p>Loading your account...</p></section>
     }
     else
     {
-        @if (Checkout == "success")
-        {
-            <div class="setup-note">
-                <strong>Checkout completed</strong>
-                <span>Stripe is syncing the subscription. Refresh shortly if the plan has not updated yet.</span>
-            </div>
-        }
-
         <section class="panel account-card">
             <div class="account-heading">
                 <div>
@@ -51,27 +42,16 @@
                     <span>remaining</span>
                 </div>
                 <div>
-                    <strong>@Summary.Membership.Status</strong>
-                    <span>billing status</span>
+                    <strong>@Summary.Plan.MaxActiveFollows</strong>
+                    <span>plan limit</span>
                 </div>
             </div>
 
             <p>@Summary.Plan.Description</p>
-            <p class="muted">Fastest cadence: @FormatCadence(Summary.Plan.MinimumCadenceMinutes). History target: @Summary.Plan.HistoryDays days.</p>
+            <p class="muted">Fastest available cadence on this plan: @FormatCadence(Summary.Plan.MinimumCadenceMinutes).</p>
 
             <div class="action-row">
-                @if (Summary.Plan.Code == MembershipPlans.Free)
-                {
-                    <a class="button" href="/pricing">See paid plans</a>
-                }
-                else if (Stripe.IsConfigured && !string.IsNullOrWhiteSpace(Summary.Membership.StripeCustomerId))
-                {
-                    <form method="post" action="/billing/portal">
-                        <AntiforgeryToken />
-                        <button class="button" type="submit">Manage billing</button>
-                    </form>
-                }
-
+                <a class="button" href="/add">Watch something</a>
                 <a class="button secondary" href="/settings">Notification settings</a>
             </div>
         </section>
@@ -80,8 +60,16 @@
             <h2>Plan limits</h2>
             <div class="limit-row"><span>Active follows</span><strong>@Summary.Plan.MaxActiveFollows</strong></div>
             <div class="limit-row"><span>Minimum cadence</span><strong>@FormatCadence(Summary.Plan.MinimumCadenceMinutes)</strong></div>
-            <div class="limit-row"><span>Email alerts</span><strong>@(Summary.Plan.EmailAlerts ? "Included" : "Paid plans")</strong></div>
-            <div class="limit-row"><span>Daily digest</span><strong>@(Summary.Plan.DailyDigest ? "Available" : "Paid plans")</strong></div>
+            <div class="limit-row"><span>Notifications</span><strong>In-app</strong></div>
+        </section>
+
+        <section class="panel">
+            <h2>Need help?</h2>
+            <p class="muted">Visit Support for common questions or Contact for account assistance.</p>
+            <div class="action-row">
+                <a class="button secondary" href="/support">Support</a>
+                <a class="button secondary" href="/contact">Contact</a>
+            </div>
         </section>
 
         <section class="panel">
@@ -95,9 +83,6 @@
 </div>
 
 @code {
-    [SupplyParameterFromQuery(Name = "checkout")]
-    public string? Checkout { get; set; }
-
     private AccountSession? Session { get; set; }
     private MembershipSummary? Summary { get; set; }
 
@@ -119,7 +104,7 @@
             return $"{minutes / 1440} day";
 
         if (minutes >= 60)
-            return $"{minutes / 60} hour";
+            return $"{minutes / 60} hours";
 
         return $"{minutes} minutes";
     }
