@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.10 - 2026-09-05
+
+- Completed Phase 1 SEO/indexing readiness with centralized canonical, OpenGraph, noindex, robots, sitemap, hidden-product, and hard-404 policy plus runtime SEO validation and Search Console handoff documentation.
+- Added the minimal owner operations console for configured owner emails, covering users/workspaces, follow lookup, recent failures, notification delivery state, contact/feedback messages, due-work backlog, and background-worker heartbeat visibility.
+- Reconciled owner operations onto the current persistence and reliability architecture without reintroducing the superseded ContactSubmission schema or older heartbeat implementation.
+- Allowed configured owners to review the existing feedback/contact export while retaining the operational token path, and documented an empty-by-default `Admin:Emails` allowlist.
+- Added focused owner-access and operations tests and validated the owner/SEO release changes through the normal Release build, automated test, runtime smoke, SEO, and feedback-contract gates.
+
 ## 0.6.9 - 2026-09-05
 
 - Hardened SMTP configuration validation, sender/from/reply-to behavior, subject/body sanitization, and launch gating so email delivery is never advertised or attempted publicly without a complete secure configuration.
