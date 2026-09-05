@@ -7,6 +7,8 @@ namespace ClarityBelongs.Web.Services;
 
 public sealed class FollowExecutionCoordinator
 {
+    public static FollowExecutionCoordinator Current { get; } = new();
+
     private readonly ConcurrentDictionary<long, byte> _active = new();
 
     public bool TryClaim(
