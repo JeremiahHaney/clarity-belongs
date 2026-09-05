@@ -1,0 +1,42 @@
+name: billing-email-migration
+
+on:
+  push:
+    branches: [ feature/billing-email-release-gate ]
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore ClarityBelongs.slnx
+      - run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
+      - run: dotnet tool install --global dotnet-ef --version 10.0.0
+      - name: Generate delivery and billing migration
+        run: |
+          dotnet ef migrations add HardenBillingAndEmailDelivery \
+            --project src/ClarityBelongs.Web \
+            --startup-project src/ClarityBelongs.Web \
+            --output-dir Migrations \
+            --configuration Release \
+            --no-build
+      - name: Rebuild generated migration
+        run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
+      - name: Commit generated migration and remove generator
+        run: |
+          rm .github/workflows/billing-email-migration.yml
+          git config user.name "Clarity Migration Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A src/ClarityBelongs.Web/Migrations .github/workflows/billing-email-migration.yml
+          git commit -m "Generate billing and email delivery migration"
+          git push origin HEAD:feature/billing-email-release-gate
+      - name: Run full tests against generated schema
+        run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
