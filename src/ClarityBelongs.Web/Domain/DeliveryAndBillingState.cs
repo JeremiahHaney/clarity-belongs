@@ -7,6 +7,7 @@ public static class DigestDeliveryStatuses
     public const string Failed = "Failed";
 }
 
+// Durable state keeps digest delivery restart-safe instead of relying on worker memory.
 public sealed class DigestDeliveryState
 {
     public long Id { get; set; }
@@ -20,6 +21,7 @@ public sealed class DigestDeliveryState
     public string? LastError { get; set; }
 }
 
+// Stripe event IDs and timestamps make webhook processing replay-safe and order-aware.
 public sealed class StripeWebhookEvent
 {
     public long Id { get; set; }
