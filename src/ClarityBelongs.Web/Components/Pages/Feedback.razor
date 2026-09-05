@@ -1,43 +1,43 @@
 @page "/feedback"
 @attribute [AllowAnonymous]
 
-<PageTitle>Feedback - Clarity Belongs</PageTitle>
+<PageTitle>Product feedback - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Share product feedback, report a problem, or suggest an improvement for Clarity Belongs." />
+</HeadContent>
 
-<div class="page-shell" style="max-width: 760px; margin: 0 auto; padding: 3rem 1.25rem 4rem;">
-    <h1>Help us improve</h1>
-    <p>
-        Tell us what worked, what did not, or what would make Clarity more useful.
-        We are actively reading feedback while these tools are early.
-    </p>
+<div class="shell narrow-shell">
+    <header class="hero compact-hero">
+        <div class="eyebrow">PRODUCT FEEDBACK</div>
+        <h1>Help make Clarity better.</h1>
+        <p>Use this page for product ideas, bug reports, and feedback about your experience. For account or support questions, use <a href="/contact">Contact</a>.</p>
+    </header>
 
     @if (Status == "sent")
     {
-        <div class="panel" style="margin: 1.5rem 0;">
+        <div class="setup-note">
             <strong>Thanks. Your feedback was received.</strong>
+            <span>We use submissions to understand what is working and what needs attention.</span>
         </div>
     }
     else if (Status == "limited")
     {
-        <div class="panel" style="margin: 1.5rem 0;">
-            <strong>Too many submissions were received from this connection. Try again later.</strong>
-        </div>
+        <div class="error-card">Too many submissions were received from this connection. Please try again later.</div>
     }
     else if (Status is "invalid" or "error")
     {
-        <div class="panel" style="margin: 1.5rem 0;">
-            <strong>We could not accept that feedback. Check the form and try again.</strong>
-        </div>
+        <div class="error-card">We could not accept that feedback. Check the form and try again.</div>
     }
 
-    <form method="post" action="/feedback/submit" class="panel" style="display: grid; gap: 1rem; margin-top: 1.5rem;">
+    <form method="post" action="/feedback/submit" class="panel feedback-form">
         <AntiforgeryToken />
         <input type="hidden" name="product" value="@Product" />
         <input type="hidden" name="source" value="@Source" />
         <input type="hidden" name="version" value="@Version" />
 
-        <label>
+        <label class="field">
             <span>Feedback type</span>
-            <select name="kind" style="display: block; width: 100%; margin-top: .4rem;">
+            <select name="kind">
                 <option value="general">General feedback</option>
                 <option value="bug">Report a problem</option>
                 <option value="idea">Suggest an improvement</option>
@@ -45,46 +45,19 @@
             </select>
         </label>
 
-        <label>
+        <label class="field">
             <span>Your feedback</span>
-            <textarea name="message" rows="6" maxlength="4000" required style="display: block; width: 100%; margin-top: .4rem;"></textarea>
+            <textarea name="message" rows="6" maxlength="4000" required></textarea>
         </label>
 
-        <label>
-            <span>Email (optional)</span>
-            <input name="contact" type="email" maxlength="320" style="display: block; width: 100%; margin-top: .4rem;" />
+        <label class="field">
+            <span>Email <small>(optional)</small></span>
+            <input name="contact" type="email" maxlength="320" autocomplete="email" />
         </label>
 
-        <p style="margin: 0; opacity: .75;">
-            You can submit anonymously. Add an email only if you are okay with us contacting you about this feedback.
-        </p>
-
-        <div>
-            <button type="submit">Send feedback</button>
-        </div>
+        <p class="muted">You can submit anonymously. Add an email only if you are comfortable being contacted about this feedback.</p>
+        <button class="button" type="submit">Send feedback</button>
     </form>
-
-    <div class="panel" style="margin-top: 1.5rem;">
-        <strong>Did Clarity work for you?</strong>
-        <div style="display: flex; gap: .75rem; margin-top: .75rem;">
-            <form method="post" action="/feedback/submit">
-                <AntiforgeryToken />
-                <input type="hidden" name="kind" value="useful-yes" />
-                <input type="hidden" name="product" value="@Product" />
-                <input type="hidden" name="source" value="@Source" />
-                <input type="hidden" name="version" value="@Version" />
-                <button type="submit">Yes</button>
-            </form>
-            <form method="post" action="/feedback/submit">
-                <AntiforgeryToken />
-                <input type="hidden" name="kind" value="useful-no" />
-                <input type="hidden" name="product" value="@Product" />
-                <input type="hidden" name="source" value="@Source" />
-                <input type="hidden" name="version" value="@Version" />
-                <button type="submit">No</button>
-            </form>
-        </div>
-    </div>
 </div>
 
 @code {
