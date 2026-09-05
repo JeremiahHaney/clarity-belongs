@@ -125,6 +125,7 @@ else
         if (IsMissingArticle
             && HttpContextAccessor.HttpContext is { Response.HasStarted: false } context)
         {
+            context.Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
             context.Response.StatusCode = StatusCodes.Status404NotFound;
         }
     }

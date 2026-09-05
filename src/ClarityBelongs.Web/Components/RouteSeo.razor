@@ -1,0 +1,30 @@
+@inject NavigationManager Navigation
+@inject ClarityProductCatalog Catalog
+
+@if (Metadata.Indexable)
+{
+    <link rel="canonical" href="@Metadata.CanonicalUrl" />
+    @if (NeedsPageDescription)
+    {
+        <meta name="description" content="@Metadata.Description" />
+    }
+    <meta property="og:title" content="@Metadata.Title" />
+    <meta property="og:description" content="@Metadata.Description" />
+    <meta property="og:url" content="@Metadata.CanonicalUrl" />
+    <meta property="og:type" content="website" />
+}
+else
+{
+    <meta name="robots" content="noindex, nofollow" />
+}
+
+@code {
+    private PublicSeoMetadata Metadata => PublicSiteSeoPolicy.Resolve(
+        "/" + Navigation.ToBaseRelativePath(Navigation.Uri),
+        new PublicClarityProductCatalog(Catalog),
+        new LearnContentCatalog());
+
+    private bool NeedsPageDescription => Metadata.CanonicalUrl is
+        "https://claritybelongs.com/products" or
+        "https://claritybelongs.com/learn";
+}
