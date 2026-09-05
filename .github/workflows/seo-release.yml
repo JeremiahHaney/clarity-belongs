@@ -1,0 +1,89 @@
+name: clarity-seo-release
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  seo-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore ClarityBelongs.slnx
+
+      - name: Build
+        run: dotnet build ClarityBelongs.slnx --configuration Release --no-restore
+
+      - name: Automated tests
+        run: dotnet test ClarityBelongs.slnx --configuration Release --no-build
+
+      - name: Inspect sitemap and robots
+        shell: bash
+        run: |
+          cat src/ClarityBelongs.Web/wwwroot/robots.txt
+          cat src/ClarityBelongs.Web/wwwroot/sitemap.xml
+          python - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse('src/ClarityBelongs.Web/wwwroot/sitemap.xml').getroot()
+          ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+          urls = [node.text for node in root.findall('s:url/s:loc', ns)]
+          assert len(urls) == len(set(urls))
+          assert 'https://claritybelongs.com/contact' in urls
+          assert 'https://claritybelongs.com/products/product-price' not in urls
+          assert 'https://claritybelongs.com/tools' not in urls
+          robots = Path('src/ClarityBelongs.Web/wwwroot/robots.txt').read_text(encoding='utf-8')
+          assert robots.count('Sitemap:') == 1
+          assert 'Sitemap: https://claritybelongs.com/sitemap.xml' in robots
+          PY
+
+      - name: Runtime SEO and 404 checks
+        shell: bash
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          CLARITY_DB_PATH: /tmp/clarity-seo/clarity.db
+          CLARITY_BACKUP_DIR: /tmp/clarity-seo/backups
+        run: |
+          rm -rf /tmp/clarity-seo
+          mkdir -p /tmp/clarity-seo
+
+          dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5081 > /tmp/clarity-seo.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:5081/health > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          for route in / /products /products/website-uptime /products/http-status /learn /learn/dns-change-monitor /pricing /about /support /contact /privacy /terms; do
+            curl --fail --silent --show-error "http://127.0.0.1:5081$route" -o /tmp/seo-public.html
+            grep -q 'rel="canonical"' /tmp/seo-public.html
+            grep -q 'property="og:title"' /tmp/seo-public.html
+            grep -q 'property="og:description"' /tmp/seo-public.html
+            grep -q 'property="og:url"' /tmp/seo-public.html
+          done
+
+          for route in /login /signup /forgot-password /reset-password /feedback; do
+            curl --fail --silent --show-error "http://127.0.0.1:5081$route" -o /tmp/seo-private.html
+            grep -q 'noindex, nofollow' /tmp/seo-private.html
+          done
+
+          for route in /products/product-price /products/not-a-real-product /learn/not-a-real-guide /definitely-not-a-route; do
+            STATUS=$(curl --silent --show-error -o /tmp/seo-404.html -w '%{http_code}' "http://127.0.0.1:5081$route")
+            test "$STATUS" = "404"
+            grep -q 'noindex, nofollow' /tmp/seo-404.html
+          done
