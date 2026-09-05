@@ -4,7 +4,9 @@ using System.Text.Json;
 
 namespace ClarityBelongs.Web.Observation;
 
-public sealed class DnsRecordObservationAdapter(HttpClient http) : IObservationAdapter
+public sealed class DnsRecordObservationAdapter(
+    HttpClient http,
+    ILogger<DnsRecordObservationAdapter> logger) : IObservationAdapter
 {
     public string AdapterType => AdapterTypes.DnsRecord;
 
@@ -97,9 +99,13 @@ public sealed class DnsRecordObservationAdapter(HttpClient http) : IObservationA
                 or JsonException
                 or TaskCanceledException)
         {
+            logger.LogWarning(
+                ex,
+                "DNS record observation failed for target {TargetId}.",
+                target.Id);
             return Failure(
                 "dns_record_error",
-                ex.Message);
+                "The public DNS record could not be checked.");
         }
     }
 
