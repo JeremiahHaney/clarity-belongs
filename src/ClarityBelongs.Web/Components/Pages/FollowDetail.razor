@@ -137,19 +137,19 @@
         </section>
 
         <section class="panel">
-            <h2>Notifications</h2>
-            @if (Model.Notifications.Count == 0)
+            <h2>In-app notifications</h2>
+            @if (VisibleNotifications.Count == 0)
             {
-                <p class="muted">No notifications have been created yet.</p>
+                <p class="muted">No in-app notifications have been created yet.</p>
             }
             else
             {
-                @foreach (var notification in Model.Notifications)
+                @foreach (var notification in VisibleNotifications)
                 {
                     <div class="row">
                         <div>
                             <strong>@notification.Subject</strong>
-                            <div class="muted">@notification.Channel · @notification.Status</div>
+                            <div class="muted">@notification.Status</div>
                         </div>
                         <span>@notification.CreatedAtUtc.ToLocalTime().ToString("g")</span>
                     </div>
@@ -180,6 +180,14 @@
     private IEnumerable<int> AvailableCadences => Membership is null
         ? CadenceChoices
         : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
+
+    private IReadOnlyList<Notification> VisibleNotifications => Model?.Notifications
+        .Where(notification => string.Equals(
+            notification.Channel,
+            "InApp",
+            StringComparison.OrdinalIgnoreCase))
+        .ToList()
+        ?? [];
 
     protected override async Task OnParametersSetAsync()
     {
