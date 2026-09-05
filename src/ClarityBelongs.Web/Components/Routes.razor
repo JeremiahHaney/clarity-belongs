@@ -1,3 +1,5 @@
+@using ClarityBelongs.Web.Components.Pages
+
 <RouteSeo />
 
 <CascadingAuthenticationState>
@@ -12,7 +14,7 @@
         </Found>
         <NotFound>
             <LayoutView Layout="typeof(Layout.MainLayout)">
-                <Pages.NotFound />
+                <NotFoundPage />
             </LayoutView>
         </NotFound>
     </Router>
