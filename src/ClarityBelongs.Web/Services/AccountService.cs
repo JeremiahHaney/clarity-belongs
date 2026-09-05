@@ -1,6 +1,5 @@
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -88,7 +87,7 @@ public sealed class AccountService(
         ValidatePassword(password);
 
         if (await db.Users.AnyAsync(x => x.Email == normalizedEmail, cancellationToken))
-            throw new InvalidOperationException("An account already exists for that email address.");
+            throw new InvalidOperationException("Unable to create the account with those details.");
 
         var user = new AppUser
         {
@@ -183,6 +182,15 @@ public sealed class AccountService(
         if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
             return;
 
+        var now = DateTime.UtcNow;
+        var outstanding = await db.PasswordResetTokens
+            .Where(x => x.UserId == user.Id)
+            .Where(x => x.UsedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var existing in outstanding)
+            existing.UsedAtUtc = now;
+
         var rawToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
         var tokenHash = HashToken(rawToken);
 
@@ -190,7 +198,7 @@ public sealed class AccountService(
         {
             UserId = user.Id,
             TokenHash = tokenHash,
-            ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
+            ExpiresAtUtc = now.AddHours(1)
         });
 
         await db.SaveChangesAsync(cancellationToken);
@@ -218,12 +226,13 @@ public sealed class AccountService(
     {
         ValidatePassword(newPassword);
         var tokenHash = HashToken(rawToken);
+        var now = DateTime.UtcNow;
 
         var token = await db.PasswordResetTokens
             .FirstOrDefaultAsync(
                 x => x.TokenHash == tokenHash
                     && x.UsedAtUtc == null
-                    && x.ExpiresAtUtc > DateTime.UtcNow,
+                    && x.ExpiresAtUtc > now,
                 cancellationToken);
 
         if (token is null)
@@ -236,7 +245,15 @@ public sealed class AccountService(
             return false;
 
         user.PasswordHash = passwordHasher.HashPassword(user, newPassword);
-        token.UsedAtUtc = DateTime.UtcNow;
+
+        var outstanding = await db.PasswordResetTokens
+            .Where(x => x.UserId == user.Id)
+            .Where(x => x.UsedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var existing in outstanding)
+            existing.UsedAtUtc = now;
+
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -267,6 +284,6 @@ public sealed class AccountService(
     private static string HashToken(string token)
     {
         return Convert.ToHexString(
-            SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+            SHA256.HashData(Encoding.UTF8.GetBytes(token ?? string.Empty)));
     }
 }
