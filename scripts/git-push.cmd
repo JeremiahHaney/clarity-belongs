@@ -17,7 +17,7 @@ if errorlevel 1 goto :err
 
 echo.
 echo Done.
-pause
+timeout /t 5 /nobreak >nul
 exit /b 0
 
 :err
