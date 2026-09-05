@@ -16,6 +16,7 @@ public sealed class ExpirationAlertWorker(
             try
             {
                 await EvaluateAsync(stoppingToken);
+                WorkerHealth.Registry.Mark("expiration");
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
