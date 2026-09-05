@@ -7,6 +7,7 @@ namespace ClarityBelongs.Web.Data;
 public sealed class DatabaseSchemaService(ClarityDbContext db)
 {
     public const string BaselineMigrationId = "20260905183011_InitialClarityBaseline";
+    public const string BillingEmailMigrationId = "20260905185427_HardenBillingAndEmailDelivery";
     private const string EfProductVersion = "10.0.0";
 
     public async Task PrepareForMigrationsAsync(CancellationToken cancellationToken = default)
@@ -22,7 +23,17 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
                 return;
 
             await UpgradeLegacySchemaToBaselineAsync(cancellationToken);
-            await StampBaselineMigrationAsync(cancellationToken);
+            await EnsureMigrationHistoryAsync(cancellationToken);
+            await StampMigrationAsync(
+                BaselineMigrationId,
+                cancellationToken);
+
+            if (await HasBillingEmailSchemaAsync(cancellationToken))
+            {
+                await StampMigrationAsync(
+                    BillingEmailMigrationId,
+                    cancellationToken);
+            }
         }
         finally
         {
@@ -38,8 +49,12 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
 
         foreach (var workspace in workspaces)
         {
-            if (await db.Memberships.AnyAsync(x => x.WorkspaceId == workspace.Id, cancellationToken))
+            if (await db.Memberships.AnyAsync(
+                    x => x.WorkspaceId == workspace.Id,
+                    cancellationToken))
+            {
                 continue;
+            }
 
             db.Memberships.Add(new Membership
             {
@@ -135,24 +150,23 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
 
     private async Task<bool> HasLegacySchemaAsync(CancellationToken cancellationToken)
     {
-        await using var command = db.Database.GetDbConnection().CreateCommand();
-        command.CommandText =
-            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='Users');";
-        var result = await command.ExecuteScalarAsync(cancellationToken);
-        return Convert.ToInt32(result) == 1;
+        return await TableExistsAsync(
+            "Users",
+            cancellationToken);
     }
 
     private async Task<bool> HasMigrationHistoryAsync(CancellationToken cancellationToken)
     {
-        await using var tableCommand = db.Database.GetDbConnection().CreateCommand();
-        tableCommand.CommandText =
-            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory');";
-        var tableResult = await tableCommand.ExecuteScalarAsync(cancellationToken);
-
-        if (Convert.ToInt32(tableResult) != 1)
+        if (!await TableExistsAsync(
+                "__EFMigrationsHistory",
+                cancellationToken))
+        {
             return false;
+        }
 
-        await using var rowCommand = db.Database.GetDbConnection().CreateCommand();
+        await using var rowCommand = db.Database
+            .GetDbConnection()
+            .CreateCommand();
         rowCommand.CommandText =
             "SELECT EXISTS(SELECT 1 FROM __EFMigrationsHistory WHERE MigrationId = $id);";
         var parameter = rowCommand.CreateParameter();
@@ -164,7 +178,37 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
         return Convert.ToInt32(rowResult) == 1;
     }
 
-    private async Task StampBaselineMigrationAsync(CancellationToken cancellationToken)
+    private async Task<bool> HasBillingEmailSchemaAsync(CancellationToken cancellationToken)
+    {
+        return await TableExistsAsync(
+                "DigestDeliveryStates",
+                cancellationToken)
+            && await TableExistsAsync(
+                "StripeWebhookEvents",
+                cancellationToken)
+            && await HasColumnAsync(
+                "Memberships",
+                "LastStripeEventCreatedUtc",
+                cancellationToken)
+            && await HasColumnAsync(
+                "Notifications",
+                "AttemptCount",
+                cancellationToken)
+            && await HasColumnAsync(
+                "Notifications",
+                "LastAttemptAtUtc",
+                cancellationToken)
+            && await HasColumnAsync(
+                "Notifications",
+                "NextAttemptAtUtc",
+                cancellationToken)
+            && await HasColumnAsync(
+                "Notifications",
+                "DeadLetterAtUtc",
+                cancellationToken);
+    }
+
+    private async Task EnsureMigrationHistoryAsync(CancellationToken cancellationToken)
     {
         await ExecuteAsync(
             """
@@ -174,14 +218,21 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
             );
             """,
             cancellationToken);
+    }
 
-        await using var command = db.Database.GetDbConnection().CreateCommand();
+    private async Task StampMigrationAsync(
+        string migrationId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = db.Database
+            .GetDbConnection()
+            .CreateCommand();
         command.CommandText =
             "INSERT OR IGNORE INTO __EFMigrationsHistory(MigrationId, ProductVersion) VALUES ($id, $version);";
 
         var id = command.CreateParameter();
         id.ParameterName = "$id";
-        id.Value = BaselineMigrationId;
+        id.Value = migrationId;
         command.Parameters.Add(id);
 
         var version = command.CreateParameter();
@@ -192,35 +243,67 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    private async Task<bool> TableExistsAsync(
+        string table,
+        CancellationToken cancellationToken)
+    {
+        await using var command = db.Database
+            .GetDbConnection()
+            .CreateCommand();
+        command.CommandText =
+            "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name=$table);";
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "$table";
+        parameter.Value = table;
+        command.Parameters.Add(parameter);
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return Convert.ToInt32(result) == 1;
+    }
+
+    private async Task<bool> HasColumnAsync(
+        string table,
+        string column,
+        CancellationToken cancellationToken)
+    {
+        var connection = db.Database.GetDbConnection();
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info('{table}');";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            if (string.Equals(
+                reader.GetString(1),
+                column,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private async Task AddColumnIfMissingAsync(
         string table,
         string column,
         string alterSql,
         CancellationToken cancellationToken)
     {
-        var connection = db.Database.GetDbConnection();
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"PRAGMA table_info('{table}');";
-
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var exists = false;
-
-        while (await reader.ReadAsync(cancellationToken))
+        if (!await HasColumnAsync(
+                table,
+                column,
+                cancellationToken))
         {
-            if (string.Equals(reader.GetString(1), column, StringComparison.OrdinalIgnoreCase))
-            {
-                exists = true;
-                break;
-            }
+            await ExecuteAsync(
+                alterSql,
+                cancellationToken);
         }
-
-        await reader.DisposeAsync();
-
-        if (!exists)
-            await ExecuteAsync(alterSql, cancellationToken);
     }
 
-    private async Task ExecuteAsync(string sql, CancellationToken cancellationToken)
+    private async Task ExecuteAsync(
+        string sql,
+        CancellationToken cancellationToken)
     {
         DbConnection connection = db.Database.GetDbConnection();
         await using var command = connection.CreateCommand();
