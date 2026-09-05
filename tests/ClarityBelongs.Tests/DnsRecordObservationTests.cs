@@ -1,5 +1,6 @@
 using ClarityBelongs.Web.Domain;
 using ClarityBelongs.Web.Observation;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Net;
 using System.Text.Json;
 
@@ -29,7 +30,7 @@ public sealed class DnsRecordObservationTests
         using var http = new HttpClient(
             new StubHttpMessageHandler((_, _) =>
                 Task.FromResult(responses.Dequeue())));
-        var adapter = new DnsRecordObservationAdapter(http);
+        var adapter = CreateAdapter(http);
         var target = new Target
         {
             PrimaryUri = host
@@ -62,7 +63,7 @@ public sealed class DnsRecordObservationTests
             new StubHttpMessageHandler((_, _) =>
                 Task.FromResult(
                     new HttpResponseMessage(HttpStatusCode.ServiceUnavailable))));
-        var adapter = new DnsRecordObservationAdapter(http);
+        var adapter = CreateAdapter(http);
 
         var result = await adapter.ObserveAsync(
             new Target { PrimaryUri = "example.com" },
@@ -75,6 +76,11 @@ public sealed class DnsRecordObservationTests
         Assert.False(result.Success);
         Assert.Equal("dns_http", result.ErrorCode);
     }
+
+    private static DnsRecordObservationAdapter CreateAdapter(HttpClient http) =>
+        new(
+            http,
+            NullLogger<DnsRecordObservationAdapter>.Instance);
 
     private static HttpResponseMessage DnsResponse(
         int status,
