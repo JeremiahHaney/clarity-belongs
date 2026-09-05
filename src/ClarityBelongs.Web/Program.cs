@@ -54,19 +54,14 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-var clarityConnection = builder.Configuration.GetConnectionString("Clarity");
-
-if (builder.Environment.IsProduction()
-    && string.IsNullOrWhiteSpace(clarityConnection))
-{
-    throw new InvalidOperationException(
-        "Production requires ConnectionStrings:Clarity configuration.");
-}
-
-builder.Services.AddDbContext<ClarityDbContext>(options =>
+builder.Services.Configure<DatabaseStorageOptions>(
+    builder.Configuration.GetSection("DatabaseStorage"));
+builder.Services.AddSingleton<DatabasePathProvider>();
+builder.Services.AddSingleton<DatabaseRuntimeState>();
+builder.Services.AddSingleton<SqliteBackupService>();
+builder.Services.AddDbContext<ClarityDbContext>((services, options) =>
     options.UseSqlite(
-        clarityConnection
-            ?? "Data Source=clarity.db"));
+        services.GetRequiredService<DatabasePathProvider>().ConnectionString));
 
 builder.Services
     .AddOptions<EmailOptions>()
@@ -94,6 +89,7 @@ builder.Services.AddSingleton<PlanCatalog>();
 builder.Services.AddSingleton<SecurityThrottle>();
 builder.Services.AddSingleton<LoginAttemptProtector>();
 builder.Services.AddScoped<DatabaseSchemaService>();
+builder.Services.AddScoped<DatabaseStartupService>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<CurrentAccountService>();
 builder.Services.AddScoped<MembershipService>();
@@ -123,6 +119,50 @@ builder.Services.AddHostedService<NotificationDeliveryWorker>();
 
 var app = builder.Build();
 
+var restoreArgumentIndex = Array.FindIndex(
+    args,
+    value => string.Equals(
+        value,
+        "--restore-database",
+        StringComparison.OrdinalIgnoreCase));
+
+if (restoreArgumentIndex >= 0)
+{
+    if (restoreArgumentIndex + 1 >= args.Length)
+        throw new InvalidOperationException("--restore-database requires a backup file name.");
+
+    using var restoreScope = app.Services.CreateScope();
+    var backupService = restoreScope.ServiceProvider.GetRequiredService<SqliteBackupService>();
+    await backupService.RestoreAsync(args[restoreArgumentIndex + 1]);
+
+    var startup = restoreScope.ServiceProvider.GetRequiredService<DatabaseStartupService>();
+    await startup.InitializeAsync();
+    Console.WriteLine("Clarity database restore completed and startup validation passed.");
+    return;
+}
+
+if (args.Any(value => string.Equals(
+        value,
+        "--backup-database",
+        StringComparison.OrdinalIgnoreCase)))
+{
+    using var backupScope = app.Services.CreateScope();
+    var startup = backupScope.ServiceProvider.GetRequiredService<DatabaseStartupService>();
+    await startup.InitializeAsync();
+
+    var backupService = backupScope.ServiceProvider.GetRequiredService<SqliteBackupService>();
+    var backup = await backupService.BackupAsync();
+    Console.WriteLine(
+        $"Clarity database backup created: {backup.BackupFileName} ({backup.LengthBytes} bytes).");
+    return;
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var startup = scope.ServiceProvider.GetRequiredService<DatabaseStartupService>();
+    await startup.InitializeAsync();
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/error", createScopeForErrors: true);
@@ -137,15 +177,6 @@ app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
-    await db.Database.EnsureCreatedAsync();
-
-    var schema = scope.ServiceProvider.GetRequiredService<DatabaseSchemaService>();
-    await schema.UpgradeAsync();
-}
 
 if (app.Environment.IsDevelopment())
 {
@@ -196,12 +227,35 @@ if (app.Environment.IsDevelopment())
         });
 }
 
-app.MapGet("/health", () => Results.Ok(new
-{
-    service = "Clarity Belongs",
-    status = "Healthy",
-    utc = DateTime.UtcNow
-}));
+app.MapGet(
+    "/health",
+    (DatabaseRuntimeState databaseState) =>
+    {
+        var database = databaseState.Get();
+        var backupAgeHours = database.LastBackupUtc.HasValue
+            ? Math.Round(
+                (DateTime.UtcNow - database.LastBackupUtc.Value).TotalHours,
+                1)
+            : (double?)null;
+        var payload = new
+        {
+            service = "Clarity Belongs",
+            status = database.Ready ? "Healthy" : "Unhealthy",
+            utc = DateTime.UtcNow,
+            database = new
+            {
+                reachable = database.Reachable,
+                schemaCurrent = database.SchemaCurrent,
+                writable = database.Writable,
+                lastBackupUtc = database.LastBackupUtc,
+                backupAgeHours
+            }
+        };
+
+        return database.Ready
+            ? Results.Ok(payload)
+            : Results.Json(payload, statusCode: StatusCodes.Status503ServiceUnavailable);
+    });
 
 app.MapPost(
     "/auth/signup",
