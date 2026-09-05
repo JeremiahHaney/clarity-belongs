@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject CurrentAccountService CurrentAccount
 @inject MembershipService Memberships
+@inject StripeBillingService Stripe
 @rendermode InteractiveServer
 
 <PageTitle>Account - Clarity Belongs</PageTitle>
@@ -71,6 +72,13 @@
                 <a class="button secondary" href="/contact">Contact</a>
             </div>
         </section>
+
+        @if (!Stripe.IsPublicBillingEnabled)
+        {
+            <section class="setup-note">
+                Paid billing is not enabled for the current public launch.
+            </section>
+        }
 
         <section class="panel">
             <h2>Sign out</h2>

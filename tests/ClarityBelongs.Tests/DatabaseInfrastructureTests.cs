@@ -24,12 +24,13 @@ public sealed class DatabaseInfrastructureTests
         var pending = await db.Database.GetPendingMigrationsAsync();
         var indexes = await GetIndexNamesAsync(db);
 
-        Assert.Single(applied);
         Assert.Contains(DatabaseSchemaService.BaselineMigrationId, applied);
+        Assert.Contains(DatabaseSchemaService.BillingEmailMigrationId, applied);
         Assert.Empty(pending);
         Assert.Contains("IX_Users_Email", indexes);
         Assert.Contains("IX_Targets_CanonicalKey", indexes);
         Assert.Contains("IX_Notifications_DedupKey", indexes);
+        Assert.Contains("IX_Notifications_Channel_Status_NextAttemptAtUtc", indexes);
         Assert.True(harness.RuntimeState.Get().Ready);
     }
 
@@ -58,6 +59,7 @@ public sealed class DatabaseInfrastructureTests
         Assert.Equal(expectedNextCheck, follow.NextCheckAtUtc);
         Assert.Equal(MembershipPlans.Free, membership.PlanCode);
         Assert.Contains(DatabaseSchemaService.BaselineMigrationId, applied);
+        Assert.Contains(DatabaseSchemaService.BillingEmailMigrationId, applied);
     }
 
     [Fact]
@@ -74,6 +76,13 @@ public sealed class DatabaseInfrastructureTests
             await legacy.Database.ExecuteSqlRawAsync("DROP TABLE Memberships;");
             await legacy.Database.ExecuteSqlRawAsync("DROP TABLE PasswordResetTokens;");
             await legacy.Database.ExecuteSqlRawAsync("DROP TABLE FeedbackSubmissions;");
+            await legacy.Database.ExecuteSqlRawAsync("DROP TABLE DigestDeliveryStates;");
+            await legacy.Database.ExecuteSqlRawAsync("DROP TABLE StripeWebhookEvents;");
+            await legacy.Database.ExecuteSqlRawAsync("DROP INDEX IF EXISTS IX_Notifications_Channel_Status_NextAttemptAtUtc;");
+            await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Notifications DROP COLUMN AttemptCount;");
+            await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Notifications DROP COLUMN LastAttemptAtUtc;");
+            await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Notifications DROP COLUMN NextAttemptAtUtc;");
+            await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Notifications DROP COLUMN DeadLetterAtUtc;");
             await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Users DROP COLUMN PasswordHash;");
             await legacy.Database.ExecuteSqlRawAsync("ALTER TABLE Users DROP COLUMN EmailVerified;");
         }
@@ -84,11 +93,13 @@ public sealed class DatabaseInfrastructureTests
         var follow = await db.Follows.SingleAsync(x => x.Name == "Continuity Follow");
         var user = await db.Users.SingleAsync(x => x.Email == "owner@clarity.test");
         var membership = await db.Memberships.SingleAsync();
+        var applied = await db.Database.GetAppliedMigrationsAsync();
 
         Assert.Equal(expectedNextCheck, follow.NextCheckAtUtc);
         Assert.Null(user.PasswordHash);
         Assert.False(user.EmailVerified);
         Assert.Equal(MembershipPlans.Free, membership.PlanCode);
+        Assert.Contains(DatabaseSchemaService.BillingEmailMigrationId, applied);
     }
 
     [Fact]

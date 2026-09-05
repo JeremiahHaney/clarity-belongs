@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.9 - 2026-09-05
+
+- Hardened SMTP configuration validation, sender/from/reply-to behavior, subject/body sanitization, and launch gating so email delivery is never advertised or attempted publicly without a complete secure configuration.
+- Added durable notification delivery attempts with atomic claims, stale-claim recovery, bounded exponential backoff, terminal dead-letter handling, sanitized failure details, and existing deduplication preserved across change, failure, recovery, and expiration notifications.
+- Replaced the in-memory daily-digest sent flag with durable per-user/per-day digest execution state so digest delivery is restart-safe and duplicate-resistant.
+- Hardened Stripe webhook processing with signature validation, durable event replay protection, event ordering guards, configured-price plan mapping, cancellation/past-due downgrade behavior, and generic customer-facing provider failures with actionable internal logging.
+- Enforced effective plan entitlements so only active/trialing paid memberships receive paid follow limits, cadence, visible history, email, and digest capabilities; inactive paid memberships fall back to Free behavior.
+- Kept the public launch explicitly Free-only by default: paid checkout and billing-management affordances remain gated, approved display prices are required before paid plans can be exposed, and public email delivery remains disabled behind an explicit release gate.
+- Made password-reset UX truthful when public email is disabled by withholding unusable reset tokens and directing customers to support instead of claiming a reset email was sent.
+- Added automated billing/email coverage for configuration validation, success/failure/retry/dead-letter delivery, duplicate prevention, restart-safe digest state, reset email generation, Stripe signature/replay/order handling, inactive-plan entitlements, pricing gating, and sanitization.
+- Added the EF Core `20260905185427_HardenBillingAndEmailDelivery` migration and compatibility handling for existing pre-migration databases that already contain the hardened delivery/billing schema.
+
 ## 0.6.8 - 2026-09-05
 
 - Completed the final public launch copy pass across Home, What It Watches, Pricing, About, Learn, Support, Contact, Product Feedback, authentication, account/settings, My Clarity, follow detail, header/navigation, footer, and not-found states.
