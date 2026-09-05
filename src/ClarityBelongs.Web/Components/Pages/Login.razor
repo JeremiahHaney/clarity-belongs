@@ -13,14 +13,11 @@
     <section class="panel auth-panel">
         @if (Error == "invalid")
         {
-            <div class="error-card">That email and password did not match.</div>
-        }
-        else if (Error == "locked")
-        {
-            <div class="error-card">This account cannot sign in yet. Reset the password or create a new account.</div>
+            <div class="error-card">That email and password did not match, or sign-in is temporarily unavailable. Try again shortly.</div>
         }
 
         <form method="post" action="/auth/login">
+            <AntiforgeryToken />
             <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
             <label class="field">
