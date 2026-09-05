@@ -50,11 +50,18 @@ jobs:
           done
 
           cat /tmp/clarity-health.json
-          grep -q '"schemaCurrent":true' /tmp/clarity-health.json
-          grep -q '"writable":true' /tmp/clarity-health.json
-          test -f "$CLARITY_DB_PATH"
+          python - <<'PY'
+          import json
+          with open('/tmp/clarity-health.json', encoding='utf-8') as stream:
+              health = json.load(stream)
+          assert health['database']['reachable'] is True
+          assert health['database']['schemaCurrent'] is True
+          assert health['database']['writable'] is True
+          PY
+          ls -l "$CLARITY_DB_PATH"
 
           for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
+            echo "Checking public route $route"
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
           done
 
@@ -136,6 +143,7 @@ jobs:
           trap - EXIT
 
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build -- --backup-database > /tmp/clarity-backup.log
+          cat /tmp/clarity-backup.log
           ls "$CLARITY_BACKUP_DIR"/clarity-*.db > /dev/null
 
           dotnet run --project src/ClarityBelongs.Web/ClarityBelongs.Web.csproj --configuration Release --no-build --urls http://127.0.0.1:5080 > /tmp/clarity-restart.log 2>&1 &
@@ -150,7 +158,15 @@ jobs:
             sleep 1
           done
 
-          grep -q '"schemaCurrent":true' /tmp/clarity-restart-health.json
+          python - <<'PY'
+          import json
+          with open('/tmp/clarity-restart-health.json', encoding='utf-8') as stream:
+              health = json.load(stream)
+          assert health['database']['schemaCurrent'] is True
+          assert health['database']['reachable'] is True
+          assert health['database']['writable'] is True
+          assert health['database']['lastBackupUtc'] is not None
+          PY
           curl --fail --silent --show-error \
             -b /tmp/clarity-cookies.txt \
             http://127.0.0.1:5080/my-clarity \
