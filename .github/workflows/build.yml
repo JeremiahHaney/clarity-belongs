@@ -47,7 +47,7 @@ jobs:
 
           cat /tmp/clarity-health.json
 
-          for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /privacy /terms /robots.txt /sitemap.xml; do
+          for route in / /products /products/website-change /learn /learn/how-to-monitor-a-website-for-changes /pricing /about /support /contact /feedback /privacy /terms /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error "http://127.0.0.1:5080$route" -o /tmp/clarity-public.html
           done
 
