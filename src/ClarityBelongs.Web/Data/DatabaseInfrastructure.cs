@@ -122,7 +122,7 @@ public sealed class DatabasePathProvider
     {
         try
         {
-            Directory.SetUnixFileMode(
+            File.SetUnixFileMode(
                 directory,
                 UnixFileMode.UserRead
                     | UnixFileMode.UserWrite
@@ -158,7 +158,7 @@ public sealed class SqliteBackupService(
 
         var createdUtc = DateTime.UtcNow;
         var fileName =
-            $"clarity-{createdUtc:yyyyMMdd-HHmmss}-{DatabaseSchemaService.BaselineMigrationId}.db";
+            $"clarity-{createdUtc:yyyyMMdd-HHmmss-fff}-{Guid.NewGuid():N}-{DatabaseSchemaService.BaselineMigrationId}.db";
         var destinationPath = System.IO.Path.Combine(paths.BackupDirectory, fileName);
 
         await using var source = new SqliteConnection(paths.ConnectionString);
