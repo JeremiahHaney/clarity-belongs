@@ -40,7 +40,6 @@ public sealed class PublicLaunchContractTests
         "src/ClarityBelongs.Web/Components/Pages/Account.razor",
         "src/ClarityBelongs.Web/Components/Pages/Settings.razor",
         "src/ClarityBelongs.Web/Components/Layout/MainLayout.razor",
-        "src/ClarityBelongs.Web/Services/PublicClarityProductCatalog.cs",
         "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs"
     ];
 
