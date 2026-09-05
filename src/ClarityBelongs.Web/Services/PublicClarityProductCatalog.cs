@@ -47,13 +47,38 @@ public sealed class PublicClarityProductCatalog(ClarityProductCatalog catalog)
 
     private static ClarityProduct CleanPublicCopy(ClarityProduct product)
     {
-        if (!product.Slug.Equals("website-change", StringComparison.OrdinalIgnoreCase))
-            return product;
-
-        return product with
+        return product.Slug.ToLowerInvariant() switch
         {
-            Outcome = "Clarity stores the page response over time and shows before-and-after evidence when that whole-page content changes.",
-            HelpText = "Best for relatively stable public pages where any whole-page content change is worth reviewing."
+            "website-change" => product with
+            {
+                Outcome = "Clarity stores the page response over time and shows before-and-after evidence when that whole-page content changes.",
+                HelpText = "Best for relatively stable public pages where any whole-page content change is worth reviewing."
+            },
+            "ssl-expiration" => product with
+            {
+                HelpText = "Clarity keeps the observed public certificate and expiration state available in My Clarity."
+            },
+            "dns-change" => product with
+            {
+                HelpText = "Clarity observes the public IP address set returned by DNS."
+            },
+            "redirect-chain" => product with
+            {
+                HelpText = "Clarity records the final public destination after following up to three redirects."
+            },
+            "broken-link" => product with
+            {
+                HelpText = "Clarity checks the specific public link you provide rather than crawling an entire site."
+            },
+            "api-endpoint-uptime" => product with
+            {
+                HelpText = "Use a safe public health or status endpoint. Authenticated and private endpoints are not supported."
+            },
+            "service-outage" => product with
+            {
+                HelpText = "Clarity observes public HTTP availability for the endpoint you provide; it does not infer outages from private account data."
+            },
+            _ => product
         };
     }
 }
