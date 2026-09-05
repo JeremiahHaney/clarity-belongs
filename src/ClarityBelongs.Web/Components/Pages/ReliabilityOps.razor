@@ -1,0 +1,94 @@
+@page "/api/ops/reliability"
+@layout ClarityBelongs.Web.Components.Layout.FeedbackOpsLayout
+@using System.Text.Json
+@using Microsoft.EntityFrameworkCore
+@using ClarityBelongs.Web.Data
+@using ClarityBelongs.Web.Domain
+@using ClarityBelongs.Web.Services
+@inject ClarityDbContext Db
+@inject IConfiguration Configuration
+@inject IHttpContextAccessor HttpContextAccessor
+
+@if (_authorized)
+{
+    <pre id="reliability-ops-json">@_json</pre>
+}
+else
+{
+    <span id="reliability-ops-unauthorized">Unauthorized</span>
+}
+
+@code {
+    private bool _authorized;
+    private string _json = "{}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var expectedToken = Configuration["FeedbackOps:Token"];
+        var suppliedToken = HttpContextAccessor.HttpContext?
+            .Request
+            .Headers["X-Feedback-Ops-Token"]
+            .ToString();
+
+        _authorized = !string.IsNullOrWhiteSpace(expectedToken)
+            && string.Equals(
+                suppliedToken,
+                expectedToken,
+                StringComparison.Ordinal);
+
+        if (!_authorized)
+            return;
+
+        var now = DateTime.UtcNow;
+        var metrics = await new OperationalMetricsService(Db)
+            .GetAsync(now);
+        var failedObservations = await Db.ObservationRuns
+            .AsNoTracking()
+            .Where(x => x.Status == ObservationStatuses.Failed)
+            .OrderByDescending(x => x.CompletedAtUtc ?? x.StartedAtUtc)
+            .Take(25)
+            .Select(x => new
+            {
+                x.Id,
+                x.TargetId,
+                x.SourceDefinitionId,
+                x.Status,
+                x.StartedAtUtc,
+                x.CompletedAtUtc,
+                x.ErrorCode
+            })
+            .ToListAsync();
+        var notificationFailures = await Db.Notifications
+            .AsNoTracking()
+            .Where(x => x.Channel == "Email")
+            .Where(x => x.Status == "Pending" || x.Status == "Failed")
+            .OrderBy(x => x.CreatedAtUtc)
+            .Take(50)
+            .Select(x => new
+            {
+                x.Id,
+                x.WorkspaceId,
+                x.FollowId,
+                x.Status,
+                x.CreatedAtUtc,
+                x.FailedAtUtc
+            })
+            .ToListAsync();
+
+        _json = JsonSerializer.Serialize(
+            new
+            {
+                utc = now,
+                workers = WorkerRuntimeState.Current.GetAll(),
+                dueCount = metrics.DueFollowCount,
+                oldestDueAtUtc = metrics.OldestDueAtUtc,
+                oldestDueAgeMinutes = metrics.OldestDueAgeMinutes,
+                staleObservationCount = metrics.StaleObservationCount,
+                failedObservationCount = metrics.FailedObservationCount,
+                pendingNotificationCount = metrics.PendingNotificationCount,
+                failedNotificationCount = metrics.FailedNotificationCount,
+                failedObservations,
+                notificationFailures
+            });
+    }
+}
