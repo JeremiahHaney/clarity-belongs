@@ -39,6 +39,46 @@ public sealed class HttpObservationTests
             json.RootElement.GetProperty("finalUrl").GetString());
     }
 
+    [Fact]
+    public async Task Unchanged_status_and_destination_keep_same_fingerprint()
+    {
+        using var http = CreateHttp((_, _) => Response(HttpStatusCode.OK));
+        var adapter = CreateAdapter(http);
+
+        var baseline = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+        var followUp = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+
+        Assert.Equal(baseline.Fingerprint, followUp.Fingerprint);
+    }
+
+    [Fact]
+    public async Task Status_change_changes_fingerprint()
+    {
+        var responses = new Queue<HttpStatusCode>(
+        [
+            HttpStatusCode.OK,
+            HttpStatusCode.NotFound
+        ]);
+        using var http = CreateHttp((_, _) => Response(responses.Dequeue()));
+        var adapter = CreateAdapter(http);
+
+        var baseline = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+        var changed = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+
+        Assert.True(baseline.Success);
+        Assert.True(changed.Success);
+        Assert.Equal("Down", changed.Status);
+        Assert.NotEqual(baseline.Fingerprint, changed.Fingerprint);
+    }
+
     [Theory]
     [InlineData(HttpStatusCode.NotFound, 404)]
     [InlineData(HttpStatusCode.InternalServerError, 500)]
@@ -88,6 +128,39 @@ public sealed class HttpObservationTests
         using var json = JsonDocument.Parse(result.NormalizedDataJson);
         Assert.Equal(
             "https://93.184.216.34/final",
+            json.RootElement.GetProperty("finalUrl").GetString());
+    }
+
+    [Fact]
+    public async Task Redirect_destination_change_changes_fingerprint()
+    {
+        var startRequests = 0;
+        using var http = CreateHttp((request, _) =>
+        {
+            if (request.RequestUri!.AbsolutePath != "/start")
+                return Response(HttpStatusCode.OK);
+
+            startRequests++;
+            var redirect = Response(HttpStatusCode.Redirect);
+            redirect.Headers.Location = new Uri(
+                startRequests == 1 ? "/one" : "/two",
+                UriKind.Relative);
+            return redirect;
+        });
+        var adapter = CreateAdapter(http);
+
+        var baseline = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+        var changed = await adapter.ObserveAsync(
+            Target,
+            UptimeSource);
+
+        Assert.NotEqual(baseline.Fingerprint, changed.Fingerprint);
+
+        using var json = JsonDocument.Parse(changed.NormalizedDataJson);
+        Assert.Equal(
+            "https://93.184.216.34/two",
             json.RootElement.GetProperty("finalUrl").GetString());
     }
 
