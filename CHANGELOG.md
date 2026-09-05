@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.7 - 2026-09-05
+
+- Added deterministic automated behavioral coverage for the Phase 1 HTTP, TLS, RDAP/domain, DNS address, and DNS record monitoring engines, including all 14 approved Phase 1 service identities.
+- Added end-to-end observation lifecycle tests proving queued/running/succeeded/failed transitions, snapshot persistence, no-change deduplication, single-change creation, FollowChange linkage, alert-rule matching, notification queueing, failure state, and recovery state.
+- Added file-backed SQLite restart coverage proving follows, observation history, and scheduling survive service-host recreation, plus workspace-isolation and pause/resume/archive scheduler tests.
+- Fixed HTTP status monitoring so received 4xx/5xx responses are preserved as observable Down states rather than being discarded as transport failures, allowing Broken Link and HTTP Status monitors to retain meaningful status history and recovery transitions.
+- Added injectable TLS and DNS test seams while preserving the production public-IP validation and pinned outbound transport security boundary.
+- Hardened CI to run the monitoring behavioral suite alongside the existing runtime, public-site, account, security, database backup, and persistence smoke checks.
+
 ## 0.6.6 - 2026-09-04
 
 - Added the public `/tools` catalog for ten free local Clarity PowerShell utilities covering notes, research folders, Markdown, transcripts, reading files, and reference organization.
