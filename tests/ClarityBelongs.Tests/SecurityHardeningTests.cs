@@ -9,8 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ClarityBelongs.Tests;
 
@@ -80,7 +78,8 @@ public sealed class SecurityHardeningTests
         using var client = new HttpClient(handler);
         var engine = new HttpObservationEngine(
             client,
-            new PublicEndpointGuard());
+            new PublicEndpointGuard(),
+            usePinnedTransport: false);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => engine.ObserveAsync(
