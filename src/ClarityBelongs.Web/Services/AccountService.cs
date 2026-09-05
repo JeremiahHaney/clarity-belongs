@@ -182,6 +182,9 @@ public sealed class AccountService(
         if (user is null || string.IsNullOrWhiteSpace(user.PasswordHash))
             return;
 
+        if (!emailSender.IsEnabled)
+            return;
+
         var now = DateTime.UtcNow;
         var outstanding = await db.PasswordResetTokens
             .Where(x => x.UserId == user.Id)
@@ -202,9 +205,6 @@ public sealed class AccountService(
         });
 
         await db.SaveChangesAsync(cancellationToken);
-
-        if (!emailSender.IsEnabled)
-            return;
 
         var root = string.IsNullOrWhiteSpace(baseUrl)
             ? configuration["PublicBaseUrl"] ?? "https://claritybelongs.com"
