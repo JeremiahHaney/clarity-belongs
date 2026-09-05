@@ -17,19 +17,21 @@
         }
 
         <form method="post" action="/auth/signup">
+            <AntiforgeryToken />
+
             <label class="field">
                 <span>Name</span>
-                <input name="displayName" autocomplete="name" required />
+                <input name="displayName" autocomplete="name" maxlength="120" required />
             </label>
 
             <label class="field">
                 <span>Email</span>
-                <input name="email" type="email" autocomplete="email" required />
+                <input name="email" type="email" autocomplete="email" maxlength="254" required />
             </label>
 
             <label class="field">
                 <span>Password</span>
-                <input name="password" type="password" autocomplete="new-password" minlength="10" required />
+                <input name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required />
             </label>
 
             <div class="setup-note">
@@ -53,9 +55,8 @@
 
     private static string GetErrorMessage(string code) => code switch
     {
-        "exists" => "An account already exists for that email address.",
         "password" => "Use a password with at least 10 characters.",
         "email" => "Enter a valid email address.",
-        _ => "We could not create the account. Check the form and try again."
+        _ => "We could not create the account with those details. Try signing in or use password reset if you may already have an account."
     };
 }
