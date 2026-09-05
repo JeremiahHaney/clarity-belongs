@@ -157,12 +157,15 @@ public sealed class AccountService(
 
     public ClaimsPrincipal CreatePrincipal(AppUser user)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.DisplayName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.DisplayName),
+            new(ClaimTypes.Email, user.Email)
         };
+
+        if (OwnerAuthorization.IsAllowedEmail(user.Email, configuration))
+            claims.Add(new Claim(ClaimTypes.Role, OwnerAuthorization.RoleName));
 
         var identity = new ClaimsIdentity(
             claims,
