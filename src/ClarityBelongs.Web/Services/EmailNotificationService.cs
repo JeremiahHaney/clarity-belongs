@@ -909,7 +909,7 @@ public sealed class NotificationDeliveryWorker(
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
         var sender = scope.ServiceProvider.GetRequiredService<IClarityEmailSender>();
-        var plans = scope.ServiceProvider.GetRequiredService<PlanCatalog>();
+        var plans = scope.ServiceProvider.GetService<PlanCatalog>() ?? new PlanCatalog();
 
         await NotificationDeliveryCoordinator.DeliverAsync(
             db,
