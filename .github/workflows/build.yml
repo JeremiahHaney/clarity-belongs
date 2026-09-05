@@ -101,7 +101,27 @@ jobs:
           esac
 
           echo "Checking signup antiforgery token"
-          CSRF_TOKEN=$(sed -n 's/.*name="__RequestVerificationToken" type="hidden" value="\([^"]*\)".*/\1/p' /tmp/clarity-signup.html | head -1)
+          CSRF_TOKEN=$(python - <<'PY'
+          from html.parser import HTMLParser
+
+          class TokenParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.value = None
+
+              def handle_starttag(self, tag, attrs):
+                  if tag != 'input':
+                      return
+                  values = dict(attrs)
+                  if values.get('name') == '__RequestVerificationToken':
+                      self.value = values.get('value')
+
+          parser = TokenParser()
+          with open('/tmp/clarity-signup.html', encoding='utf-8') as stream:
+              parser.feed(stream.read())
+          print(parser.value or '')
+          PY
+          )
           test -n "$CSRF_TOKEN"
 
           echo "Creating smoke account"
