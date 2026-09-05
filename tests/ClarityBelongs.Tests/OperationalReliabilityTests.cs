@@ -46,14 +46,13 @@ public sealed class OperationalReliabilityTests
     [Fact]
     public void ProcessWideClaimPreventsDuplicateFollowExecution()
     {
-        var first = new FollowExecutionCoordinator();
-        var second = new FollowExecutionCoordinator();
+        var coordinator = new FollowExecutionCoordinator();
 
-        Assert.True(first.TryClaim(4242, out var firstClaim));
-        Assert.False(second.TryClaim(4242, out var blockedClaim));
+        Assert.True(coordinator.TryClaim(4242, out var firstClaim));
+        Assert.False(coordinator.TryClaim(4242, out var blockedClaim));
         blockedClaim.Dispose();
         firstClaim.Dispose();
-        Assert.True(second.TryClaim(4242, out var afterRelease));
+        Assert.True(coordinator.TryClaim(4242, out var afterRelease));
         afterRelease.Dispose();
     }
 
