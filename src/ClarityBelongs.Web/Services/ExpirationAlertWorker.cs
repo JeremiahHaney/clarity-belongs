@@ -13,6 +13,8 @@ public sealed class ExpirationAlertWorker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            WorkerHealth.Registry.Mark("expiration");
+
             try
             {
                 await EvaluateAsync(stoppingToken);
