@@ -153,8 +153,12 @@ public sealed class SqliteBackupService(
     {
         paths.EnsureStorageDirectories();
 
+        if (!File.Exists(paths.DatabasePath))
+            throw new InvalidOperationException("The Clarity database does not exist yet.");
+
         var createdUtc = DateTime.UtcNow;
-        var fileName = $"clarity-{createdUtc:yyyyMMdd-HHmmss}-v0.7.0.db";
+        var fileName =
+            $"clarity-{createdUtc:yyyyMMdd-HHmmss}-{DatabaseSchemaService.BaselineMigrationId}.db";
         var destinationPath = System.IO.Path.Combine(paths.BackupDirectory, fileName);
 
         await using var source = new SqliteConnection(paths.ConnectionString);
@@ -168,12 +172,57 @@ public sealed class SqliteBackupService(
         await source.OpenAsync(cancellationToken);
         await destination.OpenAsync(cancellationToken);
         source.BackupDatabase(destination);
+        await ValidateIntegrityAsync(destination, cancellationToken);
 
         var length = new FileInfo(destinationPath).Length;
         var previous = runtimeState.Get();
         runtimeState.Set(previous with { LastBackupUtc = createdUtc });
 
         return new DatabaseBackupResult(fileName, createdUtc, length);
+    }
+
+    public async Task RestoreAsync(
+        string backupFileName,
+        CancellationToken cancellationToken = default)
+    {
+        paths.EnsureStorageDirectories();
+
+        if (string.IsNullOrWhiteSpace(backupFileName)
+            || backupFileName != System.IO.Path.GetFileName(backupFileName))
+        {
+            throw new InvalidOperationException("Restore accepts a backup file name from the configured backup directory only.");
+        }
+
+        var sourcePath = System.IO.Path.Combine(paths.BackupDirectory, backupFileName);
+
+        if (!File.Exists(sourcePath))
+            throw new FileNotFoundException("The requested Clarity backup was not found.", backupFileName);
+
+        if (File.Exists(paths.DatabasePath))
+            await BackupAsync(cancellationToken);
+
+        await using var source = new SqliteConnection(
+            new SqliteConnectionStringBuilder
+            {
+                DataSource = sourcePath,
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString());
+        await using var destination = new SqliteConnection(paths.ConnectionString);
+
+        await source.OpenAsync(cancellationToken);
+        await ValidateIntegrityAsync(source, cancellationToken);
+        await destination.OpenAsync(cancellationToken);
+        source.BackupDatabase(destination);
+        await ValidateIntegrityAsync(destination, cancellationToken);
+
+        runtimeState.Set(
+            new DatabaseOperationalStatus(
+                false,
+                true,
+                false,
+                true,
+                GetNewestBackupUtc(),
+                "Database restored; startup validation is required."));
     }
 
     public DateTime? GetNewestBackupUtc()
@@ -187,6 +236,18 @@ public sealed class SqliteBackupService(
             .OrderByDescending(value => value)
             .Cast<DateTime?>()
             .FirstOrDefault();
+    }
+
+    private static async Task ValidateIntegrityAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA integrity_check;";
+        var result = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken));
+
+        if (!string.Equals(result, "ok", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"SQLite integrity check failed: {result}");
     }
 }
 
@@ -210,10 +271,11 @@ public sealed class DatabaseStartupService(
 
             var pending = await db.Database.GetPendingMigrationsAsync(cancellationToken);
             var schemaCurrent = !pending.Any();
+            var reachable = await db.Database.CanConnectAsync(cancellationToken);
             var writable = await VerifyWritableAsync(cancellationToken);
             var newestBackup = backups.GetNewestBackupUtc();
 
-            if (!schemaCurrent || !writable)
+            if (!schemaCurrent || !reachable || !writable)
                 throw new InvalidOperationException("Database migration completed but validation did not pass.");
 
             runtimeState.Set(
