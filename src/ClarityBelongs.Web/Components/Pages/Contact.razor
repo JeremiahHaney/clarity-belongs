@@ -1,0 +1,141 @@
+@page "/contact"
+@attribute [AllowAnonymous]
+@rendermode InteractiveServer
+@inject ClarityBelongs.Web.Data.ClarityDbContext Db
+@inject CurrentAccountService CurrentAccount
+@inject SecurityThrottle Throttle
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
+
+<PageTitle>Contact - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="description" content="Contact Clarity Belongs for account, billing, monitor, alert, privacy, or general support." />
+</HeadContent>
+
+<div class="shell public-shell article-shell">
+    <header class="hero compact-hero article-hero">
+        <div class="eyebrow">CONTACT</div>
+        <h1>Get help with your Clarity account or monitors.</h1>
+        <p class="public-lead">Use this form for customer support, account questions, billing questions, or help understanding a monitor or alert.</p>
+    </header>
+
+    @if (_submitted)
+    {
+        <section class="panel" role="status">
+            <div class="eyebrow">MESSAGE RECEIVED</div>
+            <h2>Thanks. Your request is saved.</h2>
+            <p>We have the details you submitted. You can keep using Clarity while your request is reviewed.</p>
+            <a class="button secondary" href="/support">Back to support</a>
+        </section>
+    }
+    else
+    {
+        <section class="panel" style="display:grid; gap:1rem; max-width:760px;">
+            <label>
+                <span>Reason</span>
+                <select @bind="_category" style="display:block; width:100%; margin-top:.4rem;">
+                    <option>Account</option>
+                    <option>Billing</option>
+                    <option>Monitor</option>
+                    <option>Alerts</option>
+                    <option>Privacy</option>
+                    <option>General</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Email for a reply (optional)</span>
+                <input @bind="_email" type="email" maxlength="320" autocomplete="email" style="display:block; width:100%; margin-top:.4rem;" />
+            </label>
+
+            <label>
+                <span>How can we help?</span>
+                <textarea @bind="_message" rows="8" maxlength="4000" style="display:block; width:100%; margin-top:.4rem;"></textarea>
+            </label>
+
+            <p class="muted" style="margin:0;">
+                Your message and reply email are stored with the support request so the owner can investigate and respond. If you are signed in, the request is linked to your account. Do not include passwords, reset links, or other secrets.
+            </p>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <p role="alert">@_error</p>
+            }
+
+            <div>
+                <button type="button" @onclick="SubmitAsync" disabled="@_submitting">@(_submitting ? "Sending..." : "Send message")</button>
+            </div>
+        </section>
+
+        <section class="panel" style="margin-top:1.5rem;">
+            <h2>Want to suggest a product improvement instead?</h2>
+            <p>Use <a href="/feedback">Feedback</a> for product ideas, bug reports, and comments about the Clarity experience. Contact is for customer and account support.</p>
+        </section>
+    }
+</div>
+
+@code {
+    private long? _userId;
+    private string _category = "General";
+    private string _email = string.Empty;
+    private string _message = string.Empty;
+    private string _clientKey = "unknown";
+    private string? _error;
+    private bool _submitting;
+    private bool _submitted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var account = await CurrentAccount.GetAsync();
+        var context = HttpContextAccessor.HttpContext;
+
+        if (account is not null)
+        {
+            _userId = account.UserId;
+            _email = account.Email;
+        }
+
+        if (context is not null)
+            _clientKey = SecurityThrottle.ClientKey(context);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_submitting)
+            return;
+
+        _submitting = true;
+        _error = null;
+
+        try
+        {
+            if (!Throttle.TryAcquire(
+                "contact",
+                _clientKey,
+                5,
+                TimeSpan.FromMinutes(10),
+                out _))
+            {
+                _error = "Too many support requests were received from this connection. Try again later.";
+                return;
+            }
+
+            var service = new ContactService(Db);
+            await service.SubmitAsync(
+                _userId,
+                _category,
+                _message,
+                _email,
+                new Uri(Navigation.Uri).AbsolutePath);
+            _submitted = true;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+}
