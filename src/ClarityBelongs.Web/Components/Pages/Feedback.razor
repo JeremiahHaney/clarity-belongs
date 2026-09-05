@@ -1,9 +1,5 @@
 @page "/feedback"
-@rendermode InteractiveServer
-@using ClarityBelongs.Web.Data
-@using ClarityBelongs.Web.Domain
-@inject ClarityDbContext Db
-@inject NavigationManager Navigation
+@attribute [AllowAnonymous]
 
 <PageTitle>Feedback - Clarity Belongs</PageTitle>
 
@@ -14,17 +10,34 @@
         We are actively reading feedback while these tools are early.
     </p>
 
-    @if (_submitted)
+    @if (Status == "sent")
     {
         <div class="panel" style="margin: 1.5rem 0;">
             <strong>Thanks. Your feedback was received.</strong>
         </div>
     }
+    else if (Status == "limited")
+    {
+        <div class="panel" style="margin: 1.5rem 0;">
+            <strong>Too many submissions were received from this connection. Try again later.</strong>
+        </div>
+    }
+    else if (Status is "invalid" or "error")
+    {
+        <div class="panel" style="margin: 1.5rem 0;">
+            <strong>We could not accept that feedback. Check the form and try again.</strong>
+        </div>
+    }
 
-    <div class="panel" style="display: grid; gap: 1rem; margin-top: 1.5rem;">
+    <form method="post" action="/feedback/submit" class="panel" style="display: grid; gap: 1rem; margin-top: 1.5rem;">
+        <AntiforgeryToken />
+        <input type="hidden" name="product" value="@Product" />
+        <input type="hidden" name="source" value="@Source" />
+        <input type="hidden" name="version" value="@Version" />
+
         <label>
             <span>Feedback type</span>
-            <select @bind="_kind" style="display: block; width: 100%; margin-top: .4rem;">
+            <select name="kind" style="display: block; width: 100%; margin-top: .4rem;">
                 <option value="general">General feedback</option>
                 <option value="bug">Report a problem</option>
                 <option value="idea">Suggest an improvement</option>
@@ -34,33 +47,42 @@
 
         <label>
             <span>Your feedback</span>
-            <textarea @bind="_message" rows="6" maxlength="4000" style="display: block; width: 100%; margin-top: .4rem;"></textarea>
+            <textarea name="message" rows="6" maxlength="4000" required style="display: block; width: 100%; margin-top: .4rem;"></textarea>
         </label>
 
         <label>
             <span>Email (optional)</span>
-            <input @bind="_contact" type="email" maxlength="320" style="display: block; width: 100%; margin-top: .4rem;" />
+            <input name="contact" type="email" maxlength="320" style="display: block; width: 100%; margin-top: .4rem;" />
         </label>
 
         <p style="margin: 0; opacity: .75;">
             You can submit anonymously. Add an email only if you are okay with us contacting you about this feedback.
         </p>
 
-        @if (!string.IsNullOrWhiteSpace(_error))
-        {
-            <p role="alert">@_error</p>
-        }
-
         <div>
-            <button type="button" @onclick="SubmitAsync">Send feedback</button>
+            <button type="submit">Send feedback</button>
         </div>
-    </div>
+    </form>
 
     <div class="panel" style="margin-top: 1.5rem;">
         <strong>Did Clarity work for you?</strong>
         <div style="display: flex; gap: .75rem; margin-top: .75rem;">
-            <button type="button" @onclick='() => SubmitQuickAsync("useful-yes")'>Yes</button>
-            <button type="button" @onclick='() => SubmitQuickAsync("useful-no")'>No</button>
+            <form method="post" action="/feedback/submit">
+                <AntiforgeryToken />
+                <input type="hidden" name="kind" value="useful-yes" />
+                <input type="hidden" name="product" value="@Product" />
+                <input type="hidden" name="source" value="@Source" />
+                <input type="hidden" name="version" value="@Version" />
+                <button type="submit">Yes</button>
+            </form>
+            <form method="post" action="/feedback/submit">
+                <AntiforgeryToken />
+                <input type="hidden" name="kind" value="useful-no" />
+                <input type="hidden" name="product" value="@Product" />
+                <input type="hidden" name="source" value="@Source" />
+                <input type="hidden" name="version" value="@Version" />
+                <button type="submit">No</button>
+            </form>
         </div>
     </div>
 </div>
@@ -75,60 +97,6 @@
     [SupplyParameterFromQuery]
     public string? Version { get; set; }
 
-    private string _kind = "general";
-    private string _message = string.Empty;
-    private string _contact = string.Empty;
-    private string? _error;
-    private bool _submitted;
-
-    private async Task SubmitAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_message))
-        {
-            _error = "Please include a short message.";
-            return;
-        }
-
-        await SaveAsync(_kind, _message);
-        _message = string.Empty;
-        _error = null;
-        _submitted = true;
-    }
-
-    private async Task SubmitQuickAsync(string kind)
-    {
-        await SaveAsync(kind, string.Empty);
-        _error = null;
-        _submitted = true;
-    }
-
-    private async Task SaveAsync(string kind, string message)
-    {
-        var storedMessage = message.Trim();
-
-        if (!string.IsNullOrWhiteSpace(Version))
-        {
-            storedMessage = string.IsNullOrWhiteSpace(storedMessage)
-                ? $"Version: {Version.Trim()}"
-                : $"{storedMessage}{Environment.NewLine}{Environment.NewLine}Version: {Version.Trim()}";
-        }
-
-        Db.FeedbackSubmissions.Add(new FeedbackSubmission
-        {
-            Kind = kind,
-            Message = storedMessage,
-            ProductSlug = string.IsNullOrWhiteSpace(Product)
-                ? "clarity"
-                : Product.Trim(),
-            Path = string.IsNullOrWhiteSpace(Source)
-                ? Navigation.Uri
-                : Source.Trim(),
-            Contact = string.IsNullOrWhiteSpace(_contact)
-                ? null
-                : _contact.Trim(),
-            CreatedUtc = DateTime.UtcNow
-        });
-
-        await Db.SaveChangesAsync();
-    }
+    [SupplyParameterFromQuery]
+    public string? Status { get; set; }
 }
