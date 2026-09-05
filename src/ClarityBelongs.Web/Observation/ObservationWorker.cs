@@ -7,22 +7,22 @@ namespace ClarityBelongs.Web.Observation;
 
 public sealed class ObservationWorker(
     IServiceScopeFactory scopeFactory,
-    WorkerRuntimeState runtimeState,
     ILogger<ObservationWorker> logger) : BackgroundService
 {
     public const string WorkerName = "observation";
     private const int BatchSize = 50;
+    private readonly WorkerRuntimeState _runtimeState = WorkerRuntimeState.Current;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        runtimeState.Started(WorkerName);
+        _runtimeState.Started(WorkerName);
         logger.LogInformation("Observation worker started");
 
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                runtimeState.Pulse(WorkerName);
+                _runtimeState.Pulse(WorkerName);
 
                 try
                 {
@@ -45,7 +45,7 @@ public sealed class ObservationWorker(
         }
         finally
         {
-            runtimeState.Stopped(WorkerName);
+            _runtimeState.Stopped(WorkerName);
             logger.LogInformation("Observation worker stopped");
         }
     }
@@ -61,7 +61,7 @@ public sealed class ObservationWorker(
             using var scope = scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
             var engine = scope.ServiceProvider.GetRequiredService<ObservationEngine>();
-            var metrics = scope.ServiceProvider.GetRequiredService<OperationalMetricsService>();
+            var metrics = new OperationalMetricsService(db);
             var now = DateTime.UtcNow;
             var backlog = await metrics.GetAsync(now, cancellationToken);
 
@@ -110,7 +110,7 @@ public sealed class ObservationWorker(
             if (followIds.Count < BatchSize)
                 break;
 
-            runtimeState.Pulse(WorkerName);
+            _runtimeState.Pulse(WorkerName);
             await Task.Yield();
         }
 
@@ -125,7 +125,12 @@ public sealed class ObservationWorker(
     private async Task RecoverStaleAsync(CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
-        var recovery = scope.ServiceProvider.GetRequiredService<ObservationRecoveryService>();
+        var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
+        var recoveryLogger = scope.ServiceProvider
+            .GetRequiredService<ILogger<ObservationRecoveryService>>();
+        var recovery = new ObservationRecoveryService(
+            db,
+            recoveryLogger);
         await recovery.RecoverStaleRunsAsync(
             DateTime.UtcNow,
             cancellationToken);
