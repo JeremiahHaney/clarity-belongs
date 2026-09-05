@@ -19,6 +19,7 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public DbSet<FollowChange> FollowChanges => Set<FollowChange>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
+    public DbSet<ContactSubmission> ContactSubmissions => Set<ContactSubmission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         ConfigureModel(modelBuilder);
@@ -99,6 +100,25 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasMaxLength(320);
 
         modelBuilder.Entity<FeedbackSubmission>()
+            .HasIndex(x => x.CreatedUtc);
+
+        modelBuilder.Entity<ContactSubmission>()
+            .Property(x => x.Category)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<ContactSubmission>()
+            .Property(x => x.Message)
+            .HasMaxLength(4000);
+
+        modelBuilder.Entity<ContactSubmission>()
+            .Property(x => x.ContactEmail)
+            .HasMaxLength(320);
+
+        modelBuilder.Entity<ContactSubmission>()
+            .Property(x => x.SourcePath)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<ContactSubmission>()
             .HasIndex(x => x.CreatedUtc);
     }
 }
