@@ -27,7 +27,10 @@ jobs:
           test -f docs/FEEDBACK-STANDARD.md
           grep -q '@page "/feedback"' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
           grep -q 'useful-yes' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
-          grep -q 'ProductSlug' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q 'action="/feedback/submit"' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q '<AntiforgeryToken />' src/ClarityBelongs.Web/Components/Pages/Feedback.razor
+          grep -q '"/feedback/submit"' src/ClarityBelongs.Web/Program.cs
+          grep -q '"feedback"' src/ClarityBelongs.Web/Program.cs
           grep -q 'FeedbackSubmissions' src/ClarityBelongs.Web/Data/ClarityDbContext.cs
           grep -q 'FeedbackSubmissions' src/ClarityBelongs.Web/Data/DatabaseSchemaService.cs
           grep -q 'href="/feedback"' src/ClarityBelongs.Web/Components/Layout/MainLayout.razor
