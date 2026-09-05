@@ -20,7 +20,7 @@ echo Download complete.
 echo Current branch:
 git branch --show-current
 echo.
-pause
+timeout /t 5 /nobreak >nul
 exit /b 0
 
 :err
