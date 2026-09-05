@@ -87,36 +87,54 @@ public sealed class NotificationDeliveryWorker(
     IOptions<EmailOptions> options,
     ILogger<NotificationDeliveryWorker> logger) : BackgroundService
 {
+    public const string WorkerName = "notification-delivery";
     private readonly EmailOptions _options = options.Value;
+    private readonly WorkerRuntimeState _runtimeState = WorkerRuntimeState.Current;
     private DateOnly? _lastDigestDateUtc;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await DeliverPendingAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(
-                    ex,
-                    "Clarity notification delivery cycle failed");
-            }
+        _runtimeState.Started(WorkerName);
+        logger.LogInformation("Notification delivery worker started");
 
-            await Task.Delay(
-                TimeSpan.FromSeconds(30),
-                stoppingToken);
+        try
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _runtimeState.Pulse(WorkerName);
+
+                try
+                {
+                    await DeliverPendingAsync(stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(
+                        ex,
+                        "Notification delivery worker cycle failed");
+                }
+
+                await Task.Delay(
+                    TimeSpan.FromSeconds(30),
+                    stoppingToken);
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            _runtimeState.Stopped(WorkerName);
+            logger.LogInformation("Notification delivery worker stopped");
         }
     }
 
-    private async Task DeliverPendingAsync(
-        CancellationToken cancellationToken)
+    internal async Task DeliverPendingAsync(
+        CancellationToken cancellationToken = default)
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ClarityDbContext>();
@@ -157,6 +175,8 @@ public sealed class NotificationDeliveryWorker(
 
         foreach (var notification in pending)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var user = await GetDeliverableUserAsync(
                 db,
                 notification.UserId,
@@ -165,6 +185,7 @@ public sealed class NotificationDeliveryWorker(
             if (user is null)
             {
                 Suppress(notification);
+                await db.SaveChangesAsync(cancellationToken);
                 continue;
             }
 
@@ -177,14 +198,20 @@ public sealed class NotificationDeliveryWorker(
                     cancellationToken);
 
                 MarkSent(notification);
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 MarkFailed(notification, ex);
+                await db.SaveChangesAsync(CancellationToken.None);
             }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        _runtimeState.Pulse(WorkerName);
     }
 
     private async Task DeliverDigestAsync(
@@ -210,6 +237,8 @@ public sealed class NotificationDeliveryWorker(
 
         foreach (var userGroup in pending.GroupBy(x => x.UserId))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var user = await GetDeliverableUserAsync(
                 db,
                 userGroup.Key,
@@ -220,6 +249,7 @@ public sealed class NotificationDeliveryWorker(
                 foreach (var notification in userGroup)
                     Suppress(notification);
 
+                await db.SaveChangesAsync(cancellationToken);
                 continue;
             }
 
@@ -236,16 +266,24 @@ public sealed class NotificationDeliveryWorker(
 
                 foreach (var notification in items)
                     MarkSent(notification);
+
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 foreach (var notification in items)
                     MarkFailed(notification, ex);
+
+                await db.SaveChangesAsync(CancellationToken.None);
             }
         }
 
-        await db.SaveChangesAsync(cancellationToken);
         _lastDigestDateUtc = today;
+        _runtimeState.Pulse(WorkerName);
     }
 
     private static async Task<AppUser?> GetDeliverableUserAsync(
@@ -323,11 +361,12 @@ public sealed class NotificationDeliveryWorker(
     {
         notification.Status = "Failed";
         notification.FailedAtUtc = DateTime.UtcNow;
-        notification.FailureReason = ex.Message;
+        notification.FailureReason = "Email delivery failed. Review server logs for details.";
 
         logger.LogWarning(
             ex,
-            "Unable to deliver Clarity notification {NotificationId}",
-            notification.Id);
+            "Notification {NotificationId} delivery failed for user {UserId}",
+            notification.Id,
+            notification.UserId);
     }
 }
