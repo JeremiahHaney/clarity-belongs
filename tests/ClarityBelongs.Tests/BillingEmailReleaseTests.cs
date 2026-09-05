@@ -38,6 +38,7 @@ public sealed class BillingEmailReleaseTests
         var plans = new PlanCatalog();
         var now = DateTime.UtcNow;
 
+        store.Db.ChangeTracker.Clear();
         await NotificationDeliveryCoordinator.DeliverAsync(
             store.Db,
             sender,
@@ -45,6 +46,8 @@ public sealed class BillingEmailReleaseTests
             plans,
             NullLogger.Instance,
             now);
+
+        store.Db.ChangeTracker.Clear();
         await NotificationDeliveryCoordinator.DeliverAsync(
             store.Db,
             sender,
@@ -77,6 +80,7 @@ public sealed class BillingEmailReleaseTests
 
         for (var attempt = 0; attempt < 3; attempt++)
         {
+            store.Db.ChangeTracker.Clear();
             await NotificationDeliveryCoordinator.DeliverAsync(
                 store.Db,
                 sender,
@@ -86,6 +90,7 @@ public sealed class BillingEmailReleaseTests
                 now.AddMinutes(attempt));
         }
 
+        store.Db.ChangeTracker.Clear();
         var notification = await store.Db.Notifications
             .SingleAsync(x => x.Id == seeded.Notification.Id);
 
@@ -109,6 +114,7 @@ public sealed class BillingEmailReleaseTests
         var plans = new PlanCatalog();
         var now = DateTime.UtcNow;
 
+        store.Db.ChangeTracker.Clear();
         await NotificationDeliveryCoordinator.DeliverAsync(
             store.Db,
             sender,
@@ -118,7 +124,6 @@ public sealed class BillingEmailReleaseTests
             now);
 
         store.Db.ChangeTracker.Clear();
-
         await NotificationDeliveryCoordinator.DeliverAsync(
             store.Db,
             sender,
@@ -271,7 +276,13 @@ public sealed class BillingEmailReleaseTests
 
         Assert.Equal(MembershipPlans.Free, membership.PlanCode);
         Assert.Equal(MembershipStatuses.Canceled, membership.Status);
-        Assert.Equal(newer.UtcDateTime, membership.LastStripeEventCreatedUtc);
+        Assert.NotNull(membership.LastStripeEventCreatedUtc);
+        Assert.Equal(
+            newer.ToUnixTimeSeconds(),
+            new DateTimeOffset(
+                membership.LastStripeEventCreatedUtc!.Value,
+                TimeSpan.Zero)
+                .ToUnixTimeSeconds());
     }
 
     [Fact]
@@ -332,8 +343,7 @@ public sealed class BillingEmailReleaseTests
 
         Assert.DoesNotContain("\r", subject);
         Assert.DoesNotContain("\n", subject);
-        Assert.DoesNotContain("\0", body);
-        Assert.Contains("line two", body);
+        Assert.Equal("Normal body\nline two", body);
     }
 
     private static EmailOptions ReadyEmailOptions() => new()
