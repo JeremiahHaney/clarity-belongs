@@ -94,6 +94,8 @@ public sealed class NotificationDeliveryWorker(
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            WorkerHealth.Registry.Mark("notification");
+
             try
             {
                 await DeliverPendingAsync(stoppingToken);
