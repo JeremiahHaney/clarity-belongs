@@ -1,11 +1,11 @@
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Xunit;
 
 namespace ClarityBelongs.Tests;
 
@@ -37,7 +37,8 @@ public sealed class DatabaseInfrastructureTests
     public async Task CurrentPreMigrationSchema_IsAdoptedWithoutDataLoss()
     {
         await using var harness = TestDatabaseHarness.Create();
-        var expectedNextCheck = DateTime.UtcNow.AddHours(7).AddTicks(-DateTime.UtcNow.Ticks % TimeSpan.TicksPerSecond);
+        var now = DateTime.UtcNow;
+        var expectedNextCheck = now.AddHours(7).AddTicks(-now.Ticks % TimeSpan.TicksPerSecond);
 
         await using (var legacy = harness.OpenContext())
         {
@@ -63,7 +64,8 @@ public sealed class DatabaseInfrastructureTests
     public async Task SupportedOlderSchema_IsUpgradedAndDataIsPreserved()
     {
         await using var harness = TestDatabaseHarness.Create();
-        var expectedNextCheck = DateTime.UtcNow.AddHours(9).AddTicks(-DateTime.UtcNow.Ticks % TimeSpan.TicksPerSecond);
+        var now = DateTime.UtcNow;
+        var expectedNextCheck = now.AddHours(9).AddTicks(-now.Ticks % TimeSpan.TicksPerSecond);
 
         await using (var legacy = harness.OpenContext())
         {
@@ -94,7 +96,8 @@ public sealed class DatabaseInfrastructureTests
     {
         await using var harness = TestDatabaseHarness.Create();
         await harness.StartupAsync();
-        var expectedNextCheck = DateTime.UtcNow.AddHours(5).AddTicks(-DateTime.UtcNow.Ticks % TimeSpan.TicksPerSecond);
+        var now = DateTime.UtcNow;
+        var expectedNextCheck = now.AddHours(5).AddTicks(-now.Ticks % TimeSpan.TicksPerSecond);
 
         await using (var db = harness.OpenContext())
             await SeedContinuityDataAsync(db, expectedNextCheck);
@@ -134,9 +137,10 @@ public sealed class DatabaseInfrastructureTests
         var root = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
             $"clarity-db-test-{Guid.NewGuid():N}");
-        await using var first = TestDatabaseHarness.Create(root);
+        await using var first = TestDatabaseHarness.Create(root, ownsRoot: false);
         await first.StartupAsync();
-        var expectedNextCheck = DateTime.UtcNow.AddMinutes(123).AddTicks(-DateTime.UtcNow.Ticks % TimeSpan.TicksPerSecond);
+        var now = DateTime.UtcNow;
+        var expectedNextCheck = now.AddMinutes(123).AddTicks(-now.Ticks % TimeSpan.TicksPerSecond);
 
         await using (var db = first.OpenContext())
             await SeedContinuityDataAsync(db, expectedNextCheck);
