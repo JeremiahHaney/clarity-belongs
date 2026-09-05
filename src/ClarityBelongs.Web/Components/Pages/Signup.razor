@@ -2,12 +2,15 @@
 @attribute [AllowAnonymous]
 
 <PageTitle>Create account - Clarity Belongs</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex, nofollow" />
+</HeadContent>
 
 <div class="shell narrow-shell auth-shell">
     <header class="hero compact-hero">
         <div class="eyebrow">START MY CLARITY</div>
         <h1>Create your account</h1>
-        <p>Start free. Add a few things worth watching and upgrade only when you need more capacity or faster delivery.</p>
+        <p>Start free and add the public websites, endpoints, domains, certificates, or DNS records you want Clarity to watch.</p>
     </header>
 
     <section class="panel auth-panel">
@@ -44,7 +47,7 @@
 
         <div class="auth-links">
             <span>Already have an account? <a href="/login">Sign in</a></span>
-            <a href="/pricing">Compare plans</a>
+            <a href="/pricing">See pricing</a>
         </div>
     </section>
 </div>
@@ -57,6 +60,6 @@
     {
         "password" => "Use a password with at least 10 characters.",
         "email" => "Enter a valid email address.",
-        _ => "We could not create the account with those details. Try signing in or use password reset if you may already have an account."
+        _ => "We could not create the account with those details. Try signing in or contact Clarity if you may already have an account."
     };
 }
