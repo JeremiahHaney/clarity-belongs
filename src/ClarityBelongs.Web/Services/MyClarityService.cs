@@ -33,10 +33,18 @@ public sealed record MyClarityDashboard(
     IReadOnlyList<MyClarityFollowSummary> Following,
     IReadOnlyList<Notification> Notifications);
 
-public sealed class MyClarityService(ClarityDbContext db)
+public sealed class MyClarityService(
+    ClarityDbContext db,
+    MembershipService memberships)
 {
-    public async Task<MyClarityDashboard> GetAsync(long workspaceId, CancellationToken cancellationToken = default)
+    public async Task<MyClarityDashboard> GetAsync(
+        long workspaceId,
+        CancellationToken cancellationToken = default)
     {
+        var cutoffUtc = await memberships.GetHistoryCutoffUtcAsync(
+            workspaceId,
+            DateTime.UtcNow,
+            cancellationToken);
         var follows = await db.Follows
             .Where(x => x.WorkspaceId == workspaceId)
             .Where(x => x.Status != FollowStatuses.Archived)
@@ -46,11 +54,13 @@ public sealed class MyClarityService(ClarityDbContext db)
         var followIds = follows.Select(x => x.Id).ToArray();
         var links = await db.FollowChanges
             .Where(x => followIds.Contains(x.FollowId))
+            .Where(x => x.CreatedAtUtc >= cutoffUtc)
             .ToListAsync(cancellationToken);
 
         var changeIds = links.Select(x => x.ChangeId).Distinct().ToArray();
         var changes = await db.Changes
             .Where(x => changeIds.Contains(x.Id))
+            .Where(x => x.DetectedAtUtc >= cutoffUtc)
             .OrderByDescending(x => x.DetectedAtUtc)
             .ToListAsync(cancellationToken);
 
@@ -100,6 +110,7 @@ public sealed class MyClarityService(ClarityDbContext db)
 
         var notifications = await db.Notifications
             .Where(x => x.WorkspaceId == workspaceId)
+            .Where(x => x.CreatedAtUtc >= cutoffUtc)
             .OrderByDescending(x => x.CreatedAtUtc)
             .Take(25)
             .ToListAsync(cancellationToken);
@@ -108,6 +119,10 @@ public sealed class MyClarityService(ClarityDbContext db)
             .Where(x => x.Status is FollowStatuses.Error or FollowStatuses.NeedsAttention || x.UnacknowledgedChangeCount > 0)
             .ToList();
 
-        return new MyClarityDashboard(needsAttention, recentChanges, summaries, notifications);
+        return new MyClarityDashboard(
+            needsAttention,
+            recentChanges,
+            summaries,
+            notifications);
     }
 }
