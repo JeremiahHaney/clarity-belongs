@@ -1,122 +1,94 @@
 # Clarity Belongs SQL Server production persistence
 
-## Goal
+## Current decision
 
-Move production persistence from the current file-backed SQLite database to a dedicated SQL Server database without discarding the existing EF model, user accounts, monitoring history, billing state, notification state, or durability work.
+Clarity Belongs has no production customer accounts or customer data to migrate. Production therefore starts with a fresh dedicated SQL Server database instead of carrying the current development SQLite database into production.
 
-SQLite remains acceptable for local development and targeted tests. Production should use SQL Server once migration validation is complete.
+SQLite remains the local Development/test provider. SQL Server is the Production provider.
 
 ## Production target
 
-Recommended production names:
-
 - Database: `ClarityBelongs`
-- Application principal: `ClarityBelongs_App`
-- Provider setting: `Database:Provider=SqlServer`
-- Connection string setting: `ConnectionStrings__ClarityBelongs`
+- Provider: `Database:Provider=SqlServer`
+- Connection string: `ConnectionStrings__ClarityBelongs`
+- Runtime database role: `ClarityBelongsRuntime`
+- Schema/bootstrap role: `ClarityBelongsMigration`
 
-The Clarity application principal must have access only to the Clarity Belongs database. Sharing the same SQL Server instance with AutoPilot IT and Software Belongs does not imply cross-database access.
+The Clarity database remains isolated from AutoPilot IT and Software Belongs even when they share one SQL Server instance.
 
-## Authoritative data to preserve
+## Runtime behavior
 
-The current Clarity model contains durable customer and operational state including:
+`appsettings.json` selects SQL Server. `appsettings.Development.json` selects SQLite.
 
-- users
-- workspaces
-- memberships and Stripe identifiers
-- password-reset tokens
-- targets and source definitions
-- follows
-- observation runs
-- snapshots
-- detected changes
-- alert rules
-- follow/change links
-- notifications and delivery state
-- digest delivery state
-- Stripe webhook replay records
-- feedback submissions
+Production startup fails fast when `ConnectionStrings__ClarityBelongs` is missing. The SQL Server provider initializes the current EF model into an empty database and then validates connectivity and writability. Existing SQLite migrations and legacy-schema adoption run only in SQLite mode.
 
-No provider migration is acceptable if it requires users to recreate accounts or loses monitoring history.
+SQLite `--backup-database` and `--restore-database` commands are rejected while SQL Server is selected. Production backup and restore belong to SQL Server operations.
 
-## Migration strategy
+## First production initialization
 
-1. Freeze the production SQLite file with a verified application-level SQLite backup.
-2. Create the `ClarityBelongs` SQL Server database and least-privilege application principal.
-3. Apply a SQL Server-compatible baseline schema representing the current EF model.
-4. Copy data table-by-table while preserving primary keys, foreign keys, timestamps, password hashes, provider IDs, status values, and deduplication keys.
-5. Validate row counts for every table.
-6. Validate critical relationships:
-   - user -> workspace
-   - user/workspace -> membership
-   - workspace -> follows
-   - target/source -> observation runs and snapshots
-   - follows -> changes/notifications
-7. Validate uniqueness constraints and indexes.
-8. Run the application against SQL Server in a non-public slot/environment.
-9. Verify login with migrated credentials without resetting passwords.
-10. Verify monitoring history, current schedules, billing state, feedback, and owner operations.
-11. Restart the application and verify continuity again.
-12. Switch production configuration only after all validation passes.
-13. Retain the final SQLite backup as a rollback artifact for the defined rollback period.
+Because the runtime role is intentionally not granted DDL permissions, initialize the empty database with a deployment/migration identity before switching the application to its normal runtime identity.
 
-## Rollback rule
+1. Run `deployment/sqlserver/clarity-database-boundary.sql` with a SQL Server administrative identity.
+2. Create/map the dedicated deployment identity and add it to `ClarityBelongsMigration`.
+3. Configure `ConnectionStrings__ClarityBelongs` for that deployment identity.
+4. Start Clarity once against the empty `ClarityBelongs` database so EF creates the current model schema and startup validation passes.
+5. Stop/recycle Clarity.
+6. Map the normal IIS/application identity and add it only to `ClarityBelongsRuntime`.
+7. Change `ConnectionStrings__ClarityBelongs` to the runtime identity/credentials.
+8. Start Clarity normally and verify `/health` reports `SqlServer`, reachable, schema current, and writable.
 
-Do not run production simultaneously against SQLite and SQL Server as two writable authorities.
+No SQLite copy/import step is required.
 
-If cutover fails before accepting new SQL Server writes, restore the previous SQLite configuration.
+## Model compatibility
 
-If cutover fails after accepting SQL Server writes, do not blindly switch back. First reconcile the new writes or restore SQL Server from the cutover backup point.
+The EF model now explicitly bounds SQL Server index-key strings including:
 
-## Provider compatibility checks
+- user email
+- target canonical key
+- password reset token hash
+- monitor type
+- adapter type
+- notification deduplication/channel/status
+- Stripe event/customer/subscription/price identifiers
 
-Before cutover verify:
+`SqlServerModelCompatibilityTests` verifies indexed string properties cannot silently regress to unbounded SQL Server key columns.
 
-- string lengths are explicit where SQL Server indexes require bounded columns
-- decimal precision is explicit where used
-- DateTime values remain UTC
-- nullable unique indexes behave as intended
-- cascade-delete behavior is intentional
-- generated values/identity columns preserve imported keys
-- concurrency-sensitive worker claims are safe under SQL Server
-- SQL Server migrations do not contain SQLite-only operations
+## Schema evolution boundary
 
-## Production backup model
+The current Production SQL Server schema is a pre-launch EF model baseline created with `EnsureCreated` because there is no customer data or migration history to preserve.
 
-Once SQL Server is authoritative, use SQL Server-native backup/restore for production. Keep the existing SQLite backup tooling only for SQLite mode and legacy migration/rollback needs.
+Before the first schema change after real production users/data exist:
 
-Production operations should define:
+1. generate a SQL Server-native EF migration baseline/history,
+2. stop using `EnsureCreated` as the schema-evolution mechanism,
+3. require reviewed migrations for every subsequent production schema change.
 
-- automated full backup cadence
-- differential/log backup policy where appropriate
-- retention
-- off-publish-tree backup storage
-- restore verification
-- alerting for failed or stale backups
+Do not run the existing SQLite migrations against SQL Server.
 
-## Health contract
+## Backups
 
-The existing database health philosophy should remain after provider migration. `/health` should continue to report non-sensitive readiness information covering:
+Use SQL Server-native backup/restore for Production. At minimum define:
 
-- reachable
-- schema current
-- writable
-- backup freshness when a reliable SQL Server backup signal is available
+- automated full backups,
+- retention,
+- backup storage outside IIS/publish directories,
+- alerting for failed/stale backups,
+- periodic restore verification.
 
-Backup freshness must not be reported as healthy based on the old SQLite backup directory once SQL Server is authoritative.
+SQLite backup tooling remains for local Development/test databases only.
 
-## Release gate
+## Release verification
 
-Production SQL Server cutover is blocked until all are true:
+Before enabling public signup:
 
-- fresh SQL Server database creates/migrates successfully
-- existing SQLite data migration succeeds on a representative copy
-- row counts and relationships validate
-- migrated users authenticate with existing passwords
-- monitoring history and next-run state survive
-- Stripe replay/subscription state survives
-- notification/digest deduplication state survives
-- application restart continuity passes
-- backup and restore procedure is documented and tested
-- IIS/server secrets are configured outside source control
-- rollback procedure is documented
+- dedicated `ClarityBelongs` database exists,
+- application runtime identity has no sibling-database access,
+- runtime identity is not `db_owner`,
+- schema bootstrap completed with the migration identity,
+- `/health` reports SQL Server reachable/current/writable,
+- signup creates a user/workspace/membership,
+- logout/login works after application restart,
+- a follow can be created and remains after restart,
+- SQL Server backup succeeds,
+- a restore test has been performed,
+- secrets remain outside source control.
