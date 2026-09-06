@@ -261,22 +261,40 @@ public sealed class DatabaseStartupService(
 {
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        paths.EnsureStorageDirectories();
+        var sqlite = db.Database.IsSqlite();
+        var sqlServer = db.Database.IsSqlServer();
+
+        if (!sqlite && !sqlServer)
+            throw new InvalidOperationException("Clarity is configured with an unsupported database provider.");
+
+        if (sqlite)
+            paths.EnsureStorageDirectories();
 
         try
         {
-            await legacySchema.PrepareForMigrationsAsync(cancellationToken);
-            await db.Database.MigrateAsync(cancellationToken);
+            if (sqlite)
+            {
+                await legacySchema.PrepareForMigrationsAsync(cancellationToken);
+                await db.Database.MigrateAsync(cancellationToken);
+            }
+            else
+            {
+                await db.Database.EnsureCreatedAsync(cancellationToken);
+            }
+
             await legacySchema.EnsureMembershipRowsAsync(cancellationToken);
 
-            var pending = await db.Database.GetPendingMigrationsAsync(cancellationToken);
-            var schemaCurrent = !pending.Any();
+            var schemaCurrent = sqlite
+                ? !(await db.Database.GetPendingMigrationsAsync(cancellationToken)).Any()
+                : true;
             var reachable = await db.Database.CanConnectAsync(cancellationToken);
             var writable = await VerifyWritableAsync(cancellationToken);
-            var newestBackup = backups.GetNewestBackupUtc();
+            var newestBackup = sqlite
+                ? backups.GetNewestBackupUtc()
+                : null;
 
             if (!schemaCurrent || !reachable || !writable)
-                throw new InvalidOperationException("Database migration completed but validation did not pass.");
+                throw new InvalidOperationException("Database initialization completed but validation did not pass.");
 
             runtimeState.Set(
                 new DatabaseOperationalStatus(
@@ -295,12 +313,14 @@ public sealed class DatabaseStartupService(
                     false,
                     false,
                     false,
-                    backups.GetNewestBackupUtc(),
+                    sqlite
+                        ? backups.GetNewestBackupUtc()
+                        : null,
                     ex.Message));
 
             logger.LogCritical(
                 ex,
-                "Clarity database startup failed. The application will not start against an unverified schema.");
+                "Clarity database startup failed. The application will not start against an unverified database.");
             throw;
         }
     }
@@ -312,7 +332,9 @@ public sealed class DatabaseStartupService(
         try
         {
             await using var command = db.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "CREATE TEMP TABLE IF NOT EXISTS __clarity_write_probe (Value INTEGER); DELETE FROM __clarity_write_probe; INSERT INTO __clarity_write_probe(Value) VALUES (1); DELETE FROM __clarity_write_probe;";
+            command.CommandText = db.Database.IsSqlServer()
+                ? "CREATE TABLE #__clarity_write_probe (Value int NOT NULL); INSERT INTO #__clarity_write_probe(Value) VALUES (1); DELETE FROM #__clarity_write_probe;"
+                : "CREATE TEMP TABLE IF NOT EXISTS __clarity_write_probe (Value INTEGER); DELETE FROM __clarity_write_probe; INSERT INTO __clarity_write_probe(Value) VALUES (1); DELETE FROM __clarity_write_probe;";
             await command.ExecuteNonQueryAsync(cancellationToken);
             return true;
         }

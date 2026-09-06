@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.11 - 2026-09-06
+
+- Switched Clarity production persistence to a dedicated SQL Server provider while keeping SQLite as the Development/test provider.
+- Added fail-fast production configuration through `Database:Provider=SqlServer` and `ConnectionStrings__ClarityBelongs`; Development explicitly selects SQLite.
+- Made database startup provider-aware: SQLite keeps its existing migrations/legacy adoption and file backup path, while SQL Server initializes a fresh pre-launch EF model schema and validates connectivity and writability with SQL Server-native behavior.
+- Restricted SQLite `--backup-database` and `--restore-database` commands to SQLite mode; production SQL Server backup/restore is now an operational responsibility rather than file-copy tooling.
+- Added explicit SQL Server-safe bounds for indexed strings including user email, canonical target keys, reset token hashes, monitor/adapter keys, notification deduplication/status fields, and Stripe identifiers.
+- Added automated SQL Server model compatibility coverage that fails if an indexed string regresses to an unbounded key column.
+- Added `deployment/sqlserver/clarity-database-boundary.sql` with separate runtime and schema/bootstrap roles and no embedded credentials or server identities.
+- Removed the unnecessary SQLite-to-SQL Server reconciliation/import tooling because Clarity has no production customer data to migrate.
+- Documented the pre-launch SQL Server initialization path, least-privilege runtime boundary, SQL Server-native backup expectations, and the requirement to establish normal SQL Server EF migration history before the first post-launch schema change.
+
 ## 0.6.10 - 2026-09-05
 
 - Completed Phase 1 SEO/indexing readiness with centralized canonical, OpenGraph, noindex, robots, sitemap, hidden-product, and hard-404 policy plus runtime SEO validation and Search Console handoff documentation.

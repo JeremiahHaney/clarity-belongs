@@ -14,6 +14,33 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var databaseProvider = builder.Configuration["Database:Provider"]?.Trim();
+if (string.IsNullOrWhiteSpace(databaseProvider))
+{
+    databaseProvider = builder.Environment.IsDevelopment()
+        ? "Sqlite"
+        : "SqlServer";
+}
+
+var useSqlite = databaseProvider.Equals(
+    "Sqlite",
+    StringComparison.OrdinalIgnoreCase);
+var useSqlServer = databaseProvider.Equals(
+    "SqlServer",
+    StringComparison.OrdinalIgnoreCase);
+
+if (!useSqlite && !useSqlServer)
+{
+    throw new InvalidOperationException(
+        $"Unsupported Clarity database provider '{databaseProvider}'. Use Sqlite or SqlServer.");
+}
+
+var sqlServerConnectionString = useSqlServer
+    ? builder.Configuration.GetConnectionString("ClarityBelongs")
+        ?? throw new InvalidOperationException(
+            "Connection string 'ClarityBelongs' is required when Database:Provider is SqlServer.")
+    : null;
+
 builder.Services
     .AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -60,8 +87,16 @@ builder.Services.AddSingleton<DatabasePathProvider>();
 builder.Services.AddSingleton<DatabaseRuntimeState>();
 builder.Services.AddSingleton<SqliteBackupService>();
 builder.Services.AddDbContext<ClarityDbContext>((services, options) =>
-    options.UseSqlite(
-        services.GetRequiredService<DatabasePathProvider>().ConnectionString));
+{
+    if (useSqlite)
+    {
+        options.UseSqlite(
+            services.GetRequiredService<DatabasePathProvider>().ConnectionString);
+        return;
+    }
+
+    options.UseSqlServer(sqlServerConnectionString!);
+});
 
 builder.Services
     .AddOptions<EmailOptions>()
@@ -128,6 +163,12 @@ var restoreArgumentIndex = Array.FindIndex(
 
 if (restoreArgumentIndex >= 0)
 {
+    if (!useSqlite)
+    {
+        throw new InvalidOperationException(
+            "--restore-database is available only when Clarity is using SQLite. Use SQL Server-native restore operations in Production.");
+    }
+
     if (restoreArgumentIndex + 1 >= args.Length)
         throw new InvalidOperationException("--restore-database requires a backup file name.");
 
@@ -146,6 +187,12 @@ if (args.Any(value => string.Equals(
         "--backup-database",
         StringComparison.OrdinalIgnoreCase)))
 {
+    if (!useSqlite)
+    {
+        throw new InvalidOperationException(
+            "--backup-database is available only when Clarity is using SQLite. Use SQL Server-native backup operations in Production.");
+    }
+
     using var backupScope = app.Services.CreateScope();
     var startup = backupScope.ServiceProvider.GetRequiredService<DatabaseStartupService>();
     await startup.InitializeAsync();
@@ -244,6 +291,7 @@ app.MapGet(
             utc = DateTime.UtcNow,
             database = new
             {
+                provider = databaseProvider,
                 reachable = database.Reachable,
                 schemaCurrent = database.SchemaCurrent,
                 writable = database.Writable,
