@@ -28,11 +28,35 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public static void ConfigureModel(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AppUser>()
+            .Property(x => x.Email)
+            .HasMaxLength(320);
+
+        modelBuilder.Entity<AppUser>()
             .HasIndex(x => x.Email)
             .IsUnique();
 
         modelBuilder.Entity<Workspace>()
             .HasIndex(x => x.OwnerUserId);
+
+        modelBuilder.Entity<Membership>()
+            .Property(x => x.PlanCode)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Membership>()
+            .Property(x => x.Status)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Membership>()
+            .Property(x => x.StripeCustomerId)
+            .HasMaxLength(255);
+
+        modelBuilder.Entity<Membership>()
+            .Property(x => x.StripeSubscriptionId)
+            .HasMaxLength(255);
+
+        modelBuilder.Entity<Membership>()
+            .Property(x => x.StripePriceId)
+            .HasMaxLength(255);
 
         modelBuilder.Entity<Membership>()
             .HasIndex(x => x.UserId)
@@ -49,15 +73,31 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasIndex(x => x.StripeSubscriptionId);
 
         modelBuilder.Entity<PasswordResetToken>()
+            .Property(x => x.TokenHash)
+            .HasMaxLength(128);
+
+        modelBuilder.Entity<PasswordResetToken>()
             .HasIndex(x => x.TokenHash)
             .IsUnique();
+
+        modelBuilder.Entity<Target>()
+            .Property(x => x.CanonicalKey)
+            .HasMaxLength(450);
 
         modelBuilder.Entity<Target>()
             .HasIndex(x => x.CanonicalKey)
             .IsUnique();
 
         modelBuilder.Entity<Follow>()
+            .Property(x => x.MonitorType)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Follow>()
             .HasIndex(x => new { x.WorkspaceId, x.TargetId, x.MonitorType });
+
+        modelBuilder.Entity<SourceDefinition>()
+            .Property(x => x.AdapterType)
+            .HasMaxLength(32);
 
         modelBuilder.Entity<SourceDefinition>()
             .HasIndex(x => new { x.TargetId, x.AdapterType });
@@ -77,6 +117,18 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasKey(x => new { x.FollowId, x.ChangeId });
 
         modelBuilder.Entity<Notification>()
+            .Property(x => x.DedupKey)
+            .HasMaxLength(450);
+
+        modelBuilder.Entity<Notification>()
+            .Property(x => x.Channel)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Notification>()
+            .Property(x => x.Status)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Notification>()
             .HasIndex(x => x.DedupKey)
             .IsUnique();
 
@@ -86,6 +138,14 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
         modelBuilder.Entity<DigestDeliveryState>()
             .HasIndex(x => new { x.UserId, x.DigestDateUtc })
             .IsUnique();
+
+        modelBuilder.Entity<StripeWebhookEvent>()
+            .Property(x => x.EventId)
+            .HasMaxLength(255);
+
+        modelBuilder.Entity<StripeWebhookEvent>()
+            .Property(x => x.EventType)
+            .HasMaxLength(100);
 
         modelBuilder.Entity<StripeWebhookEvent>()
             .HasIndex(x => x.EventId)
