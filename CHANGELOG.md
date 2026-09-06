@@ -2,12 +2,15 @@
 
 ## 0.6.11 - 2026-09-06
 
-- Added the production SQL Server persistence plan for moving Clarity from file-backed SQLite to a dedicated `ClarityBelongs` database without losing users, workspaces, memberships, monitoring history, billing state, notification state, or feedback.
-- Documented cutover, rollback, provider-compatibility, backup, health, and least-privilege database requirements; explicitly blocked a direct `UseSqlServer` flip because the existing EF migration history is SQLite-specific.
-- Added `ClarityBelongs.DatabaseTool`, a read-only pre-cutover inventory utility that validates SQLite integrity and foreign keys, records applied/pending migrations, hashes the source database file, and captures row counts for every durable table.
-- Added `scripts/clarity-database-inventory.ps1` so operators can produce a timestamped reconciliation manifest before migration and automatically block cutover when validation fails.
-- Added `deployment/sqlserver/clarity-database-boundary.sql` to create the dedicated database and separate runtime/migration roles without embedding passwords, logins, or server-specific identities.
-- Added the database inventory tool to `ClarityBelongs.slnx` so it participates in normal solution build validation.
+- Switched Clarity production persistence to a dedicated SQL Server provider while keeping SQLite as the Development/test provider.
+- Added fail-fast production configuration through `Database:Provider=SqlServer` and `ConnectionStrings__ClarityBelongs`; Development explicitly selects SQLite.
+- Made database startup provider-aware: SQLite keeps its existing migrations/legacy adoption and file backup path, while SQL Server initializes a fresh pre-launch EF model schema and validates connectivity and writability with SQL Server-native behavior.
+- Restricted SQLite `--backup-database` and `--restore-database` commands to SQLite mode; production SQL Server backup/restore is now an operational responsibility rather than file-copy tooling.
+- Added explicit SQL Server-safe bounds for indexed strings including user email, canonical target keys, reset token hashes, monitor/adapter keys, notification deduplication/status fields, and Stripe identifiers.
+- Added automated SQL Server model compatibility coverage that fails if an indexed string regresses to an unbounded key column.
+- Added `deployment/sqlserver/clarity-database-boundary.sql` with separate runtime and schema/bootstrap roles and no embedded credentials or server identities.
+- Removed the unnecessary SQLite-to-SQL Server reconciliation/import tooling because Clarity has no production customer data to migrate.
+- Documented the pre-launch SQL Server initialization path, least-privilege runtime boundary, SQL Server-native backup expectations, and the requirement to establish normal SQL Server EF migration history before the first post-launch schema change.
 
 ## 0.6.10 - 2026-09-05
 
