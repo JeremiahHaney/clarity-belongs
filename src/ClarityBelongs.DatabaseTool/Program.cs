@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using ClarityBelongs.DatabaseTool;
 using ClarityBelongs.Web.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -158,7 +159,7 @@ static async Task<int> CompareReportsAsync(string[] values)
 		return 4;
 	}
 
-	var mismatches = CompareCounts(
+	var mismatches = DatabaseInventoryReconciler.Compare(
 		baseline.Counts,
 		candidate.Counts);
 
@@ -175,31 +176,6 @@ static async Task<int> CompareReportsAsync(string[] values)
 		Console.Error.WriteLine($"- {mismatch}");
 
 	return 6;
-}
-
-static List<string> CompareCounts(
-	DatabaseInventoryCounts baseline,
-	DatabaseInventoryCounts candidate)
-{
-	var mismatches = new List<string>();
-	var properties = typeof(DatabaseInventoryCounts)
-		.GetProperties();
-
-	foreach (var property in properties)
-	{
-		var before = Convert.ToInt64(
-			property.GetValue(baseline));
-		var after = Convert.ToInt64(
-			property.GetValue(candidate));
-
-		if (before != after)
-		{
-			mismatches.Add(
-				$"{property.Name}: baseline={before}, candidate={after}");
-		}
-	}
-
-	return mismatches;
 }
 
 static bool HasArgument(
@@ -285,41 +261,3 @@ static async Task<string> ComputeSha256Async(string path)
 	var hash = await SHA256.HashDataAsync(stream);
 	return Convert.ToHexString(hash);
 }
-
-public sealed record DatabaseInventoryReport(
-	DateTime GeneratedUtc,
-	DatabaseInventorySource Source,
-	DatabaseInventoryValidation Validation,
-	DatabaseInventoryCounts Counts);
-
-public sealed record DatabaseInventorySource(
-	string FileName,
-	long LengthBytes,
-	DateTime LastWriteUtc,
-	string Sha256);
-
-public sealed record DatabaseInventoryValidation(
-	bool Reachable,
-	string? Integrity,
-	int ForeignKeyViolations,
-	bool SchemaCurrent,
-	string[] AppliedMigrations,
-	string[] PendingMigrations);
-
-public sealed record DatabaseInventoryCounts(
-	long Users,
-	long Workspaces,
-	long Memberships,
-	long PasswordResetTokens,
-	long Targets,
-	long SourceDefinitions,
-	long Follows,
-	long ObservationRuns,
-	long Snapshots,
-	long Changes,
-	long AlertRules,
-	long FollowChanges,
-	long Notifications,
-	long DigestDeliveryStates,
-	long StripeWebhookEvents,
-	long FeedbackSubmissions);
