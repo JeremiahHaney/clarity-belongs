@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.11 - 2026-09-06
+
+- Added the production SQL Server persistence plan for moving Clarity from file-backed SQLite to a dedicated `ClarityBelongs` database without losing users, workspaces, memberships, monitoring history, billing state, notification state, or feedback.
+- Documented cutover, rollback, provider-compatibility, backup, health, and least-privilege database requirements; explicitly blocked a direct `UseSqlServer` flip because the existing EF migration history is SQLite-specific.
+- Added `ClarityBelongs.DatabaseTool`, a read-only pre-cutover inventory utility that validates SQLite integrity and foreign keys, records applied/pending migrations, hashes the source database file, and captures row counts for every durable table.
+- Added `scripts/clarity-database-inventory.ps1` so operators can produce a timestamped reconciliation manifest before migration and automatically block cutover when validation fails.
+- Added `deployment/sqlserver/clarity-database-boundary.sql` to create the dedicated database and separate runtime/migration roles without embedding passwords, logins, or server-specific identities.
+- Added the database inventory tool to `ClarityBelongs.slnx` so it participates in normal solution build validation.
+
 ## 0.6.10 - 2026-09-05
 
 - Completed Phase 1 SEO/indexing readiness with centralized canonical, OpenGraph, noindex, robots, sitemap, hidden-product, and hard-404 policy plus runtime SEO validation and Search Console handoff documentation.
