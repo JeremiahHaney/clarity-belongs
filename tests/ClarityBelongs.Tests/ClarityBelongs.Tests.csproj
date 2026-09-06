@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ClarityBelongs.DatabaseTool\ClarityBelongs.DatabaseTool.csproj" />
     <ProjectReference Include="..\..\src\ClarityBelongs.Web\ClarityBelongs.Web.csproj" />
   </ItemGroup>
 
