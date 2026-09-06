@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.Json;
 using ClarityBelongs.Web.Data;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 var sourcePath = GetArgument(args, "--source");
@@ -17,8 +18,15 @@ if (!File.Exists(sourcePath))
     return 3;
 }
 
+var connectionString = new SqliteConnectionStringBuilder
+{
+    DataSource = sourcePath,
+    Mode = SqliteOpenMode.ReadOnly,
+    ForeignKeys = true
+}.ToString();
+
 var options = new DbContextOptionsBuilder<ClarityDbContext>()
-    .UseSqlite($"Data Source={sourcePath};Mode=ReadOnly")
+    .UseSqlite(connectionString)
     .Options;
 
 await using var db = new ClarityDbContext(options);
@@ -39,7 +47,7 @@ var report = new
     GeneratedUtc = DateTime.UtcNow,
     Source = new
     {
-        Path = sourcePath,
+        FileName = Path.GetFileName(sourcePath),
         LengthBytes = new FileInfo(sourcePath).Length,
         LastWriteUtc = File.GetLastWriteTimeUtc(sourcePath),
         Sha256 = await ComputeSha256Async(sourcePath)
