@@ -1,0 +1,1 @@
+{"manifest_version":3,"name":"Clarity Explain","version":"1.0.0","permissions":["activeTab","scripting","clipboardWrite"],"action":{"default_popup":"popup.html"}}
