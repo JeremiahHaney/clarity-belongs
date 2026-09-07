@@ -207,7 +207,7 @@ public sealed class PersistenceIsolationAndSchedulingTests
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Services.AddDbContext<ClarityDbContext>(options =>
-            options.UseSqlite($"Data Source={databasePath}"));
+            options.UseSqlite($"Data Source={databasePath};Pooling=False"));
         builder.Services.AddSingleton<PlanCatalog>();
         builder.Services.AddScoped<MembershipService>();
         builder.Services.AddScoped<FollowManagementService>();
