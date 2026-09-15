@@ -21,9 +21,19 @@
   <url><loc>https://claritybelongs.com/learn/how-to-monitor-a-website-for-changes</loc></url>
   <url><loc>https://claritybelongs.com/learn/get-notified-when-a-webpage-changes</loc></url>
   <url><loc>https://claritybelongs.com/learn/website-uptime-monitoring-for-small-sites</loc></url>
+  <url><loc>https://claritybelongs.com/learn/check-http-status-code-over-time</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-website-redirect-destination</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-a-broken-link</loc></url>
   <url><loc>https://claritybelongs.com/learn/ssl-certificate-expiration-alert</loc></url>
   <url><loc>https://claritybelongs.com/learn/domain-expiration-reminder</loc></url>
   <url><loc>https://claritybelongs.com/learn/dns-change-monitor</loc></url>
+  <url><loc>https://claritybelongs.com/learn/nameserver-change-monitor</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-mx-record-changes</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-spf-record-changes</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-dkim-record-changes</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-dmarc-record-changes</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-public-api-endpoint-uptime</loc></url>
+  <url><loc>https://claritybelongs.com/learn/monitor-public-service-outage</loc></url>
   <url><loc>https://claritybelongs.com/learn/track-pricing-page-changes</loc></url>
   <url><loc>https://claritybelongs.com/learn/monitor-terms-and-privacy-policy-changes</loc></url>
   <url><loc>https://claritybelongs.com/learn/monitor-public-notice-page</loc></url>
