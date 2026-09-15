@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.12 - 2026-09-15
+
+- Expanded the public Learn catalog from 12 to 22 search-oriented monitoring guides using the existing Clarity Learn architecture.
+- Added practical search-intent guides for HTTP status, redirect destinations, broken links, nameserver changes, MX, SPF, DKIM, DMARC, public API uptime, and public service outages.
+- Kept every new guide tied to an existing approved public Clarity watch instead of creating parallel product identities or unsupported monitoring claims.
+- Expanded the static sitemap so all public Learn guides are directly discoverable alongside the existing 15 public watch pages.
+- Added automated coverage for guide count, unique slugs/search intents, public-product integrity, canonical URLs, and indexability through the existing SEO policy.
+
 ## 0.6.11 - 2026-09-06
 
 - Switched Clarity production persistence to a dedicated SQL Server provider while keeping SQLite as the Development/test provider.
