@@ -69,6 +69,60 @@ public sealed class LearnContentCatalog
                 "Recovery is recorded when the endpoint responds again."
             ]),
         new(
+            "check-http-status-code-over-time",
+            "Check an HTTP status code over time",
+            "Track the public HTTP status returned by a URL so redirects, client errors, server errors, and recovery are visible in history.",
+            "monitor HTTP status code",
+            "http-status",
+            "HTTP Status Monitor",
+            [
+                "Can Clarity record 404 or 500 responses?",
+                "Is an HTTP error the same as a network failure?",
+                "Can I see when the status recovers?"
+            ],
+            [
+                "Add the public URL you want to observe.",
+                "Choose HTTP Status Monitor.",
+                "Clarity records the returned HTTP status when a response is available.",
+                "Review history when the observed status changes or later recovers."
+            ]),
+        new(
+            "monitor-website-redirect-destination",
+            "Monitor a website redirect destination",
+            "Keep track of where a public URL ultimately redirects so destination changes do not go unnoticed.",
+            "monitor redirect destination",
+            "redirect-chain",
+            "Redirect Destination Monitor",
+            [
+                "Can Clarity follow redirects?",
+                "How many redirects are followed?",
+                "Will a new final destination be recorded?"
+            ],
+            [
+                "Add the public URL that redirects.",
+                "Choose Redirect Destination Monitor.",
+                "Clarity follows the supported redirect chain and records the final destination.",
+                "Review history when the recorded destination changes."
+            ]),
+        new(
+            "monitor-a-broken-link",
+            "Monitor a link for broken status",
+            "Watch a specific public link and keep evidence when its HTTP state moves between working and broken.",
+            "broken link monitor",
+            "broken-link",
+            "Broken Link Monitor",
+            [
+                "Does Clarity crawl my whole website?",
+                "Can it monitor one important link?",
+                "Will a repaired link show as recovered?"
+            ],
+            [
+                "Choose the specific public link that matters.",
+                "Create a Broken Link follow.",
+                "Clarity checks the response returned by that link.",
+                "Review history when the link fails or later recovers."
+            ]),
+        new(
             "ssl-certificate-expiration-alert",
             "SSL certificate expiration alert",
             "Track a public TLS certificate and keep its expiration state visible before renewal becomes urgent.",
@@ -121,6 +175,132 @@ public sealed class LearnContentCatalog
                 "Clarity normalizes and sorts the public address set.",
                 "A changed normalized set becomes a DNS change event.",
                 "Review the before/after evidence from the follow history."
+            ]),
+        new(
+            "nameserver-change-monitor",
+            "Nameserver change monitor",
+            "Track the public authoritative nameserver set for a domain and keep a history when that set changes.",
+            "nameserver change monitor",
+            "nameserver-change",
+            "Nameserver Monitor",
+            [
+                "What nameserver data is observed?",
+                "Does record order matter?",
+                "Can I review the previous nameservers?"
+            ],
+            [
+                "Enter the domain you want to follow.",
+                "Choose Nameserver Monitor.",
+                "Clarity records the normalized public nameserver set.",
+                "Review before-and-after evidence when that set changes."
+            ]),
+        new(
+            "monitor-mx-record-changes",
+            "Monitor MX record changes",
+            "Watch a domain's public mail-exchange records so mail-routing changes are visible over time.",
+            "MX record change monitor",
+            "mx-record",
+            "MX Record Monitor",
+            [
+                "Can Clarity track mail-routing records?",
+                "Are MX priorities preserved?",
+                "Can I see the old record set?"
+            ],
+            [
+                "Enter the domain whose mail routing matters.",
+                "Choose MX Record Monitor.",
+                "Clarity records the public MX record set.",
+                "Review history when the observed mail-exchange configuration changes."
+            ]),
+        new(
+            "monitor-spf-record-changes",
+            "Monitor SPF record changes",
+            "Track the public SPF policy published for a domain and retain evidence when the observed policy changes.",
+            "SPF record monitor",
+            "spf-record",
+            "SPF Record Monitor",
+            [
+                "What does Clarity inspect for SPF?",
+                "Does Clarity judge whether my SPF policy is correct?",
+                "Can I review a previous value?"
+            ],
+            [
+                "Enter the domain whose SPF policy you want to follow.",
+                "Choose SPF Record Monitor.",
+                "Clarity records the public SPF-related TXT evidence it observes.",
+                "Review history when the observed value changes."
+            ]),
+        new(
+            "monitor-dkim-record-changes",
+            "Monitor DKIM record changes",
+            "Watch a public DKIM selector record and keep history when the published key material changes.",
+            "DKIM record monitor",
+            "dkim-record",
+            "DKIM Record Monitor",
+            [
+                "Do I need the DKIM selector?",
+                "Can Clarity tell when the public key changes?",
+                "Does Clarity validate email delivery?"
+            ],
+            [
+                "Use the domain and selector for the public DKIM record you want to follow.",
+                "Choose DKIM Record Monitor.",
+                "Clarity records the public DKIM DNS evidence it observes.",
+                "Review history when that published record changes."
+            ]),
+        new(
+            "monitor-dmarc-record-changes",
+            "Monitor DMARC record changes",
+            "Track a domain's public DMARC policy and retain a before-and-after history when the record changes.",
+            "DMARC record monitor",
+            "dmarc-record",
+            "DMARC Record Monitor",
+            [
+                "Can Clarity track the _dmarc record?",
+                "Does it interpret whether my policy is good enough?",
+                "Can I see the prior policy later?"
+            ],
+            [
+                "Enter the domain whose DMARC policy matters.",
+                "Choose DMARC Record Monitor.",
+                "Clarity records the public DMARC TXT evidence.",
+                "Review history when the observed policy changes."
+            ]),
+        new(
+            "monitor-public-api-endpoint-uptime",
+            "Monitor public API endpoint uptime",
+            "Watch a safe public health or status endpoint and keep a record of availability and recovery.",
+            "API endpoint uptime monitor",
+            "api-endpoint-uptime",
+            "API Endpoint Uptime Monitor",
+            [
+                "Can Clarity monitor authenticated APIs?",
+                "What kind of endpoint should I use?",
+                "Will recovery be recorded?"
+            ],
+            [
+                "Choose a safe public health or status endpoint.",
+                "Create an API Endpoint Uptime follow.",
+                "Clarity checks public HTTP availability without private credentials.",
+                "Review failures and later recovery in the follow history."
+            ]),
+        new(
+            "monitor-public-service-outage",
+            "Monitor a public service for outages",
+            "Follow a public HTTP endpoint that represents a service you care about and keep outage and recovery evidence over time.",
+            "service outage monitor",
+            "service-outage",
+            "Service Outage Monitor",
+            [
+                "How does Clarity decide a service is unavailable?",
+                "Does it use private account data?",
+                "Can I review recovery later?"
+            ],
+            [
+                "Choose the public endpoint that represents the service.",
+                "Create a Service Outage follow.",
+                "Clarity records public HTTP availability observations.",
+                "Review history when the endpoint fails and when it recovers."
             ]),
         new(
             "track-pricing-page-changes",
