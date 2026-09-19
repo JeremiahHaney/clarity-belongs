@@ -21,6 +21,7 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
     public DbSet<DigestDeliveryState> DigestDeliveryStates => Set<DigestDeliveryState>();
     public DbSet<StripeWebhookEvent> StripeWebhookEvents => Set<StripeWebhookEvent>();
     public DbSet<FeedbackSubmission> FeedbackSubmissions => Set<FeedbackSubmission>();
+    public DbSet<AcquisitionEvent> AcquisitionEvents => Set<AcquisitionEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         ConfigureModel(modelBuilder);
@@ -176,5 +177,42 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
 
         modelBuilder.Entity<FeedbackSubmission>()
             .HasIndex(x => x.CreatedUtc);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.VisitorId)
+            .HasMaxLength(64);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.EventType)
+            .HasMaxLength(64);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.Path)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.ProductSlug)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.Source)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.Medium)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.Campaign)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .HasIndex(x => new { x.VisitorId, x.OccurredAtUtc });
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .HasIndex(x => new { x.UserId, x.OccurredAtUtc });
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .HasIndex(x => new { x.EventType, x.OccurredAtUtc });
     }
 }
