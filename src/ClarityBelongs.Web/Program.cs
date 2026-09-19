@@ -331,6 +331,7 @@ app.MapPost(
         var email = form["email"].ToString();
         var displayName = form["displayName"].ToString();
         var password = form["password"].ToString();
+        var returnUrl = SafeLocalReturnUrl(form["returnUrl"].ToString());
 
         try
         {
@@ -349,7 +350,7 @@ app.MapPost(
                     ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
                 });
 
-            return Results.Redirect("/");
+            return Results.Redirect(returnUrl);
         }
         catch (InvalidOperationException ex)
         {
