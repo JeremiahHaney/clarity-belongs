@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f7faf9"/>
+  <rect x="56" y="56" width="1088" height="518" rx="34" fill="#ffffff" stroke="#d8e7e4" stroke-width="2"/>
+  <circle cx="128" cy="132" r="28" fill="#287a72"/>
+  <path d="M116 132l8 8 18-20" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="174" y="144" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="700" fill="#17312f">Clarity Belongs</text>
+  <text x="96" y="275" font-family="Arial,Helvetica,sans-serif" font-size="58" font-weight="700" fill="#17202a">Website Change Monitor</text>
+  <text x="96" y="350" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="600" fill="#287a72">See when a public page changes</text>
+  <text x="96" y="414" font-family="Arial,Helvetica,sans-serif" font-size="25" fill="#596674">Clarity keeps the history and before-and-after evidence.</text>
+  <line x1="96" y1="486" x2="1104" y2="486" stroke="#e2e6ea" stroke-width="2"/>
+  <text x="96" y="535" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700" fill="#4f87c8">claritybelongs.com</text>
+</svg>
