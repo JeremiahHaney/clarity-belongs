@@ -40,7 +40,7 @@ else if (Product is not null)
                         <a class="button" href="/add?product=@Product.Slug">Watch this</a>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="button" href="/signup">Start free</a>
+                        <a class="button" href="@SignupHref">Start free</a>
                     </NotAuthorized>
                 </AuthorizeView>
                 <a class="button secondary" href="/learn">Learn first</a>
@@ -112,7 +112,7 @@ else if (Product is not null)
                     <a class="button" href="/add?product=@Product.Slug">Watch this</a>
                 </Authorized>
                 <NotAuthorized>
-                    <a class="button" href="/signup">Create free account</a>
+                    <a class="button" href="@SignupHref">Create free account</a>
                 </NotAuthorized>
             </AuthorizeView>
         </section>
@@ -131,7 +131,7 @@ else
                         <a class="button" href="/add">Watch something</a>
                     </Authorized>
                     <NotAuthorized>
-                        <a class="button" href="/signup">Start free</a>
+                        <a class="button" href="@SignupHref">Start free</a>
                     </NotAuthorized>
                 </AuthorizeView>
             </div>
@@ -177,6 +177,9 @@ else
     private ClarityProduct? Product => PublicCatalog.GetBySlug(Slug);
     private bool IsMissingProduct => !string.IsNullOrWhiteSpace(Slug)
         && Product is null;
+    private string SignupHref => Product is null
+        ? "/signup"
+        : $"/signup?returnUrl={Uri.EscapeDataString($"/add?product={Product.Slug}")}";
     private string TitleText => IsMissingProduct
         ? "Watch not found - Clarity Belongs"
         : Product is null
