@@ -90,6 +90,82 @@ public sealed class OwnerOperationsReleaseTests
     }
 
     [Fact]
+    public async Task AcquisitionReportConnectsCampaignToUsefulFollowAndReturn()
+    {
+        await using var store = await SqliteTestStore.CreateAsync();
+        var seeded = await TestData.SeedFollowAsync(store.Db);
+        var now = DateTime.UtcNow;
+
+        store.Db.AcquisitionEvents.AddRange(
+            new AcquisitionEvent
+            {
+                VisitorId = "0123456789abcdef0123456789abcdef",
+                EventType = AcquisitionEventTypes.Visit,
+                Source = "reddit",
+                Medium = "community",
+                Campaign = "priority-zero",
+                OccurredAtUtc = now.AddMinutes(-10)
+            },
+            new AcquisitionEvent
+            {
+                VisitorId = "0123456789abcdef0123456789abcdef",
+                UserId = seeded.User.Id,
+                WorkspaceId = seeded.Workspace.Id,
+                EventType = AcquisitionEventTypes.FollowStarted,
+                ProductSlug = "website-uptime",
+                Source = "reddit",
+                Medium = "community",
+                Campaign = "priority-zero",
+                OccurredAtUtc = now.AddMinutes(-8)
+            },
+            new AcquisitionEvent
+            {
+                VisitorId = "0123456789abcdef0123456789abcdef",
+                UserId = seeded.User.Id,
+                WorkspaceId = seeded.Workspace.Id,
+                EventType = AcquisitionEventTypes.FollowCreated,
+                ProductSlug = "website-uptime",
+                FollowId = seeded.Follow.Id,
+                Source = "reddit",
+                Medium = "community",
+                Campaign = "priority-zero",
+                OccurredAtUtc = now.AddMinutes(-7)
+            },
+            new AcquisitionEvent
+            {
+                VisitorId = "0123456789abcdef0123456789abcdef",
+                UserId = seeded.User.Id,
+                WorkspaceId = seeded.Workspace.Id,
+                EventType = AcquisitionEventTypes.DashboardOpened,
+                Source = "reddit",
+                Medium = "community",
+                Campaign = "priority-zero",
+                OccurredAtUtc = now
+            });
+
+        store.Db.ObservationRuns.Add(new ObservationRun
+        {
+            TargetId = seeded.Target.Id,
+            SourceDefinitionId = seeded.Source.Id,
+            StartedAtUtc = now.AddMinutes(-5),
+            CompletedAtUtc = now.AddMinutes(-5),
+            Status = ObservationStatuses.Succeeded
+        });
+        await store.Db.SaveChangesAsync();
+
+        var rows = await new OwnerOperationsService(store.Db)
+            .GetAcquisitionAsync();
+
+        var row = Assert.Single(rows);
+        Assert.Equal("reddit", row.Source);
+        Assert.Equal(1, row.Visits);
+        Assert.Equal(1, row.Starts);
+        Assert.Equal(1, row.Created);
+        Assert.Equal(1, row.UsefulObservations);
+        Assert.Equal(1, row.ReturnUsers);
+    }
+
+    [Fact]
     public async Task UserAndFollowSearchReturnOnlyOperationalFieldsNeededForSupport()
     {
         await using var store = await SqliteTestStore.CreateAsync();
