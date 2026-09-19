@@ -105,6 +105,17 @@ public sealed record OwnerMessageRow(
     string? Contact,
     DateTime CreatedUtc);
 
+public sealed record OwnerAcquisitionRow(
+    string Source,
+    string Medium,
+    string Campaign,
+    int Visits,
+    int Signups,
+    int Starts,
+    int Created,
+    int UsefulObservations,
+    int ReturnUsers);
+
 public sealed class OwnerOperationsService(ClarityDbContext db)
 {
     public async Task<OwnerOverview> GetOverviewAsync(
@@ -342,6 +353,76 @@ public sealed class OwnerOperationsService(ClarityDbContext db)
                 SanitizeError(notification.FailureReason)))
             .Take(100)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<OwnerAcquisitionRow>> GetAcquisitionAsync(
+        int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-Math.Max(1, days));
+        var events = await db.AcquisitionEvents
+            .AsNoTracking()
+            .Where(x => x.OccurredAtUtc >= cutoff)
+            .OrderBy(x => x.OccurredAtUtc)
+            .ToListAsync(cancellationToken);
+        var createdEvents = events
+            .Where(x => x.EventType == AcquisitionEventTypes.FollowCreated)
+            .Where(x => x.FollowId.HasValue)
+            .ToList();
+        var usefulFollowIds = new HashSet<long>();
+
+        foreach (var acquisitionEvent in createdEvents)
+        {
+            var follow = await db.Follows
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    x => x.Id == acquisitionEvent.FollowId,
+                    cancellationToken);
+
+            if (follow is null)
+                continue;
+
+            var succeeded = await db.ObservationRuns
+                .AsNoTracking()
+                .AnyAsync(
+                    x => x.TargetId == follow.TargetId
+                        && x.SourceDefinitionId == follow.SourceDefinitionId
+                        && x.Status == ObservationStatuses.Succeeded
+                        && x.StartedAtUtc >= follow.CreatedAtUtc,
+                    cancellationToken);
+
+            if (succeeded)
+                usefulFollowIds.Add(follow.Id);
+        }
+
+        return events
+            .GroupBy(x => new
+            {
+                Source = x.Source ?? "direct",
+                Medium = x.Medium ?? string.Empty,
+                Campaign = x.Campaign ?? string.Empty
+            })
+            .Select(group => new OwnerAcquisitionRow(
+                group.Key.Source,
+                group.Key.Medium,
+                group.Key.Campaign,
+                group.Count(x => x.EventType == AcquisitionEventTypes.Visit),
+                group.Count(x => x.EventType == AcquisitionEventTypes.SignupCompleted),
+                group.Count(x => x.EventType == AcquisitionEventTypes.FollowStarted),
+                group.Count(x => x.EventType == AcquisitionEventTypes.FollowCreated),
+                group.Count(x =>
+                    x.EventType == AcquisitionEventTypes.FollowCreated
+                    && x.FollowId.HasValue
+                    && usefulFollowIds.Contains(x.FollowId.Value)),
+                group
+                    .Where(x => x.EventType == AcquisitionEventTypes.DashboardOpened)
+                    .Where(x => x.UserId.HasValue)
+                    .Select(x => x.UserId!.Value)
+                    .Distinct()
+                    .Count()))
+            .OrderByDescending(x => x.Created)
+            .ThenByDescending(x => x.Visits)
+            .ToList();
     }
 
     public async Task<IReadOnlyList<OwnerMessageRow>> GetMessagesAsync(
