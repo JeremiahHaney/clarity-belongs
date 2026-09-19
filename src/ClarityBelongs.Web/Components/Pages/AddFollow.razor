@@ -159,7 +159,7 @@
                             <label class="field">
                                 <span>Monitor</span>
                                 <select @bind="Form.ProductSlug" @bind:after="ApplyProduct">
-                                    @foreach (var family in Catalog.GetAll().GroupBy(x => x.Family).OrderBy(x => x.Key))
+                                    @foreach (var family in PublicCatalog.GetAll().GroupBy(x => x.Family).OrderBy(x => x.Key))
                                     {
                                         <optgroup label="@family.Key">
                                             @foreach (var product in family.OrderBy(x => x.Name))
@@ -264,14 +264,14 @@
     private string SuccessTitle { get; set; } = "Clarity is watching.";
     private string SuccessMessage { get; set; } = "Your first check is queued and history will build from here.";
 
-    private ClarityProduct? Product => Catalog.GetBySlug(Form.ProductSlug);
+    private PublicClarityProductCatalog PublicCatalog => new(Catalog);\n    private ClarityProduct? Product => PublicCatalog.GetBySlug(Form.ProductSlug);
 
     private IEnumerable<int> AvailableCadences => Membership is null
         ? CadenceChoices
         : CadenceChoices.Where(x => x >= Membership.Plan.MinimumCadenceMinutes);
 
     private IReadOnlyList<ClarityProduct> WebsitePackProducts => WebsitePackSlugs
-        .Select(Catalog.GetBySlug)
+        .Select(PublicCatalog.GetBySlug)
         .Where(x => x is not null)
         .Cast<ClarityProduct>()
         .ToList();
@@ -283,7 +283,7 @@
             Account.UserId,
             Account.WorkspaceId);
 
-        Form.ProductSlug = Catalog.GetBySlug(ProductQuery)?.Slug
+        Form.ProductSlug = PublicCatalog.GetBySlug(ProductQuery)?.Slug
             ?? "website-change";
         Form.Target = TargetQuery ?? string.Empty;
         PackTarget = TargetQuery ?? string.Empty;
@@ -314,7 +314,7 @@
             return;
 
         if (string.IsNullOrWhiteSpace(Form.Name)
-            || Catalog.GetAll().Any(x => x.Name == Form.Name))
+            || PublicCatalog.GetAll().Any(x => x.Name == Form.Name))
         {
             Form.Name = product.Name;
         }
@@ -426,9 +426,9 @@
             SuccessMessage = "Clarity created the Website Essentials pack and queued the first observations.";
             Recommendations.Clear();
 
-            foreach (var slug in new[] { "nameserver-change", "sitemap-change", "robots-change" })
+            foreach (var slug in new[] { "nameserver-change", "http-status", "redirect-chain" })
             {
-                var recommendation = Catalog.GetBySlug(slug);
+                var recommendation = PublicCatalog.GetBySlug(slug);
 
                 if (recommendation is not null)
                     Recommendations.Add(recommendation);
@@ -491,7 +491,7 @@
 
         foreach (var recommendationSlug in slugs)
         {
-            var recommendation = Catalog.GetBySlug(recommendationSlug);
+            var recommendation = PublicCatalog.GetBySlug(recommendationSlug);
 
             if (recommendation is not null)
                 Recommendations.Add(recommendation);
