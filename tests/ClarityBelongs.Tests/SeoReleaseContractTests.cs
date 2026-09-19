@@ -171,6 +171,47 @@ public sealed class SeoReleaseContractTests
     }
 
     [Fact]
+    public void FirstLaunchCohortHasDurableShareAssetsAndMetadata()
+    {
+        var expected = new[]
+        {
+            "clarity.svg",
+            "website-change.svg",
+            "website-uptime.svg",
+            "ssl-expiration.svg",
+            "domain-expiration.svg",
+            "dns-change.svg",
+            "website-essentials.svg"
+        };
+
+        foreach (var fileName in expected)
+        {
+            Assert.True(
+                File.Exists(
+                    RepoPath(
+                        Path.Combine(
+                            "src",
+                            "ClarityBelongs.Web",
+                            "wwwroot",
+                            "share",
+                            fileName))),
+                $"Missing share asset: {fileName}");
+        }
+
+        var routeSeo = File.ReadAllText(
+            RepoPath("src/ClarityBelongs.Web/Components/RouteSeo.razor"));
+
+        Assert.Contains("og:image", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("twitter:card", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("summary_large_image", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("website-change", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("website-uptime", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("ssl-expiration", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("domain-expiration", routeSeo, StringComparison.Ordinal);
+        Assert.Contains("dns-change", routeSeo, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RobotsHasOneCurrentSitemapAndPrivateRouteRules()
     {
         var robots = File.ReadAllText(RepoPath("src/ClarityBelongs.Web/wwwroot/robots.txt"));
