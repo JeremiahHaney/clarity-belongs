@@ -58,6 +58,32 @@ else if (_overview is not null)
         </section>
 
         <section class="panel">
+            <div class="eyebrow">ACQUISITION · 30 DAYS</div>
+            <h2>First-party funnel</h2>
+            <p class="muted">UTM attribution only. No third-party tracker, IP address, or browser fingerprint is stored.</p>
+            @if (_acquisition.Count == 0)
+            {
+                <p class="muted">No acquisition events recorded yet.</p>
+            }
+            else
+            {
+                @foreach (var row in _acquisition)
+                {
+                    <div class="row">
+                        <div>
+                            <strong>@row.Source</strong>
+                            <div class="muted">@FormatCampaign(row)</div>
+                        </div>
+                        <div class="right">
+                            <div>@row.Visits visits · @row.Signups signups · @row.Starts starts</div>
+                            <div class="muted">@row.Created created · @row.UsefulObservations useful · @row.ReturnUsers returned</div>
+                        </div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section class="panel">
             <div class="eyebrow">USERS & WORKSPACES</div>
             <h2>Find an account</h2>
             <div class="action-row">
@@ -175,6 +201,7 @@ else if (_overview is not null)
     private IReadOnlyList<OwnerFailedObservationRow> _failures = [];
     private IReadOnlyList<OwnerNotificationRow> _notifications = [];
     private IReadOnlyList<OwnerMessageRow> _messages = [];
+    private IReadOnlyList<OwnerAcquisitionRow> _acquisition = [];
     private OwnerOperationsService Operations => new(Db);
 
     protected override async Task OnInitializedAsync()
@@ -194,6 +221,7 @@ else if (_overview is not null)
         _failures = await Operations.GetFailuresAsync();
         _notifications = await Operations.GetNotificationsAsync();
         _messages = await Operations.GetMessagesAsync();
+        _acquisition = await Operations.GetAcquisitionAsync();
         _loading = false;
     }
 
@@ -202,6 +230,20 @@ else if (_overview is not null)
 
     private async Task SearchFollowsAsync() =>
         _follows = await Operations.SearchFollowsAsync(_followQuery);
+
+    private static string FormatCampaign(OwnerAcquisitionRow row)
+    {
+        var parts = new[]
+        {
+            row.Medium,
+            row.Campaign
+        }
+            .Where(value => !string.IsNullOrWhiteSpace(value));
+
+        return string.Join(" · ", parts) is { Length: > 0 } value
+            ? value
+            : "direct / untagged";
+    }
 
     private static string FormatHeartbeat(DateTime? utc) =>
         utc is null
