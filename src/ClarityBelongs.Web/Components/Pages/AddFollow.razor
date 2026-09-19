@@ -4,6 +4,7 @@
 @inject FollowManagementService Follows
 @inject CurrentAccountService CurrentAccount
 @inject MembershipService Memberships
+@inject AcquisitionAnalyticsService Analytics
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
@@ -289,6 +290,12 @@
         PackTarget = TargetQuery ?? string.Empty;
 
         ApplyProduct();
+
+        await Analytics.RecordUserEventAsync(
+            AcquisitionEventTypes.FollowStarted,
+            Account.UserId,
+            Account.WorkspaceId,
+            Form.ProductSlug);
     }
 
     private void UseSingleMode()
@@ -346,7 +353,7 @@
 
         try
         {
-            await Follows.CreateAsync(
+            var followId = await Follows.CreateAsync(
                 Account.UserId,
                 Account.WorkspaceId,
                 BuildInput(
@@ -355,6 +362,13 @@
                     Form.Target,
                     Form.CadenceMinutes,
                     Form.Importance));
+
+            await Analytics.RecordUserEventAsync(
+                AcquisitionEventTypes.FollowCreated,
+                Account.UserId,
+                Account.WorkspaceId,
+                product.Slug,
+                followId);
 
             CreatedNames.Clear();
             CreatedNames.Add(product.Name);
@@ -407,7 +421,7 @@
                     _ => websiteUrl
                 };
 
-                await Follows.CreateAsync(
+                var followId = await Follows.CreateAsync(
                     Account.UserId,
                     Account.WorkspaceId,
                     BuildInput(
@@ -418,6 +432,13 @@
                             product.DefaultCadenceMinutes,
                             Membership.Plan.MinimumCadenceMinutes),
                         product.DefaultImportance));
+
+                await Analytics.RecordUserEventAsync(
+                    AcquisitionEventTypes.FollowCreated,
+                    Account.UserId,
+                    Account.WorkspaceId,
+                    product.Slug,
+                    followId);
 
                 CreatedNames.Add(product.Name);
             }
