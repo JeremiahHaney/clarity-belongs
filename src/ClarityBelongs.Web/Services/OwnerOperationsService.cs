@@ -417,6 +417,10 @@ public sealed class OwnerOperationsService(ClarityDbContext db)
                 group
                     .Where(x => x.EventType == AcquisitionEventTypes.DashboardOpened)
                     .Where(x => x.UserId.HasValue)
+                    .Where(dashboard => group.Any(created =>
+                        created.EventType == AcquisitionEventTypes.FollowCreated
+                        && created.UserId == dashboard.UserId
+                        && dashboard.OccurredAtUtc >= created.OccurredAtUtc.AddHours(24)))
                     .Select(x => x.UserId!.Value)
                     .Distinct()
                     .Count()))
