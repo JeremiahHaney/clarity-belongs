@@ -3,11 +3,20 @@
 Priority reflects current public readiness, demand clarity, demonstration value, mission fit, trust risk, and ability to teach us about the whole service. It does **not** reward sunk development effort.
 
 ## Priority 0 — prove launch readiness
-1. Production/account/follow smoke test from a stranger's perspective.
-2. Verify first-party attribution and funnel events.
-3. Capture screenshots/share assets.
-4. Verify contact/feedback handling and owner operations.
-5. Verify all 15 watch pages make claims that match implementation.
+Audit status: **not yet cleared**. See `distribution/READINESS_AUDIT.md`.
+
+Completed in the 2026-09-19 audit:
+- public Watch Something is restricted to the approved public catalog
+- product intent survives signup and returns the user to the selected watch
+- privacy/contact/feedback/owner-operations paths are present
+- mobile and public-copy regression contracts are present
+- persistence/history/failure/recovery have behavioral coverage
+
+Remaining blockers:
+1. Implement first-party acquisition and funnel attribution.
+2. Run the production account/follow flow from a clean browser.
+3. Capture launch screenshots/share assets for the first five watches.
+4. Re-run Release tests and deployed smoke on the final readiness commit.
 
 ## First promotion cohort
 These should be tested first after Priority 0 passes:
