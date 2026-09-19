@@ -15,7 +15,7 @@ Completed in the 2026-09-19 audit:
 
 Remaining blockers:
 1. Run the production account/follow flow from a clean browser and verify tagged attribution in Owner Operations.
-2. Capture launch screenshots/share assets for the first five watches.
+2. Capture final desktop/mobile launch screenshots for the first five watches and Website Essentials. Branded share assets are now committed and wired.
 3. Re-run Release tests and deployed smoke on the final readiness commit.
 
 ## First promotion cohort
