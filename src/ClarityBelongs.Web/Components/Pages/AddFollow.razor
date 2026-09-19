@@ -265,7 +265,8 @@
     private string SuccessTitle { get; set; } = "Clarity is watching.";
     private string SuccessMessage { get; set; } = "Your first check is queued and history will build from here.";
 
-    private PublicClarityProductCatalog PublicCatalog => new(Catalog);\n    private ClarityProduct? Product => PublicCatalog.GetBySlug(Form.ProductSlug);
+    private PublicClarityProductCatalog PublicCatalog => new(Catalog);
+    private ClarityProduct? Product => PublicCatalog.GetBySlug(Form.ProductSlug);
 
     private IEnumerable<int> AvailableCadences => Membership is null
         ? CadenceChoices
