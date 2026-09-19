@@ -194,3 +194,20 @@ public sealed class Notification
     public DateTime? NextAttemptAtUtc { get; set; }
     public DateTime? DeadLetterAtUtc { get; set; }
 }
+
+
+public sealed class AcquisitionEvent
+{
+    public long Id { get; set; }
+    public string VisitorId { get; set; } = string.Empty;
+    public long? UserId { get; set; }
+    public long? WorkspaceId { get; set; }
+    public string EventType { get; set; } = string.Empty;
+    public string? Path { get; set; }
+    public string? ProductSlug { get; set; }
+    public long? FollowId { get; set; }
+    public string? Source { get; set; }
+    public string? Medium { get; set; }
+    public string? Campaign { get; set; }
+    public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
+}
