@@ -338,3 +338,29 @@ public sealed class AcquisitionAnalyticsService(
             || value == "/login";
     }
 }
+
+
+public sealed class AcquisitionAnalyticsMiddleware(
+    RequestDelegate next,
+    ILogger<AcquisitionAnalyticsMiddleware> logger)
+{
+    public async Task InvokeAsync(
+        HttpContext context,
+        AcquisitionAnalyticsService analytics)
+    {
+        try
+        {
+            await analytics.TrackPublicVisitAsync(
+                context,
+                context.RequestAborted);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(
+                ex,
+                "Acquisition visit tracking failed.");
+        }
+
+        await next(context);
+    }
+}
