@@ -39,6 +39,7 @@ public sealed class PublicLaunchContractTests
         "src/ClarityBelongs.Web/Components/Pages/ResetPassword.razor",
         "src/ClarityBelongs.Web/Components/Pages/Account.razor",
         "src/ClarityBelongs.Web/Components/Pages/Settings.razor",
+        "src/ClarityBelongs.Web/Components/Pages/AddFollow.razor",
         "src/ClarityBelongs.Web/Components/Pages/MyClarity.razor",
         "src/ClarityBelongs.Web/Components/Pages/FollowDetail.razor",
         "src/ClarityBelongs.Web/Components/Layout/MainLayout.razor",
@@ -146,6 +147,38 @@ public sealed class PublicLaunchContractTests
         Assert.Contains("max-width: 430px", layout, StringComparison.Ordinal);
         Assert.Contains("flex-direction: row", layout, StringComparison.Ordinal);
         Assert.Contains("width: min(320px, calc(100vw - 32px))", layout, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Watch_something_uses_only_the_public_catalog()
+    {
+        var root = FindRepositoryRoot();
+        var addFollow = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Pages/AddFollow.razor"));
+
+        Assert.Contains("PublicCatalog.GetAll()", addFollow, StringComparison.Ordinal);
+        Assert.Contains("PublicCatalog.GetBySlug", addFollow, StringComparison.Ordinal);
+        Assert.DoesNotContain("sitemap-change", addFollow, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("robots-change", addFollow, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("product-price", addFollow, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("grant-opportunity", addFollow, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Product_signup_preserves_the_selected_watch()
+    {
+        var root = FindRepositoryRoot();
+        var products = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Pages/Products.razor"));
+        var signup = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Pages/Signup.razor"));
+        var program = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Program.cs"));
+
+        Assert.Contains("returnUrl=", products, StringComparison.Ordinal);
+        Assert.Contains("name=\"returnUrl\"", signup, StringComparison.Ordinal);
+        Assert.Contains("SafeLocalReturnUrl(form[\"returnUrl\"].ToString())", program, StringComparison.Ordinal);
+        Assert.Contains("Results.Redirect(returnUrl)", program, StringComparison.Ordinal);
     }
 
     [Fact]
