@@ -21,6 +21,7 @@
 
         <form method="post" action="/auth/signup">
             <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrlQuery" />
 
             <label class="field">
                 <span>Name</span>
@@ -53,6 +54,9 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrlQuery { get; set; }
+
     [SupplyParameterFromQuery(Name = "error")]
     public string? Error { get; set; }
 
