@@ -36,12 +36,13 @@ Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DN
 5. Added launch regression coverage for the public Watch Something boundary and product-signup continuity.
 
 ## Remaining Priority 0 work
-1. Validate the deployed production flow from a clean browser:
+1. Apply `deployment/sqlserver/add-acquisition-analytics.sql` with the schema/migration identity before deploying this build.
+2. Validate the deployed production flow from a clean browser:
    `landing -> product -> signup -> selected watch -> create follow -> first observation -> history`.
-2. Verify one tagged test visit appears in Owner Operations with the expected UTM source/medium/campaign and progresses through the funnel.
-3. Capture one desktop and one mobile screenshot for each of the five first-cohort watches plus one Website Essentials pack screenshot.
-4. Re-run Release build/tests and production smoke against the commit containing the fixes.
-5. Only then mark the first cohort Ready in `distribution/data/actions.csv`.
+3. Verify one tagged test visit appears in Owner Operations with the expected UTM source/medium/campaign and progresses through the funnel.
+4. Capture one desktop and one mobile screenshot for each of the five first-cohort watches plus one Website Essentials pack screenshot.
+5. Re-run Release build/tests and production smoke against the commit containing the fixes.
+6. Only then mark the first cohort Ready in `distribution/data/actions.csv`.
 
 ## Promotion decision
 Do not execute external promotion yet.
