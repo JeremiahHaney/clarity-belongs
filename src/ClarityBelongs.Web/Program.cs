@@ -80,6 +80,7 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddDataProtection();
 
 builder.Services.Configure<DatabaseStorageOptions>(
     builder.Configuration.GetSection("DatabaseStorage"));
@@ -126,6 +127,7 @@ builder.Services.AddSingleton<LoginAttemptProtector>();
 builder.Services.AddScoped<DatabaseSchemaService>();
 builder.Services.AddScoped<DatabaseStartupService>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddSingleton<MobileSessionTokenService>();
 builder.Services.AddScoped<CurrentAccountService>();
 builder.Services.AddScoped<MembershipService>();
 builder.Services.AddHttpClient<StripeBillingService>();
@@ -306,6 +308,8 @@ app.MapGet(
             ? Results.Ok(payload)
             : Results.Json(payload, statusCode: StatusCodes.Status503ServiceUnavailable);
     });
+
+app.MapClarityMobileApi();
 
 app.MapPost(
     "/auth/signup",
