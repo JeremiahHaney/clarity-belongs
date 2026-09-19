@@ -9,7 +9,7 @@
 - Free Local Tools: **10 released downloadable scripts**
 - Desktop portfolio: **10 candidate/roadmap products**
 - Canonical inventory rows: **85** (64 monitors + 10 local tools + 10 desktop candidates + 1 Learn system)
-- Distribution actions mapped: **39**
+- Distribution actions mapped: **42**
 - Public watch distribution maps: **15**
 
 The 49 hidden monitor identities are not counted as 49 launch products. They are implementation/use-case backlog beneath the one Clarity monitoring service.
@@ -35,7 +35,7 @@ Learn and Free Local Tools are public content/resources. Desktop remains Hold/Ca
 
 ## Biggest weaknesses
 - Production stranger-flow proof is still required before promotion.
-- Attribution must connect source -> visit -> follow start -> created follow -> useful observation -> return.
+- First-party attribution is implemented but still needs deployed verification with a tagged test campaign.
 - Shareable artifacts need a privacy-safe design before they are treated as a growth loop.
 - The desktop roadmap is documentation, not shipped software.
 
