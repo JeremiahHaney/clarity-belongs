@@ -282,6 +282,9 @@ public sealed class DatabaseStartupService(
                 await db.Database.EnsureCreatedAsync(cancellationToken);
             }
 
+            await AcquisitionAnalyticsSchema.EnsureAsync(
+                db,
+                cancellationToken);
             await legacySchema.EnsureMembershipRowsAsync(cancellationToken);
 
             var schemaCurrent = sqlite
