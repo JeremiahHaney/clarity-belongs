@@ -25,7 +25,7 @@ Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DN
 | Search metadata / sitemap / robots | Pass by tests | Explicit public catalog, canonical/indexability policy, sitemap, and robots rules exist. |
 | First-party acquisition attribution | **Pass in code** | Durable first-party acquisition events capture `utm_source`, `utm_medium`, and `utm_campaign` with a random 30-day visitor identifier; no IP address, advertising ID, browser fingerprint, or third-party analytics service is used. |
 | Funnel measurement | **Pass in code / production data pending** | Owner Operations now reports source/campaign -> visit -> signup -> follow start -> follow created -> successful observation -> 24-hour return. |
-| Screenshots/share assets | **BLOCKER / not verified** | No durable launch screenshot/share-asset set was identified in the audited repo paths. |
+| Screenshots/share assets | **Partial pass** | Durable branded social share assets now exist for the five first-cohort watches, the generic Clarity surface, and Website Essentials, with Open Graph/Twitter metadata and regression coverage. Final desktop/mobile launch screenshots still need to be captured from the deployed product. |
 | Live production stranger-flow | **BLOCKER / not externally verified** | The production site could not be fetched from the available external web environment, so live signup/follow/observation/mobile behavior is not certified by this audit. |
 
 ## Code changes made
@@ -40,7 +40,7 @@ Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DN
 2. Validate the deployed production flow from a clean browser:
    `landing -> product -> signup -> selected watch -> create follow -> first observation -> history`.
 3. Verify one tagged test visit appears in Owner Operations with the expected UTM source/medium/campaign and progresses through the funnel.
-4. Capture one desktop and one mobile screenshot for each of the five first-cohort watches plus one Website Essentials pack screenshot.
+4. Capture one desktop and one mobile screenshot for each of the five first-cohort watches plus one Website Essentials pack screenshot from the deployed product. Branded share cards are already committed and wired.
 5. Re-run Release build/tests and production smoke against the commit containing the fixes.
 6. Only then mark the first cohort Ready in `distribution/data/actions.csv`.
 
