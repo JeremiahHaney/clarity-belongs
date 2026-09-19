@@ -12,6 +12,13 @@
     <meta property="og:description" content="@Metadata.Description" />
     <meta property="og:url" content="@Metadata.CanonicalUrl" />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="@ShareImageUrl" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@Metadata.Title" />
+    <meta name="twitter:description" content="@Metadata.Description" />
+    <meta name="twitter:image" content="@ShareImageUrl" />
 }
 else
 {
@@ -23,6 +30,32 @@ else
         "/" + Navigation.ToBaseRelativePath(Navigation.Uri),
         new PublicClarityProductCatalog(Catalog),
         new LearnContentCatalog());
+
+    private string ShareImageUrl
+    {
+        get
+        {
+            var path = PublicSiteSeoPolicy.NormalizePath(
+                "/" + Navigation.ToBaseRelativePath(Navigation.Uri));
+
+            if (path.StartsWith("/products/", StringComparison.OrdinalIgnoreCase))
+            {
+                var slug = path[10..].ToLowerInvariant();
+
+                if (slug is
+                    "website-change"
+                    or "website-uptime"
+                    or "ssl-expiration"
+                    or "domain-expiration"
+                    or "dns-change")
+                {
+                    return $"https://claritybelongs.com/share/{slug}.svg";
+                }
+            }
+
+            return "https://claritybelongs.com/share/clarity.svg";
+        }
+    }
 
     private bool NeedsPageDescription => Metadata.CanonicalUrl is
         "https://claritybelongs.com/products" or
