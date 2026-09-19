@@ -104,7 +104,7 @@ public sealed class OwnerOperationsReleaseTests
                 Source = "reddit",
                 Medium = "community",
                 Campaign = "priority-zero",
-                OccurredAtUtc = now.AddMinutes(-10)
+                OccurredAtUtc = now.AddHours(-26)
             },
             new AcquisitionEvent
             {
@@ -116,7 +116,7 @@ public sealed class OwnerOperationsReleaseTests
                 Source = "reddit",
                 Medium = "community",
                 Campaign = "priority-zero",
-                OccurredAtUtc = now.AddMinutes(-8)
+                OccurredAtUtc = now.AddHours(-25.5)
             },
             new AcquisitionEvent
             {
@@ -129,7 +129,7 @@ public sealed class OwnerOperationsReleaseTests
                 Source = "reddit",
                 Medium = "community",
                 Campaign = "priority-zero",
-                OccurredAtUtc = now.AddMinutes(-7)
+                OccurredAtUtc = now.AddHours(-25)
             },
             new AcquisitionEvent
             {
