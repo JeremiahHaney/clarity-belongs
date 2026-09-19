@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject MyClarityService Clarity
 @inject CurrentAccountService CurrentAccount
+@inject AcquisitionAnalyticsService Analytics
 @rendermode InteractiveServer
 
 <PageTitle>My Clarity</PageTitle>
@@ -176,6 +177,12 @@
     protected override async Task OnInitializedAsync()
     {
         var account = await CurrentAccount.RequireAsync();
+
+        await Analytics.RecordUserEventAsync(
+            AcquisitionEventTypes.DashboardOpened,
+            account.UserId,
+            account.WorkspaceId);
+
         _dashboard = await Clarity.GetAsync(account.WorkspaceId);
     }
 }
