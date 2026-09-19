@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.13 - 2026-09-19
+
+- Added a repository-owned distribution system for Clarity Belongs with canonical inventory, roadmap, priorities, reconciliation, weekly learning review, campaign plans, and a one-action-per-row execution ledger.
+- Reconciled the product model around one public monitoring service: 64 monitor capability definitions, 15 approved public watches, 49 internal/hidden capability identities, 22 Learn guides, 10 released local PowerShell tools, and 10 desktop roadmap candidates.
+- Added full audience, problem, job-to-be-done, search-intent, alternatives, demonstration, trust, sharing, content, and readiness maps for all 15 public watch capabilities.
+- Mapped 39 concrete distribution actions across owned search/Learn, Product Hunt, AlternativeTo, SaaSHub, IndieNeed, 10015 Product Finder, Founders Today, Show HN, and the r/devops weekly self-promotion path.
+- Established a Priority 0 gate that requires production stranger-flow QA, first-party attribution, screenshots/share assets, contact/feedback readiness, and claim-versus-implementation review before any external promotion.
+- Kept all external promotion unexecuted; this release creates the map and source of truth only.
+
 ## 0.6.12 - 2026-09-15
 
 - Expanded the public Learn catalog from 12 to 22 search-oriented monitoring guides using the existing Clarity Learn architecture.
