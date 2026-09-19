@@ -220,29 +220,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.Use(async (context, next) =>
-{
-    var analytics = context.RequestServices
-        .GetRequiredService<AcquisitionAnalyticsService>();
-
-    try
-    {
-        await analytics.TrackPublicVisitAsync(
-            context,
-            context.RequestAborted);
-    }
-    catch (Exception ex)
-    {
-        context.RequestServices
-            .GetRequiredService<ILoggerFactory>()
-            .CreateLogger("AcquisitionAnalytics")
-            .LogWarning(
-                ex,
-                "Acquisition visit tracking failed.");
-    }
-
-    await next();
-});
+app.UseMiddleware<AcquisitionAnalyticsMiddleware>();
 app.UseAntiforgery();
 app.MapStaticAssets();
 
