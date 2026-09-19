@@ -222,11 +222,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.Use(async (context, next) =>
 {
-    await next();
-
-    if (context.Response.StatusCode >= 400)
-        return;
-
     var analytics = context.RequestServices
         .GetRequiredService<AcquisitionAnalyticsService>();
 
@@ -245,6 +240,8 @@ app.Use(async (context, next) =>
                 ex,
                 "Acquisition visit tracking failed.");
     }
+
+    await next();
 });
 app.UseAntiforgery();
 app.MapStaticAssets();
