@@ -478,11 +478,9 @@
             "ssl-expiration" => new[] { "website-uptime", "domain-expiration", "dns-change" },
             "domain-expiration" => new[] { "ssl-expiration", "dns-change", "nameserver-change" },
             "dns-change" => new[] { "nameserver-change", "ssl-expiration", "website-uptime" },
-            "product-price" => new[] { "restock-availability", "sale-price-history" },
-            "grant-opportunity" => new[] { "deadline-change", "public-notice" },
             _ => Product is null
                 ? []
-                : Catalog.GetAll()
+                : PublicCatalog.GetAll()
                     .Where(x => x.Family == Product.Family && x.Slug != Product.Slug)
                     .Take(3)
                     .Select(x => x.Slug)
