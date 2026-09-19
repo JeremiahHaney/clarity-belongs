@@ -11,12 +11,12 @@ Completed in the 2026-09-19 audit:
 - privacy/contact/feedback/owner-operations paths are present
 - mobile and public-copy regression contracts are present
 - persistence/history/failure/recovery have behavioral coverage
+- first-party UTM attribution and funnel reporting are implemented
 
 Remaining blockers:
-1. Implement first-party acquisition and funnel attribution.
-2. Run the production account/follow flow from a clean browser.
-3. Capture launch screenshots/share assets for the first five watches.
-4. Re-run Release tests and deployed smoke on the final readiness commit.
+1. Run the production account/follow flow from a clean browser and verify tagged attribution in Owner Operations.
+2. Capture launch screenshots/share assets for the first five watches.
+3. Re-run Release tests and deployed smoke on the final readiness commit.
 
 ## First promotion cohort
 These should be tested first after Priority 0 passes:
