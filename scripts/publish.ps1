@@ -129,6 +129,29 @@ try
         }
 
         Write-Host "Smoke test: HTTP $statusCode" -ForegroundColor Green
+
+        $mobileApiUrl = ([Uri]::new([Uri]$BaseUrl, "api/mobile/account")).AbsoluteUri
+        $mobileStatus = 0
+
+        try
+        {
+            Invoke-WebRequest -Uri $mobileApiUrl -UseBasicParsing -TimeoutSec 30 | Out-Null
+            $mobileStatus = 200
+        }
+        catch
+        {
+            if ($_.Exception.Response -and $_.Exception.Response.StatusCode)
+            {
+                $mobileStatus = [int]$_.Exception.Response.StatusCode
+            }
+        }
+
+        if ($mobileStatus -ne 401)
+        {
+            throw "Mobile API smoke test expected HTTP 401 but received HTTP $mobileStatus for $mobileApiUrl"
+        }
+
+        Write-Host "Mobile API smoke test: HTTP 401 (protected endpoint available)" -ForegroundColor Green
     }
 
     Write-Host "PASS  Clarity Belongs" -ForegroundColor Green
