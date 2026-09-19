@@ -1,4 +1,5 @@
 @echo off
+cls
 setlocal
 cd /d "%~dp0"
 
