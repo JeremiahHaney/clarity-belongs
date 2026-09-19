@@ -8,13 +8,45 @@ public static class AcquisitionAnalyticsSchema
         ClarityDbContext db,
         CancellationToken cancellationToken = default)
     {
-        var sql = db.Database.IsSqlServer()
-            ? SqlServerSql
-            : SqliteSql;
+        if (db.Database.IsSqlServer())
+        {
+            await VerifySqlServerSchemaAsync(
+                db,
+                cancellationToken);
+            return;
+        }
 
         await db.Database.ExecuteSqlRawAsync(
-            sql,
+            SqliteSql,
             cancellationToken);
+    }
+
+    private static async Task VerifySqlServerSchemaAsync(
+        ClarityDbContext db,
+        CancellationToken cancellationToken)
+    {
+        await db.Database.OpenConnectionAsync(cancellationToken);
+
+        try
+        {
+            await using var command = db.Database
+                .GetDbConnection()
+                .CreateCommand();
+            command.CommandText =
+                "SELECT CASE WHEN OBJECT_ID(N'[AcquisitionEvents]', N'U') IS NULL THEN 0 ELSE 1 END;";
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+
+            if (Convert.ToInt32(result) != 1)
+            {
+                throw new InvalidOperationException(
+                    "The SQL Server AcquisitionEvents table is missing. Run deployment/sqlserver/add-acquisition-analytics.sql with the ClarityBelongsMigration identity before starting the runtime.");
+            }
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
     }
 
     private const string SqliteSql =
@@ -39,56 +71,5 @@ public static class AcquisitionAnalyticsSchema
             ON AcquisitionEvents (UserId, OccurredAtUtc);
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_EventType_OccurredAtUtc
             ON AcquisitionEvents (EventType, OccurredAtUtc);
-        """;
-
-    private const string SqlServerSql =
-        """
-        IF OBJECT_ID(N'[AcquisitionEvents]', N'U') IS NULL
-        BEGIN
-            CREATE TABLE [AcquisitionEvents] (
-                [Id] BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_AcquisitionEvents] PRIMARY KEY,
-                [VisitorId] NVARCHAR(64) NOT NULL,
-                [UserId] BIGINT NULL,
-                [WorkspaceId] BIGINT NULL,
-                [EventType] NVARCHAR(64) NOT NULL,
-                [Path] NVARCHAR(500) NULL,
-                [ProductSlug] NVARCHAR(100) NULL,
-                [FollowId] BIGINT NULL,
-                [Source] NVARCHAR(100) NULL,
-                [Medium] NVARCHAR(100) NULL,
-                [Campaign] NVARCHAR(150) NULL,
-                [OccurredAtUtc] DATETIME2 NOT NULL
-            );
-        END;
-
-        IF NOT EXISTS (
-            SELECT 1
-            FROM sys.indexes
-            WHERE name = N'IX_AcquisitionEvents_VisitorId_OccurredAtUtc'
-                AND object_id = OBJECT_ID(N'[AcquisitionEvents]'))
-        BEGIN
-            CREATE INDEX [IX_AcquisitionEvents_VisitorId_OccurredAtUtc]
-                ON [AcquisitionEvents] ([VisitorId], [OccurredAtUtc]);
-        END;
-
-        IF NOT EXISTS (
-            SELECT 1
-            FROM sys.indexes
-            WHERE name = N'IX_AcquisitionEvents_UserId_OccurredAtUtc'
-                AND object_id = OBJECT_ID(N'[AcquisitionEvents]'))
-        BEGIN
-            CREATE INDEX [IX_AcquisitionEvents_UserId_OccurredAtUtc]
-                ON [AcquisitionEvents] ([UserId], [OccurredAtUtc]);
-        END;
-
-        IF NOT EXISTS (
-            SELECT 1
-            FROM sys.indexes
-            WHERE name = N'IX_AcquisitionEvents_EventType_OccurredAtUtc'
-                AND object_id = OBJECT_ID(N'[AcquisitionEvents]'))
-        BEGIN
-            CREATE INDEX [IX_AcquisitionEvents_EventType_OccurredAtUtc]
-                ON [AcquisitionEvents] ([EventType], [OccurredAtUtc]);
-        END;
         """;
 }
