@@ -63,12 +63,9 @@ public partial class AddAcquisitionAnalytics : Migration
                     type: "TEXT",
                     nullable: false)
             },
-            constraints: table =>
-            {
-                table.PrimaryKey(
-                    "PK_AcquisitionEvents",
-                    x => x.Id);
-            });
+            constraints: table => table.PrimaryKey(
+                "PK_AcquisitionEvents",
+                x => x.Id));
 
         migrationBuilder.CreateIndex(
             name: "IX_AcquisitionEvents_EventType_OccurredAtUtc",
