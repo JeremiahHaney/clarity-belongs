@@ -182,6 +182,32 @@ public sealed class PublicLaunchContractTests
     }
 
     [Fact]
+    public void Acquisition_measurement_is_first_party_and_wired_to_the_funnel()
+    {
+        var root = FindRepositoryRoot();
+        var program = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Program.cs"));
+        var addFollow = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Pages/AddFollow.razor"));
+        var myClarity = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/Pages/MyClarity.razor"));
+        var analytics = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Services/AcquisitionAnalyticsService.cs"));
+
+        Assert.Contains("TrackPublicVisitAsync", program, StringComparison.Ordinal);
+        Assert.Contains("RecordSignupCompletedAsync", program, StringComparison.Ordinal);
+        Assert.Contains("RecordLoginCompletedAsync", program, StringComparison.Ordinal);
+        Assert.Contains("AcquisitionEventTypes.FollowStarted", addFollow, StringComparison.Ordinal);
+        Assert.Contains("AcquisitionEventTypes.FollowCreated", addFollow, StringComparison.Ordinal);
+        Assert.Contains("AcquisitionEventTypes.DashboardOpened", myClarity, StringComparison.Ordinal);
+        Assert.Contains("utm_source", analytics, StringComparison.Ordinal);
+        Assert.Contains("utm_medium", analytics, StringComparison.Ordinal);
+        Assert.Contains("utm_campaign", analytics, StringComparison.Ordinal);
+        Assert.DoesNotContain("User-Agent", analytics, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("RemoteIpAddress", analytics, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Sitemap_contains_only_approved_product_routes()
     {
         var root = FindRepositoryRoot();
