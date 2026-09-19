@@ -3,7 +3,7 @@
 Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DNS Change.
 
 ## Result
-**Not ready for external promotion yet.** The five-watch product cohort is structurally ready enough for final production validation, but attribution and live stranger-flow proof are still blockers.
+**Not ready for external promotion yet.** First-party attribution is now implemented. The remaining blockers are deployed stranger-flow proof, final launch screenshots/share assets, and final Release/deployed smoke validation.
 
 ## Audit matrix
 
@@ -23,8 +23,8 @@ Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DN
 | Product feedback | Pass in repo | Public `/feedback` form and protected owner/operations review path exist. |
 | Owner visibility | Pass in repo | Owner console exposes users, follows, failures, notifications, worker state, feedback, and contact messages. |
 | Search metadata / sitemap / robots | Pass by tests | Explicit public catalog, canonical/indexability policy, sitemap, and robots rules exist. |
-| First-party acquisition attribution | **BLOCKER** | No implementation for `utm_source`, `utm_medium`, `utm_campaign`, or equivalent acquisition-event persistence was found. |
-| Funnel measurement | **BLOCKER** | No durable source -> visit -> follow start -> follow created -> useful observation -> return measurement was found. |
+| First-party acquisition attribution | **Pass in code** | Durable first-party acquisition events capture `utm_source`, `utm_medium`, and `utm_campaign` with a random 30-day visitor identifier; no IP address, advertising ID, browser fingerprint, or third-party analytics service is used. |
+| Funnel measurement | **Pass in code / production data pending** | Owner Operations now reports source/campaign -> visit -> signup -> follow start -> follow created -> successful observation -> 24-hour return. |
 | Screenshots/share assets | **BLOCKER / not verified** | No durable launch screenshot/share-asset set was identified in the audited repo paths. |
 | Live production stranger-flow | **BLOCKER / not externally verified** | The production site could not be fetched from the available external web environment, so live signup/follow/observation/mobile behavior is not certified by this audit. |
 
@@ -36,9 +36,9 @@ Scope: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DN
 5. Added launch regression coverage for the public Watch Something boundary and product-signup continuity.
 
 ## Remaining Priority 0 work
-1. Implement minimal first-party acquisition/funnel measurement.
-2. Validate the deployed production flow from a clean browser:
+1. Validate the deployed production flow from a clean browser:
    `landing -> product -> signup -> selected watch -> create follow -> first observation -> history`.
+2. Verify one tagged test visit appears in Owner Operations with the expected UTM source/medium/campaign and progresses through the funnel.
 3. Capture one desktop and one mobile screenshot for each of the five first-cohort watches plus one Website Essentials pack screenshot.
 4. Re-run Release build/tests and production smoke against the commit containing the fixes.
 5. Only then mark the first cohort Ready in `distribution/data/actions.csv`.
