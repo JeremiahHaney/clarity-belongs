@@ -9,7 +9,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>();
 
-        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddSingleton<MobileApiClient>();
 
         return builder.Build();
     }
