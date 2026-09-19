@@ -146,6 +146,7 @@ builder.Services.AddScoped<IObservationAdapter>(sp =>
 builder.Services.AddScoped<ObservationEngine>();
 builder.Services.AddScoped<MyClarityService>();
 builder.Services.AddScoped<FollowManagementService>();
+builder.Services.AddScoped<AcquisitionAnalyticsService>();
 builder.Services.AddSingleton<ClarityProductCatalog>();
 builder.Services.AddSingleton<IClarityEmailSender, SmtpClarityEmailSender>();
 builder.Services.AddHostedService<ObservationWorker>();
@@ -219,6 +220,32 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode >= 400)
+        return;
+
+    var analytics = context.RequestServices
+        .GetRequiredService<AcquisitionAnalyticsService>();
+
+    try
+    {
+        await analytics.TrackPublicVisitAsync(
+            context,
+            context.RequestAborted);
+    }
+    catch (Exception ex)
+    {
+        context.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("AcquisitionAnalytics")
+            .LogWarning(
+                ex,
+                "Acquisition visit tracking failed.");
+    }
+});
 app.UseAntiforgery();
 app.MapStaticAssets();
 
@@ -310,6 +337,7 @@ app.MapPost(
     async (
         HttpContext context,
         AccountService accounts,
+        AcquisitionAnalyticsService analytics,
         SecurityThrottle throttle,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken) =>
@@ -350,6 +378,11 @@ app.MapPost(
                     ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
                 });
 
+            await analytics.RecordSignupCompletedAsync(
+                context,
+                user.Id,
+                cancellationToken);
+
             return Results.Redirect(returnUrl);
         }
         catch (InvalidOperationException ex)
@@ -376,6 +409,7 @@ app.MapPost(
     async (
         HttpContext context,
         AccountService accounts,
+        AcquisitionAnalyticsService analytics,
         SecurityThrottle throttle,
         LoginAttemptProtector attempts,
         ILoggerFactory loggerFactory,
@@ -442,6 +476,11 @@ app.MapPost(
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
             });
+
+        await analytics.RecordLoginCompletedAsync(
+            context,
+            user.Id,
+            cancellationToken);
 
         return Results.Redirect(returnUrl);
     })
