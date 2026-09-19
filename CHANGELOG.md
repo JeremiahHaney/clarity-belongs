@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.15 - 2026-09-19
+
+- Added minimal first-party acquisition analytics for the Priority 0 distribution funnel without adding a third-party analytics SDK.
+- Added durable `AcquisitionEvents` storage for visits, completed signup/login association, watch starts, watch creation, and My Clarity return usage with UTM source/medium/campaign attribution.
+- Added a random first-party 30-day acquisition identifier while explicitly avoiding IP-address collection, advertising identifiers, and browser fingerprinting for distribution measurement.
+- Added an owner-only 30-day funnel report grouped by source, medium, and campaign: visits, signups, watch starts, watches created, successful observations derived from existing operational data, and users returning at least 24 hours later.
+- Added SQLite migration/model metadata plus a provider-aware SQL Server deployment script; the runtime verifies the SQL Server analytics table instead of requiring DDL permission.
+- Updated the public privacy disclosure and added regression/owner-report tests for the acquisition funnel.
+- Cleared the code-side attribution blocker in the Priority 0 readiness plan. Remaining gates are SQL Server schema deployment, live stranger-flow/UTM verification, screenshots/share assets, and final Release/deployed smoke validation.
+
 ## 0.6.14 - 2026-09-19
 
 - Audited the Priority 0 launch cohort: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DNS Change.
