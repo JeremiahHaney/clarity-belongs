@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.14 - 2026-09-19
+
+- Audited the Priority 0 launch cohort: Website Change, Website Uptime, SSL Expiration, Domain Expiration, and DNS Change.
+- Fixed the authenticated Watch Something flow so ordinary users can select only the 15 approved public watch capabilities instead of leaking the broader 64-item internal catalog.
+- Removed hidden Sitemap/Robots and other internal fallback recommendations from the public watch setup flow.
+- Preserved selected-product intent through signup with a server-validated local return URL so product-page visitors continue directly into the intended watch setup after account creation.
+- Added regression coverage for the public Watch Something boundary and product-to-signup-to-watch continuity.
+- Added `distribution/READINESS_AUDIT.md` and reconciled Priority 0 blockers: first-party acquisition/funnel attribution, live production stranger-flow validation, and final screenshot/share assets.
+- Added three explicit Priority 0 actions to the distribution ledger. External promotion remains on hold until those blockers are cleared.
+
 ## 0.6.13 - 2026-09-19
 
 - Added a repository-owned distribution system for Clarity Belongs with canonical inventory, roadmap, priorities, reconciliation, weekly learning review, campaign plans, and a one-action-per-row execution ledger.
