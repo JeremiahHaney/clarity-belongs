@@ -76,11 +76,11 @@ SQLite is created/upgraded automatically on startup. `/health` is available for 
 
 New accounts receive a personal My Clarity workspace and start on Free.
 
-- Free — 5 active follows, 6-hour minimum cadence
-- Personal — 50 active follows, 15-minute minimum cadence, email delivery
-- Business — 250 active follows, 5-minute minimum cadence, email delivery
+- Free — $0/month, 5 active follows, 1-hour minimum cadence
+- Personal — $5/month, 50 active follows, 15-minute minimum cadence, email delivery
+- Business — $20/month, 250 active follows, 5-minute minimum cadence, email delivery
 
-Exact public paid prices remain intentionally unapproved/unconfigured rather than being invented in source.
+Public paid prices are approved. Checkout remains gated until Stripe production configuration and billing verification are complete.
 
 See `docs/07-ACCOUNTS-MEMBERSHIP-BILLING.md`.
 

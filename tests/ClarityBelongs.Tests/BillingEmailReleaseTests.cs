@@ -303,7 +303,7 @@ public sealed class BillingEmailReleaseTests
 
         Assert.Equal(MembershipPlans.Free, summary.Plan.Code);
         Assert.Equal(5, summary.Plan.MaxActiveFollows);
-        Assert.Equal(360, summary.Plan.MinimumCadenceMinutes);
+        Assert.Equal(60, summary.Plan.MinimumCadenceMinutes);
         Assert.Equal(30, summary.Plan.HistoryDays);
         Assert.False(summary.Plan.EmailAlerts);
         Assert.False(summary.Plan.DailyDigest);
@@ -326,7 +326,7 @@ public sealed class BillingEmailReleaseTests
 
         Assert.True(StripeConfiguration.IsPublicReady(options));
         Assert.Equal(
-            "$9/month",
+            "$5/month",
             StripeConfiguration.GetDisplayPrice(
                 options,
                 MembershipPlans.Personal));
@@ -372,8 +372,8 @@ public sealed class BillingEmailReleaseTests
         WebhookSecret = "whsec_test",
         PersonalPriceId = "price_personal",
         BusinessPriceId = "price_business",
-        PersonalDisplayPrice = "$9/month",
-        BusinessDisplayPrice = "$29/month",
+        PersonalDisplayPrice = "$5/month",
+        BusinessDisplayPrice = "$20/month",
         SuccessUrl = "https://clarity.test/account?checkout=success",
         CancelUrl = "https://clarity.test/pricing?checkout=canceled",
         PortalReturnUrl = "https://clarity.test/account"

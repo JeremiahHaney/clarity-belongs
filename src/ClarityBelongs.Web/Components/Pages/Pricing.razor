@@ -4,26 +4,26 @@
 
 <PageTitle>Pricing - Clarity Belongs</PageTitle>
 <HeadContent>
-    <meta name="description" content="Start Clarity Belongs free with up to five active follows and in-app notifications." />
+    <meta name="description" content="Clarity Belongs pricing: start free, then choose Personal for $5 per month or Business for $20 per month." />
 </HeadContent>
 
 <div class="shell">
     <header class="hero compact-hero pricing-hero">
         <div class="eyebrow">PRICING</div>
-        <h1>Start free.</h1>
-        <p>Clarity is available on the Free plan. Watch up to five things, build history, and review changes in My Clarity without entering a card.</p>
+        <h1>Simple pricing. Start free.</h1>
+        <p>Watch a few things for free, then move up when you need more watches, faster checks, longer history, and email alerts.</p>
     </header>
 
-    <section class="plan-grid" style="grid-template-columns:minmax(0, 520px);">
+    <section class="plan-grid">
         <article class="plan-card featured-plan">
             <div class="eyebrow">FREE</div>
             <h2>Free</h2>
             <div class="plan-price">$0</div>
-            <p>Enough room to put Clarity to work on a few things that matter.</p>
+            <p>Try Clarity on the things you care about most.</p>
             <ul class="feature-list">
                 <li>Up to @FreePlan.MaxActiveFollows active follows</li>
                 <li>Checks as often as every @FormatCadence(FreePlan.MinimumCadenceMinutes)</li>
-                <li>Saved history in My Clarity</li>
+                <li>@FreePlan.HistoryDays days of saved history</li>
                 <li>In-app notifications</li>
                 <li>No card required</li>
             </ul>
@@ -36,11 +36,43 @@
                 </NotAuthorized>
             </AuthorizeView>
         </article>
+
+        <article class="plan-card">
+            <div class="eyebrow">PERSONAL</div>
+            <h2>Personal</h2>
+            <div class="plan-price">$5<span>/month</span></div>
+            <p>For people who want Clarity checking more things more often.</p>
+            <ul class="feature-list">
+                <li>Up to @PersonalPlan.MaxActiveFollows active follows</li>
+                <li>Checks as often as every @FormatCadence(PersonalPlan.MinimumCadenceMinutes)</li>
+                <li>@PersonalPlan.HistoryDays days of saved history</li>
+                <li>Email and in-app notifications</li>
+                <li>Daily digest option</li>
+            </ul>
+            <a class="button secondary-button full-button" href="/signup">Start free</a>
+        </article>
+
+        <article class="plan-card">
+            <div class="eyebrow">BUSINESS</div>
+            <h2>Business</h2>
+            <div class="plan-price">$20<span>/month</span></div>
+            <p>For businesses watching a larger set of websites, domains, endpoints, and services.</p>
+            <ul class="feature-list">
+                <li>Up to @BusinessPlan.MaxActiveFollows active follows</li>
+                <li>Checks as often as every @FormatCadence(BusinessPlan.MinimumCadenceMinutes)</li>
+                <li>@BusinessPlan.HistoryDays days of saved history</li>
+                <li>Email and in-app notifications</li>
+                <li>Daily digest option</li>
+            </ul>
+            <a class="button secondary-button full-button" href="/signup">Start free</a>
+        </article>
     </section>
 </div>
 
 @code {
     private PlanDefinition FreePlan => Plans.Get(MembershipPlans.Free);
+    private PlanDefinition PersonalPlan => Plans.Get(MembershipPlans.Personal);
+    private PlanDefinition BusinessPlan => Plans.Get(MembershipPlans.Business);
 
     private static string FormatCadence(int minutes)
     {
@@ -48,7 +80,9 @@
             return $"{minutes / 1440} day";
 
         if (minutes >= 60)
-            return $"{minutes / 60} hours";
+            return minutes == 60
+                ? "1 hour"
+                : $"{minutes / 60} hours";
 
         return $"{minutes} minutes";
     }

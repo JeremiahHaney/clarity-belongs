@@ -61,9 +61,9 @@ public sealed class PlanCatalog
         new(
             MembershipPlans.Free,
             "Free",
-            "A small personal Clarity workspace with slower checks.",
+            "A small personal Clarity workspace with hourly checks.",
             5,
-            360,
+            60,
             30,
             false,
             false),

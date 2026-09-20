@@ -38,13 +38,21 @@ The current product limits are deliberately tied to ongoing delivery cost rather
 
 | Plan | Active follows | Fastest cadence | History target | Email | Digest |
 |---|---:|---:|---:|---|---|
-| Free | 5 | 6 hours | 30 days | No | No |
+| Free | 5 | 1 hour | 30 days | No | No |
 | Personal | 50 | 15 minutes | 365 days | Yes | Yes |
 | Business | 250 | 5 minutes | 730 days | Yes | Yes |
 
 The history values are product targets for the retention layer. Phase 5 enforces active-follow count, check cadence, and email-delivery entitlement.
 
 In-app alerts remain available on Free.
+
+## Public pricing
+
+- Free — $0/month
+- Personal — $5/month
+- Business — $20/month
+
+Paid checkout remains gated until production Stripe price IDs, webhook delivery, and billing flows are configured and verified.
 
 ## Membership persistence
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.16 - 2026-09-19
+
+- Approved public launch pricing at $0 Free, $5/month Personal, and $20/month Business.
+- Increased the Free plan cadence from every 6 hours to every 1 hour while keeping the 5-follow limit.
+- Expanded the public pricing page to show Free, Personal, and Business plan limits, history, cadence, and notification differences.
+- Set the approved Personal and Business display prices in application configuration while leaving public paid checkout disabled until Stripe price IDs and production billing tests are complete.
+
 ## 0.6.15 - 2026-09-19
 
 - Added minimal first-party acquisition analytics for the Priority 0 distribution funnel without adding a third-party analytics SDK.
