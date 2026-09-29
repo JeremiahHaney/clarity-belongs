@@ -63,41 +63,50 @@ else if (Product is not null)
             <div class="three-column-info">
                 <article>
                     <div class="eyebrow">WATCH</div>
-                    <h2>Establish a baseline</h2>
-                    <p>The first successful check records what Clarity can observe at that point in time.</p>
+                    <h2>@Editorial.ObserveTitle</h2>
+                    <p>@Editorial.ObserveBody</p>
                 </article>
                 <article>
                     <div class="eyebrow">COMPARE</div>
-                    <h2>Compare later checks</h2>
-                    <p>Later observations are compared with the previous stored result. When the recorded result differs, Clarity keeps the change for review.</p>
+                    <h2>@Editorial.CompareTitle</h2>
+                    <p>@Editorial.CompareBody</p>
                 </article>
                 <article>
                     <div class="eyebrow">REMEMBER</div>
-                    <h2>Keep the history</h2>
-                    <p>Saved changes remain available in My Clarity with the evidence Clarity recorded.</p>
+                    <h2>@Editorial.HistoryTitle</h2>
+                    <p>@Editorial.HistoryBody</p>
                 </article>
             </div>
         </section>
 
         <section class="public-section">
+            <div class="section-intro">
+                <div class="eyebrow">GOOD FIT</div>
+                <h2>When this watch is useful</h2>
+            </div>
+            <ul class="steps-list">
+                @foreach (var useCase in Editorial.UseCases)
+                {
+                    <li>@useCase</li>
+                }
+            </ul>
+        </section>
+
+        <section class="panel product-detail public-product-detail">
+            <h2>What this watch does not do</h2>
+            <p>@Editorial.Limitation</p>
+        </section>
+
+        <section class="public-section">
             <h2>Common questions</h2>
             <div class="faq-list">
-                <details open>
-                    <summary>What happens on the first check?</summary>
-                    <p>The first successful observation establishes the baseline. A later observation is required before Clarity can identify a change.</p>
-                </details>
-                <details>
-                    <summary>Can I pause or stop this later?</summary>
-                    <p>Yes. Anything you follow can be paused, resumed, reviewed, or archived from My Clarity.</p>
-                </details>
-                <details>
-                    <summary>Does Clarity keep evidence?</summary>
-                    <p>Yes. Clarity stores observation snapshots and change evidence so you can review what it recorded later.</p>
-                </details>
-                <details>
-                    <summary>Can I start without paying?</summary>
-                    <p>Yes. The Free plan supports up to five active follows with a six-hour minimum cadence and in-app notifications.</p>
-                </details>
+                @foreach (var faq in Editorial.Faqs)
+                {
+                    <details>
+                        <summary>@faq.Question</summary>
+                        <p>@faq.Answer</p>
+                    </details>
+                }
             </div>
         </section>
 
@@ -175,6 +184,7 @@ else
 
     private PublicClarityProductCatalog PublicCatalog => new(Catalog);
     private ClarityProduct? Product => PublicCatalog.GetBySlug(Slug);
+    private PublicProductContent Editorial => PublicProductContentCatalog.Get(Product!.Slug);
     private bool IsMissingProduct => !string.IsNullOrWhiteSpace(Slug)
         && Product is null;
     private string SignupHref => Product is null

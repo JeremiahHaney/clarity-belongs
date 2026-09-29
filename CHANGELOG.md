@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.17 - 2026-09-29
+
+- Expanded all 15 public monitoring product pages with product-specific watch, comparison, history, use-case, limitation, and FAQ content.
+- Expanded all 22 Learn articles with unique simple answers, topic-specific explanatory sections, and question-specific FAQ answers.
+- Removed the shared generic product-page and Learn FAQ boilerplate that made public search pages substantially similar to one another.
+- Added regression coverage requiring every public product and Learn article to have dedicated editorial content and unique primary explanatory copy.
+
 ## 0.6.16 - 2026-09-19
 
 - Approved public launch pricing at $0 Free, $5/month Personal, and $20/month Business.

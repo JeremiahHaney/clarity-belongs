@@ -60,7 +60,12 @@ else
         <article class="article-body">
             <section>
                 <h2>The simple answer</h2>
-                <p>Give Clarity a supported public target once. Clarity records a baseline, checks it on a schedule, saves later observations, and records a change when the stored result differs.</p>
+                <p>@Editorial.SimpleAnswer</p>
+            </section>
+
+            <section>
+                <h2>@Editorial.DetailTitle</h2>
+                <p>@Editorial.DetailBody</p>
             </section>
 
             <section>
@@ -76,11 +81,11 @@ else
             <section>
                 <h2>Questions people usually have</h2>
                 <div class="faq-list">
-                    @foreach (var question in Entry.Questions)
+                    @foreach (var faq in Editorial.Faqs)
                     {
                         <details>
-                            <summary>@question</summary>
-                            <p>Clarity records factual observations and compares them over time. The exact result depends on the selected watch and the public data available from the target.</p>
+                            <summary>@faq.Question</summary>
+                            <p>@faq.Answer</p>
                         </details>
                     }
                 </div>
@@ -112,6 +117,7 @@ else
 
     private LearnContentCatalog LearnCatalog { get; } = new();
     private LearnEntry? Entry => LearnCatalog.GetBySlug(Slug);
+    private LearnEditorialContent Editorial => LearnEditorialContentCatalog.Get(Entry!.Slug);
     private bool IsMissingArticle => !string.IsNullOrWhiteSpace(Slug)
         && Entry is null;
     private string PageTitleText => IsMissingArticle
