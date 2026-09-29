@@ -408,7 +408,7 @@ public sealed class LearnContentCatalog
                 "Use slower checks for information that changes daily or weekly.",
                 "Use faster checks when a short delay has real value.",
                 "Avoid unnecessary checks when a slower cadence is enough.",
-                "The Free plan currently checks no more often than every six hours."
+                "The Free plan currently checks no more often than every one hour."
             ])
     ];
 
