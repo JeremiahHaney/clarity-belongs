@@ -52,7 +52,7 @@ In-app alerts remain available on Free.
 - Personal — $5/month
 - Business — $20/month
 
-Paid checkout remains gated until production Stripe price IDs, webhook delivery, and billing flows are configured and verified.
+Production Stripe products, prices, and the Clarity webhook endpoint are configured. Public checkout is enabled in code and becomes operational when the production Stripe secret key and Clarity-specific webhook signing secret are present on the server.
 
 ## Membership persistence
 
@@ -74,14 +74,18 @@ Known membership states include Free, Active, Trialing, PastDue, Canceled, and I
 
 Stripe configuration is read from the `Stripe` configuration section. No Stripe secrets belong in the repository.
 
-Required production values:
+Required production secrets:
 
-- `Stripe__Enabled=true`
-- `Stripe__SecretKey`
-- `Stripe__WebhookSecret`
-- `Stripe__PersonalPriceId`
-- `Stripe__BusinessPriceId`
-- production success/cancel/portal URLs as needed
+- `Stripe__SecretKey` — shared live Stripe account secret already used by the portfolio
+- `ClarityBelongs__StripeWebhookSecret` — signing secret for the Clarity-specific webhook endpoint
+
+Stable values are kept in code rather than server configuration:
+
+- Personal price: $5/month
+- Business price: $20/month
+- production price IDs
+- checkout success/cancel URLs
+- Billing Portal return URL
 
 The implementation uses Stripe-hosted Checkout for subscription creation and Stripe's hosted Billing Portal for customer billing management.
 
@@ -135,16 +139,16 @@ The GitHub Actions workflow now verifies more than startup:
 
 This verifies the local account/workspace/membership boundary without requiring external Stripe or SMTP credentials.
 
-## Testing Required before public billing
+## Production verification still required
 
-The code boundary is implemented, but the following require real external configuration before public release:
+The live Stripe products, prices, and webhook endpoint now exist. Remaining release verification:
 
-- Stripe test-mode Checkout with the actual Personal price
-- Stripe test-mode Checkout with the actual Business price
-- webhook delivery and signature verification from Stripe
-- subscription upgrade/cancel/past-due synchronization
-- Billing Portal return flow
-- production SMTP password-reset delivery
-- production paid alert email delivery
+- publish with the production Stripe secret key and Clarity webhook signing secret
+- open Personal Checkout and verify the $5/month live price
+- open Business Checkout and verify the $20/month live price
+- verify webhook delivery/signature processing
+- verify cancel and past-due synchronization
+- verify Billing Portal return flow
+- verify password-reset and paid alert email delivery
 
-Do not mark real-money billing Released until those external tests pass.
+Do not mark the paid flows fully certified until these external checks pass.
