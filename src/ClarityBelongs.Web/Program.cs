@@ -110,14 +110,20 @@ builder.Services
     });
 builder.Services
     .AddOptions<StripeOptions>()
-    .Bind(builder.Configuration.GetSection("Stripe"))
+    .Configure(options =>
+    {
+        options.SecretKey =
+            builder.Configuration["Stripe:SecretKey"] ??
+            string.Empty;
+        options.WebhookSecret =
+            builder.Configuration["ClarityBelongs:StripeWebhookSecret"] ??
+            string.Empty;
+    })
     .Validate(
         options => !options.Enabled
             || (!string.IsNullOrWhiteSpace(options.SecretKey)
-                && !string.IsNullOrWhiteSpace(options.WebhookSecret)
-                && !string.IsNullOrWhiteSpace(options.PersonalPriceId)
-                && !string.IsNullOrWhiteSpace(options.BusinessPriceId)),
-        "Enabled Stripe billing requires secret key, webhook secret, and price IDs.")
+                && !string.IsNullOrWhiteSpace(options.WebhookSecret)),
+        "Enabled Stripe billing requires the shared Stripe secret key and the Clarity webhook secret.")
     .ValidateOnStart();
 
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
