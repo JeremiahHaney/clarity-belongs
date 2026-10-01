@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.19 - 2026-10-01
+
+- Created live Clarity Belongs Personal and Business Stripe products and monthly prices at $5 and $20.
+- Created the live Clarity membership lifecycle webhook endpoint for checkout completion, subscription lifecycle changes, and failed invoice payments.
+- Enabled the approved paid plans in code using the live production price IDs.
+- Moved stable Stripe settings out of server configuration; only secrets remain external.
+- Added a Clarity-specific webhook secret key name so the shared server does not confuse Clarity's signing secret with AutoPilot IT's webhook secret.
+- Updated billing documentation with the remaining production verification steps.
+
 ## 0.6.18 - 2026-10-01
 
 - Standardized Clarity Belongs email on the same Google Workspace SMTP pattern used by the rest of the portfolio.
