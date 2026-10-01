@@ -10,16 +10,16 @@ namespace ClarityBelongs.Web.Services;
 
 public sealed class EmailOptions
 {
-    public bool Enabled { get; set; }
-    public bool PublicDeliveryEnabled { get; set; }
-    public string Host { get; set; } = string.Empty;
+    public bool Enabled { get; set; } = true;
+    public bool PublicDeliveryEnabled { get; set; } = true;
+    public string Host { get; set; } = "smtp.gmail.com";
     public int Port { get; set; } = 587;
     public bool EnableSsl { get; set; } = true;
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string FromAddress { get; set; } = "alerts@claritybelongs.com";
+    public string FromAddress { get; set; } = "support@claritybelongs.com";
     public string FromName { get; set; } = "Clarity Belongs";
-    public string ReplyToAddress { get; set; } = string.Empty;
+    public string ReplyToAddress { get; set; } = "support@claritybelongs.com";
     public string DeliveryMode { get; set; } = "Immediate";
     public int DigestHourUtc { get; set; } = 15;
     public int MaxDeliveryAttempts { get; set; } = 5;
