@@ -12,14 +12,14 @@ namespace ClarityBelongs.Web.Services;
 
 public sealed class StripeOptions
 {
-    public bool Enabled { get; set; }
-    public bool PublicPaidPlansEnabled { get; set; }
+    public bool Enabled { get; set; } = true;
+    public bool PublicPaidPlansEnabled { get; set; } = true;
     public string SecretKey { get; set; } = string.Empty;
     public string WebhookSecret { get; set; } = string.Empty;
-    public string PersonalPriceId { get; set; } = string.Empty;
-    public string BusinessPriceId { get; set; } = string.Empty;
-    public string PersonalDisplayPrice { get; set; } = string.Empty;
-    public string BusinessDisplayPrice { get; set; } = string.Empty;
+    public string PersonalPriceId { get; set; } = "price_1ULm8bCX5qM7qb1FcTZgmNte";
+    public string BusinessPriceId { get; set; } = "price_1ULm8dCX5qM7qb1FD1zJgio3";
+    public string PersonalDisplayPrice { get; set; } = "$5/month";
+    public string BusinessDisplayPrice { get; set; } = "$20/month";
     public string SuccessUrl { get; set; } = "https://claritybelongs.com/account?checkout=success";
     public string CancelUrl { get; set; } = "https://claritybelongs.com/pricing?checkout=canceled";
     public string PortalReturnUrl { get; set; } = "https://claritybelongs.com/account";
