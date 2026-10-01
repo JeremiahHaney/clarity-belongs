@@ -279,7 +279,9 @@ public sealed class DatabaseStartupService(
             }
             else
             {
-                await db.Database.EnsureCreatedAsync(cancellationToken);
+                await ProductionSchema.VerifyAsync(
+                    db,
+                    cancellationToken);
             }
 
             await AcquisitionAnalyticsSchema.EnsureAsync(
