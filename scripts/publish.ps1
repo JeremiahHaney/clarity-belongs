@@ -52,6 +52,18 @@ if (Test-Path $publishRoot)
 
 New-Item -ItemType Directory -Force -Path $publishRoot | Out-Null
 
+$migrationRoot = Join-Path $repoRoot "database\migrations"
+$latestMigration = Get-ChildItem -Path $migrationRoot -Filter "*.sql" -File |
+    Sort-Object Name |
+    Select-Object -Last 1
+
+if ($null -ne $latestMigration)
+{
+    Write-Host ""
+    Write-Host "DATABASE: apply production SQL through $($latestMigration.Name) before publishing this build." -ForegroundColor Yellow
+    Write-Host "Path    : $($latestMigration.FullName)" -ForegroundColor Yellow
+}
+
 Write-Host ""
 Write-Host "============================================================"
 Write-Host "Clarity Belongs" -ForegroundColor Cyan
