@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.18 - 2026-10-01
+
+- Standardized Clarity Belongs email on the same Google Workspace SMTP pattern used by the rest of the portfolio.
+- Hard-coded stable SMTP transport, sender, reply-to, delivery mode, and retry settings in code.
+- Reduced runtime email configuration to the shared Google app password only.
+- Uses `support@claritybelongs.com` as the branded sender while authenticating through the shared Workspace mailbox.
+- Added compatibility with the existing `Email:Smtp:Password` server key while preferring `Email:Password`.
+
 ## 0.6.17 - 2026-09-29
 
 - Expanded all 15 public monitoring product pages with product-specific watch, comparison, history, use-case, limitation, and FAQ content.
