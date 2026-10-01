@@ -15,7 +15,7 @@ public sealed class EmailOptions
     public string Host { get; set; } = "smtp.gmail.com";
     public int Port { get; set; } = 587;
     public bool EnableSsl { get; set; } = true;
-    public string Username { get; set; } = string.Empty;
+    public string Username { get; set; } = "support@autopilotit.net";
     public string Password { get; set; } = string.Empty;
     public string FromAddress { get; set; } = "support@claritybelongs.com";
     public string FromName { get; set; } = "Clarity Belongs";
