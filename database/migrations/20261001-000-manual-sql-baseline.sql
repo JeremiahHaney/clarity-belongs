@@ -1,13 +1,10 @@
 /*
     Clarity Belongs manual SQL baseline.
-    Run against the production ClarityBelongs SQL Server database before
-    publishing builds that use the manual SQL migration workflow.
+    Run while connected to the production Clarity Belongs SQL Server database.
+    The script does not switch databases.
 
     Safe to run more than once.
 */
-
-USE [ClarityBelongs];
-GO
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
