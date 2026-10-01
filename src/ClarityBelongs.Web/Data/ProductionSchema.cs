@@ -17,30 +17,32 @@ public static class ProductionSchema
 
         try
         {
-            await using var command = db.Database.GetDbConnection().CreateCommand();
-            command.CommandText =
-                """
-                SELECT CASE
-                    WHEN OBJECT_ID(N'dbo.SchemaMigrations', N'U') IS NOT NULL
-                    AND EXISTS
-                    (
-                        SELECT 1
-                        FROM dbo.SchemaMigrations
-                        WHERE MigrationId = @migrationId
-                    )
-                    THEN 1
-                    ELSE 0
-                END;
-                """;
+            await using var tableCommand = db.Database.GetDbConnection().CreateCommand();
+            tableCommand.CommandText =
+                "SELECT CASE WHEN OBJECT_ID(N'dbo.SchemaMigrations', N'U') IS NULL THEN 0 ELSE 1 END;";
 
-            var parameter = command.CreateParameter();
+            var tableExists = Convert.ToInt32(
+                await tableCommand.ExecuteScalarAsync(cancellationToken)) == 1;
+
+            if (!tableExists)
+            {
+                throw new InvalidOperationException(
+                    $"Clarity Belongs production schema is not current. Run database/migrations/{RequiredMigrationId}.sql before publishing this build.");
+            }
+
+            await using var migrationCommand = db.Database.GetDbConnection().CreateCommand();
+            migrationCommand.CommandText =
+                "SELECT COUNT(1) FROM dbo.SchemaMigrations WHERE MigrationId = @migrationId;";
+
+            var parameter = migrationCommand.CreateParameter();
             parameter.ParameterName = "@migrationId";
             parameter.Value = RequiredMigrationId;
-            command.Parameters.Add(parameter);
+            migrationCommand.Parameters.Add(parameter);
 
-            var result = await command.ExecuteScalarAsync(cancellationToken);
+            var applied = Convert.ToInt32(
+                await migrationCommand.ExecuteScalarAsync(cancellationToken)) == 1;
 
-            if (Convert.ToInt32(result) != 1)
+            if (!applied)
             {
                 throw new InvalidOperationException(
                     $"Clarity Belongs production schema is not current. Run database/migrations/{RequiredMigrationId}.sql before publishing this build.");
