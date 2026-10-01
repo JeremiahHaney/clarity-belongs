@@ -101,12 +101,16 @@ builder.Services.AddDbContext<ClarityDbContext>((services, options) =>
 
 builder.Services
     .AddOptions<EmailOptions>()
-    .Bind(builder.Configuration.GetSection("Email"))
+    .Configure(options =>
+    {
+        options.Username = builder.Configuration["Email:Username"] ?? string.Empty;
+        options.Password = builder.Configuration["Email:Password"] ?? string.Empty;
+    })
     .Validate(
         options => !options.Enabled
-            || (!string.IsNullOrWhiteSpace(options.Host)
-                && !string.IsNullOrWhiteSpace(options.FromAddress)),
-        "Enabled email delivery requires Email:Host and Email:FromAddress.")
+            || (!string.IsNullOrWhiteSpace(options.Username)
+                && !string.IsNullOrWhiteSpace(options.Password)),
+        "Enabled email delivery requires Email:Username and Email:Password.")
     .ValidateOnStart();
 builder.Services
     .AddOptions<StripeOptions>()
