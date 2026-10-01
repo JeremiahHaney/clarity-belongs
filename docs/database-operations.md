@@ -49,25 +49,20 @@ Set `CLARITY_DB_PATH` to `%ProgramData%\ClarityBelongs\Data\clarity.db` and `CLA
 
 ## Schema evolution
 
-`20260905183011_InitialClarityBaseline` is the EF Core migration baseline.
+Production uses SQL Server and schema changes are deployed manually from `database/migrations`.
 
-Fresh databases are created by `Database.MigrateAsync()`. Existing databases created by the pre-migration V1 code are adopted without rebuilding their tables:
+The production workflow is:
 
-1. `DatabaseSchemaService` recognizes a legacy database by the existing `Users` table and absence of the Clarity baseline migration history.
-2. It applies only the legacy compatibility mutations that existed before migrations: the password/email-verification columns and membership, reset-token, and feedback tables/indexes.
-3. It records the baseline in `__EFMigrationsHistory`.
-4. EF Core applies any migrations newer than the baseline.
-5. The application validates that no migrations remain pending and that the database is reachable and writable before serving requests.
+1. Pull the repository on the VPS.
+2. Back up the Clarity Belongs database.
+3. Run each new `database/migrations/*.sql` file in filename order.
+4. Confirm each script reports PASS and records its ID in `dbo.SchemaMigrations`.
+5. Publish the matching application build.
+6. Startup verifies the required migration ID before serving requests.
 
-Once the baseline exists, the handwritten schema upgrader no longer mutates schema. New schema work should be created as EF migrations and committed with an updated model snapshot.
+The production application does not run `Database.MigrateAsync()`, `EnsureCreatedAsync()`, or production DDL.
 
-Use the design-time factory when creating migrations:
-
-```powershell
-dotnet ef migrations add <MigrationName> --project src/ClarityBelongs.Web --startup-project src/ClarityBelongs.Web
-```
-
-Do not delete or recreate `__EFMigrationsHistory` on a production database.
+SQLite remains available for local/development use and may continue using the existing EF migrations there. The old EF migration files remain useful as model/history references but are not the production deployment mechanism.
 
 ## Startup failure behavior
 
@@ -124,12 +119,12 @@ A missing backup does not by itself make the app unhealthy; it is an operational
 
 The database is deliberately outside the publish/Web Deploy tree. Web application binaries may therefore be replaced without replacing customer state. `NextCheckAtUtc` and all other scheduled/follow state are persisted in SQLite and reloaded after restart.
 
-Before deployment:
+Before a production deployment that includes database changes:
 
-1. Run the supported backup command.
-2. Verify the backup completed.
-3. Deploy application files.
-4. Startup applies pending EF migrations before serving traffic.
+1. Take a SQL Server-native backup.
+2. Pull the repository on the VPS.
+3. Run the new `database/migrations/*.sql` files in filename order.
+4. Publish the application.
 5. Verify `/health` and a representative existing account/follow.
 
 ## Current scaling boundary
