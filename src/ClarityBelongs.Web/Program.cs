@@ -103,7 +103,10 @@ builder.Services
     .AddOptions<EmailOptions>()
     .Configure(options =>
     {
-        options.Password = builder.Configuration["Email:Password"] ?? string.Empty;
+        options.Password =
+            builder.Configuration["Email:Password"] ??
+            builder.Configuration["Email:Smtp:Password"] ??
+            string.Empty;
     });
 builder.Services
     .AddOptions<StripeOptions>()
