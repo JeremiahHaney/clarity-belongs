@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.20 - 2026-10-01
+
+- Replaced automatic production SQL Server schema creation/migration behavior with manual checked-in SQL migrations under `database/migrations`.
+- Added the `dbo.SchemaMigrations` ledger and a one-time production baseline script.
+- Production startup now verifies the required migration ID and refuses to start against an older schema instead of altering SQL Server.
+- Kept EF migrations only for SQLite/local development and as historical model references.
+- Updated the Clarity publish script to show the latest production SQL migration before deployment.
+- Added a reusable SQL migration template and updated the database operations runbook.
+
 ## 0.6.19 - 2026-10-01
 
 - Created live Clarity Belongs Personal and Business Stripe products and monthly prices at $5 and $20.
