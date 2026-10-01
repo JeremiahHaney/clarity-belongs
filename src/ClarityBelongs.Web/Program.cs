@@ -103,15 +103,8 @@ builder.Services
     .AddOptions<EmailOptions>()
     .Configure(options =>
     {
-        options.Username = builder.Configuration["Email:Username"] ?? string.Empty;
         options.Password = builder.Configuration["Email:Password"] ?? string.Empty;
-    })
-    .Validate(
-        options => !options.Enabled
-            || (!string.IsNullOrWhiteSpace(options.Username)
-                && !string.IsNullOrWhiteSpace(options.Password)),
-        "Enabled email delivery requires Email:Username and Email:Password.")
-    .ValidateOnStart();
+    });
 builder.Services
     .AddOptions<StripeOptions>()
     .Bind(builder.Configuration.GetSection("Stripe"))
