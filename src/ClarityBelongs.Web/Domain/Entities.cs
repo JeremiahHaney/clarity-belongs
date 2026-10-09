@@ -200,6 +200,7 @@ public sealed class AcquisitionEvent
 {
     public long Id { get; set; }
     public string VisitorId { get; set; } = string.Empty;
+    public string? SessionId { get; set; }
     public long? UserId { get; set; }
     public long? WorkspaceId { get; set; }
     public string EventType { get; set; } = string.Empty;
@@ -209,5 +210,7 @@ public sealed class AcquisitionEvent
     public string? Source { get; set; }
     public string? Medium { get; set; }
     public string? Campaign { get; set; }
+    public int? DurationMs { get; set; }
+    public string? EventDetail { get; set; }
     public DateTime OccurredAtUtc { get; set; } = DateTime.UtcNow;
 }
