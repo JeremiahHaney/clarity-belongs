@@ -17,6 +17,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
   </ItemGroup>
 
@@ -27,5 +30,12 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="ReplaceWebConfig" AfterTargets="Publish">
+    <Message Text="Replacing web.config with Clarity Belongs IIS logging configuration..." Importance="high" />
+    <Copy SourceFiles="$(ProjectDir)web.config"
+          DestinationFiles="$(PublishDir)web.config"
+          OverwriteReadOnlyFiles="true" />
+  </Target>
 
 </Project>
