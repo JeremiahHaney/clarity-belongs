@@ -19,6 +19,22 @@ public static class AcquisitionAnalyticsSchema
         await db.Database.ExecuteSqlRawAsync(
             SqliteSql,
             cancellationToken);
+
+        await EnsureSqliteColumnAsync(
+            db,
+            "SessionId",
+            "TEXT NULL",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            db,
+            "DurationMs",
+            "INTEGER NULL",
+            cancellationToken);
+        await EnsureSqliteColumnAsync(
+            db,
+            "EventDetail",
+            "TEXT NULL",
+            cancellationToken);
     }
 
     private static async Task VerifySqlServerSchemaAsync(
@@ -49,11 +65,57 @@ public static class AcquisitionAnalyticsSchema
         }
     }
 
+    private static async Task EnsureSqliteColumnAsync(
+        ClarityDbContext db,
+        string columnName,
+        string definition,
+        CancellationToken cancellationToken)
+    {
+        await db.Database.OpenConnectionAsync(cancellationToken);
+
+        try
+        {
+            await using var command = db.Database
+                .GetDbConnection()
+                .CreateCommand();
+            command.CommandText = "PRAGMA table_info(AcquisitionEvents);";
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            var exists = false;
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (string.Equals(
+                    reader.GetString(1),
+                    columnName,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            await reader.DisposeAsync();
+
+            if (!exists)
+            {
+                await db.Database.ExecuteSqlRawAsync(
+                    $"ALTER TABLE AcquisitionEvents ADD COLUMN {columnName} {definition};",
+                    cancellationToken);
+            }
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+    }
+
     private const string SqliteSql =
         """
         CREATE TABLE IF NOT EXISTS AcquisitionEvents (
             Id INTEGER NOT NULL CONSTRAINT PK_AcquisitionEvents PRIMARY KEY AUTOINCREMENT,
             VisitorId TEXT NOT NULL,
+            SessionId TEXT NULL,
             UserId INTEGER NULL,
             WorkspaceId INTEGER NULL,
             EventType TEXT NOT NULL,
@@ -63,8 +125,12 @@ public static class AcquisitionAnalyticsSchema
             Source TEXT NULL,
             Medium TEXT NULL,
             Campaign TEXT NULL,
+            DurationMs INTEGER NULL,
+            EventDetail TEXT NULL,
             OccurredAtUtc TEXT NOT NULL
         );
+        CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_SessionId
+            ON AcquisitionEvents (SessionId);
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_VisitorId_OccurredAtUtc
             ON AcquisitionEvents (VisitorId, OccurredAtUtc);
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_UserId_OccurredAtUtc
