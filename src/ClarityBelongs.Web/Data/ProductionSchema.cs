@@ -4,7 +4,7 @@ namespace ClarityBelongs.Web.Data;
 
 public static class ProductionSchema
 {
-    public const string RequiredMigrationId = "20261001-000-manual-sql-baseline";
+    public const string RequiredMigrationId = "20261009-001-acquisition-session-journeys";
 
     public static async Task VerifyAsync(
         ClarityDbContext db,
