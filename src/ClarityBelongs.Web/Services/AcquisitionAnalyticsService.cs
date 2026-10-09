@@ -155,6 +155,23 @@ public sealed class AcquisitionAnalyticsService(
             null,
             cancellationToken);
 
+    public Task RecordUserEventAsync(
+        string eventType,
+        long userId,
+        long? workspaceId,
+        string? productSlug,
+        long? followId,
+        CancellationToken cancellationToken) =>
+        RecordUserEventAsync(
+            eventType,
+            userId,
+            workspaceId,
+            productSlug,
+            followId,
+            null,
+            null,
+            cancellationToken);
+
     public async Task RecordUserEventAsync(
         string eventType,
         long userId,
