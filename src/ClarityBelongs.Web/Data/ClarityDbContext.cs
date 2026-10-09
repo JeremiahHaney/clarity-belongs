@@ -183,6 +183,10 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasMaxLength(64);
 
         modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.SessionId)
+            .HasMaxLength(64);
+
+        modelBuilder.Entity<AcquisitionEvent>()
             .Property(x => x.EventType)
             .HasMaxLength(64);
 
@@ -207,7 +211,14 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasMaxLength(150);
 
         modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.EventDetail)
+            .HasMaxLength(120);
+
+        modelBuilder.Entity<AcquisitionEvent>()
             .HasIndex(x => new { x.VisitorId, x.OccurredAtUtc });
+
+        modelBuilder.Entity<AcquisitionEvent>()
+            .HasIndex(x => x.SessionId);
 
         modelBuilder.Entity<AcquisitionEvent>()
             .HasIndex(x => new { x.UserId, x.OccurredAtUtc });
