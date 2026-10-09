@@ -235,6 +235,60 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.MapPost(
+    "/api/analytics/event",
+    async (
+        BrowserAnalyticsRequest request,
+        HttpContext context,
+        AcquisitionAnalyticsService analytics,
+        IConfiguration configuration,
+        SecurityThrottle throttle,
+        CancellationToken cancellationToken) =>
+    {
+        if (!SameOriginRequestValidator.IsAllowed(context.Request))
+            return Results.BadRequest();
+
+        if (OwnerAccess.IsOwner(
+            context.User,
+            configuration))
+        {
+            return Results.NoContent();
+        }
+
+        var clientKey = SecurityThrottle.ClientKey(context);
+
+        if (!throttle.TryAcquire(
+            "analytics",
+            clientKey,
+            120,
+            TimeSpan.FromMinutes(5),
+            out _))
+        {
+            return Results.StatusCode(StatusCodes.Status429TooManyRequests);
+        }
+
+        try
+        {
+            await analytics.RecordBrowserEventAsync(
+                context,
+                request.SessionId,
+                request.EventType,
+                request.Path,
+                request.ProductSlug,
+                request.Referrer,
+                request.DurationMs,
+                request.EventDetail,
+                cancellationToken);
+
+            return Results.NoContent();
+        }
+        catch (InvalidOperationException)
+        {
+            return Results.BadRequest();
+        }
+    })
+    .DisableAntiforgery();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapGet(
@@ -940,6 +994,15 @@ static async Task ValidatePublicTargetAsync(
 
     throw new InvalidOperationException("Unsupported observation adapter.");
 }
+
+public sealed record BrowserAnalyticsRequest(
+    string SessionId,
+    string EventType,
+    string Path,
+    string? ProductSlug,
+    string? Referrer,
+    int? DurationMs,
+    string? EventDetail);
 
 public sealed record CreateFollowRequest(
     string Name,
