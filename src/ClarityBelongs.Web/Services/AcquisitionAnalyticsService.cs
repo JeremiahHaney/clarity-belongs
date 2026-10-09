@@ -13,6 +13,10 @@ public static class AcquisitionEventTypes
     public const string FollowStarted = "FollowStarted";
     public const string FollowCreated = "FollowCreated";
     public const string DashboardOpened = "DashboardOpened";
+    public const string PageViewed = "PageViewed";
+    public const string ProductOpened = "ProductOpened";
+    public const string FollowFailed = "FollowFailed";
+    public const string DownloadClicked = "DownloadClicked";
 }
 
 public sealed class AcquisitionAnalyticsService(
@@ -77,6 +81,54 @@ public sealed class AcquisitionAnalyticsService(
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RecordBrowserEventAsync(
+        HttpContext context,
+        string sessionId,
+        string eventType,
+        string? productSlug,
+        int? durationMs,
+        string? eventDetail,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(sessionId, out _))
+            throw new InvalidOperationException("Invalid analytics session.");
+
+        if (durationMs is < 0 or > 86400000)
+            throw new InvalidOperationException("Invalid analytics duration.");
+
+        if (eventType is not AcquisitionEventTypes.PageViewed
+            and not AcquisitionEventTypes.ProductOpened
+            and not AcquisitionEventTypes.DownloadClicked)
+        {
+            throw new InvalidOperationException("Unsupported analytics event.");
+        }
+
+        var visitorId = EnsureVisitorId(context);
+        var latest = await db.AcquisitionEvents
+            .AsNoTracking()
+            .Where(x => x.VisitorId == visitorId)
+            .OrderByDescending(x => x.OccurredAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        db.AcquisitionEvents.Add(new AcquisitionEvent
+        {
+            VisitorId = visitorId,
+            SessionId = sessionId,
+            UserId = TryGetUserId(context.User),
+            EventType = eventType,
+            Path = Clean(context.Request.Path.Value, 500),
+            ProductSlug = Clean(productSlug, 100),
+            Source = latest?.Source ?? "direct",
+            Medium = latest?.Medium,
+            Campaign = latest?.Campaign,
+            DurationMs = durationMs,
+            EventDetail = Clean(eventDetail, 120),
+            OccurredAtUtc = DateTime.UtcNow
+        });
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     public Task RecordSignupCompletedAsync(
         HttpContext context,
         long userId,
@@ -109,6 +161,8 @@ public sealed class AcquisitionAnalyticsService(
         long? workspaceId,
         string? productSlug = null,
         long? followId = null,
+        int? durationMs = null,
+        string? eventDetail = null,
         CancellationToken cancellationToken = default)
     {
         var attribution = await LatestUserAttributionAsync(
@@ -139,6 +193,8 @@ public sealed class AcquisitionAnalyticsService(
             Source = attribution?.Source ?? "direct",
             Medium = attribution?.Medium,
             Campaign = attribution?.Campaign,
+            DurationMs = durationMs,
+            EventDetail = Clean(eventDetail, 120),
             OccurredAtUtc = DateTime.UtcNow
         });
 
