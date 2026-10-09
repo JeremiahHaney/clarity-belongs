@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.22 - 2026-10-09
+
+- Standardized Clarity Belongs publishing on the same Windows DPAPI-encrypted Web Deploy credential used by Software Belongs and AutoPilot IT.
+- Removed the repository-local plaintext Web Deploy username/password dependency from the Clarity publish script.
+- Clarity now reads `%LOCALAPPDATA%\SoftwareBelongs\Publish\webdeploy-credential.xml` and decrypts it only for the current Windows user on the current computer.
+- The shared credential can be created or refreshed with `C:\Projects\SoftwareBelongs\publish\setup-credential.ps1`.
+- Stable Clarity deployment values remain in the publish script and contain no secret.
+
 ## 0.6.21 - 2026-10-09
 
 - Expanded first-party analytics with anonymous session IDs, page views, product opens, download clicks, watch failures, and measured watch-creation duration.
