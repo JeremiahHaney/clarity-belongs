@@ -121,7 +121,7 @@ public sealed class AcquisitionAnalyticsService(
             SessionId = sessionId,
             UserId = TryGetUserId(context.User),
             EventType = eventType,
-            Path = Clean(path, 500),
+            Path = NormalizePath(path),
             ProductSlug = Clean(productSlug, 100),
             Source = latest?.Source is null or "direct"
                 ? normalizedReferrerSource ?? "direct"
@@ -404,6 +404,24 @@ public sealed class AcquisitionAnalyticsService(
             out var userId)
             ? userId
             : null;
+    }
+
+    private static string NormalizePath(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)
+            || !value.StartsWith('/'))
+        {
+            return "/";
+        }
+
+        var queryIndex = value.IndexOf('?');
+        var path = queryIndex >= 0
+            ? value[..queryIndex]
+            : value;
+
+        return path.Length <= 500
+            ? path
+            : path[..500];
     }
 
     private static string? ReferrerSource(string? value)
