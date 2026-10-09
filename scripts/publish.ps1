@@ -7,30 +7,45 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $projectPath = Join-Path $repoRoot "src\ClarityBelongs.Web\ClarityBelongs.Web.csproj"
 $publishRoot = Join-Path $repoRoot "artifacts\publish\clarity-belongs"
-$settingsPath = Join-Path $repoRoot "deployment\publish-settings.local.ps1"
-$exampleSettingsPath = Join-Path $repoRoot "deployment\publish-settings.example.ps1"
 
-if (-not (Test-Path $settingsPath))
+# Shared portfolio Web Deploy credential.
+# Software Belongs, AutoPilot IT, and Clarity Belongs all use this same
+# Windows DPAPI-encrypted PSCredential for the IIS VPS administrator account.
+$credentialRoot = Join-Path $env:LOCALAPPDATA "SoftwareBelongs\Publish"
+$credentialPath = Join-Path $credentialRoot "webdeploy-credential.xml"
+
+$DeployServer = "https://69.164.255.30:8172/msdeploy.axd"
+$AllowUntrusted = $true
+$SiteName = "ClarityBelongs"
+$BaseUrl = "https://claritybelongs.com/"
+
+function Get-PublishCredential
 {
-    Write-Host "Missing local publish settings:" -ForegroundColor Yellow
-    Write-Host "  $settingsPath"
-    Write-Host ""
-    Write-Host "Copy this template and set the Web Deploy password:" -ForegroundColor Yellow
-    Write-Host "  $exampleSettingsPath"
-    exit 2
+    if (-not (Test-Path $credentialPath))
+    {
+        throw "Shared secure Web Deploy credential not found. Run C:\Projects\SoftwareBelongs\publish\setup-credential.ps1 first."
+    }
+
+    try
+    {
+        $credential = Import-Clixml -Path $credentialPath
+
+        if ($credential -isnot [System.Management.Automation.PSCredential])
+        {
+            throw "Stored credential is not a PSCredential."
+        }
+
+        return $credential
+    }
+    catch
+    {
+        throw "Could not decrypt the shared Web Deploy credential. Run C:\Projects\SoftwareBelongs\publish\setup-credential.ps1 again while signed in as this Windows user. $($_.Exception.Message)"
+    }
 }
 
-. $settingsPath
-
-if ([string]::IsNullOrWhiteSpace($DeployServer) -or
-    [string]::IsNullOrWhiteSpace($DeployUsername) -or
-    [string]::IsNullOrWhiteSpace($DeployPassword) -or
-    [string]::IsNullOrWhiteSpace($SiteName) -or
-    [string]::IsNullOrWhiteSpace($BaseUrl) -or
-    $DeployPassword -eq "CHANGE_ME")
-{
-    throw "Publish settings are incomplete. Update deployment\publish-settings.local.ps1."
-}
+$credential = Get-PublishCredential
+$DeployUsername = $credential.UserName
+$DeployPassword = $credential.GetNetworkCredential().Password
 
 $msDeployCandidates = @(
     (Get-Command msdeploy.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
@@ -74,6 +89,9 @@ Write-Host "============================================================"
 
 try
 {
+    Write-Host "Credential: shared DPAPI Web Deploy credential" -ForegroundColor Green
+    Write-Host "User      : $DeployUsername"
+
     dotnet publish $projectPath -c Release -o $publishRoot --nologo
 
     if ($LASTEXITCODE -ne 0)
@@ -174,4 +192,9 @@ catch
     Write-Host "FAIL  Clarity Belongs" -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
     exit 1
+}
+finally
+{
+    $DeployPassword = $null
+    $credential = $null
 }
