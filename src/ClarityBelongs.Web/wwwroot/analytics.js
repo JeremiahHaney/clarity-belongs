@@ -8,6 +8,8 @@
         return match?.[1] || null;
     };
 
+    let activityStartedAt = null;
+
     const send = async (eventType, options = {}) => {
         try {
             await fetch("/api/analytics/event", {
@@ -31,6 +33,40 @@
         }
         catch {
             // Analytics must never interfere with Clarity.
+        }
+    };
+
+    window.clarityAnalytics = {
+        activityStarted(productSlug, detail = null) {
+            activityStartedAt = performance.now();
+            return send("ActivityStarted", {
+                productSlug,
+                detail
+            });
+        },
+        activityCompleted(productSlug, detail = null) {
+            const durationMs = activityStartedAt === null
+                ? null
+                : performance.now() - activityStartedAt;
+            activityStartedAt = null;
+
+            return send("ActivityCompleted", {
+                productSlug,
+                durationMs,
+                detail
+            });
+        },
+        activityFailed(productSlug, detail = "failed") {
+            const durationMs = activityStartedAt === null
+                ? null
+                : performance.now() - activityStartedAt;
+            activityStartedAt = null;
+
+            return send("ActivityFailed", {
+                productSlug,
+                durationMs,
+                detail
+            });
         }
     };
 
