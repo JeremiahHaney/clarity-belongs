@@ -20,7 +20,8 @@ public static class AcquisitionEventTypes
 }
 
 public sealed class AcquisitionAnalyticsService(
-    ClarityDbContext db)
+    ClarityDbContext db,
+    IConfiguration configuration)
 {
     public const string VisitorCookieName = "clarity.acquisition";
     private static readonly TimeSpan VisitWindow = TimeSpan.FromMinutes(30);
@@ -188,6 +189,13 @@ public sealed class AcquisitionAnalyticsService(
         string? eventDetail = null,
         CancellationToken cancellationToken = default)
     {
+        if (await IsOwnerUserAsync(
+            userId,
+            cancellationToken))
+        {
+            return;
+        }
+
         var attribution = await LatestUserAttributionAsync(
             userId,
             cancellationToken);
@@ -256,6 +264,31 @@ public sealed class AcquisitionAnalyticsService(
         });
 
         await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<bool> IsOwnerUserAsync(
+        long userId,
+        CancellationToken cancellationToken)
+    {
+        var email = await db.Users
+            .AsNoTracking()
+            .Where(x => x.Id == userId)
+            .Select(x => x.Email)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(email))
+            return false;
+
+        var ownerEmails = configuration
+            .GetSection("Admin:Emails")
+            .Get<string[]>()
+            ?? [];
+
+        return ownerEmails.Any(value =>
+            string.Equals(
+                value,
+                email,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<AcquisitionEvent?> LatestUserAttributionAsync(
