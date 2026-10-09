@@ -351,6 +351,7 @@
 
         Saving = true;
         Error = null;
+        var analyticsTimer = System.Diagnostics.Stopwatch.StartNew();
 
         try
         {
@@ -369,7 +370,9 @@
                 Account.UserId,
                 Account.WorkspaceId,
                 product.Slug,
-                followId);
+                followId,
+                (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
+                "follow-created");
 
             CreatedNames.Clear();
             CreatedNames.Add(product.Name);
@@ -379,6 +382,15 @@
         }
         catch (Exception ex)
         {
+            await Analytics.RecordUserEventAsync(
+                AcquisitionEventTypes.FollowFailed,
+                Account.UserId,
+                Account.WorkspaceId,
+                product.Slug,
+                null,
+                (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
+                "follow-create-failed");
+
             Error = ex.Message;
         }
         finally
@@ -410,6 +422,7 @@
         Saving = true;
         Error = null;
         CreatedNames.Clear();
+        var analyticsTimer = System.Diagnostics.Stopwatch.StartNew();
 
         try
         {
@@ -439,7 +452,9 @@
                     Account.UserId,
                     Account.WorkspaceId,
                     product.Slug,
-                    followId);
+                    followId,
+                    (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
+                    "website-pack-follow-created");
 
                 CreatedNames.Add(product.Name);
             }
@@ -460,6 +475,15 @@
         }
         catch (Exception ex)
         {
+            await Analytics.RecordUserEventAsync(
+                AcquisitionEventTypes.FollowFailed,
+                Account.UserId,
+                Account.WorkspaceId,
+                "website-essentials",
+                null,
+                (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
+                "website-pack-failed");
+
             Error = CreatedNames.Count == 0
                 ? ex.Message
                 : $"Created {CreatedNames.Count} watches before setup stopped: {ex.Message}";
