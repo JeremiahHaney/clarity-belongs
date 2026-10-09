@@ -99,8 +99,37 @@ public static class AcquisitionAnalyticsSchema
 
             if (!exists)
             {
+                var allowedDefinitions = new Dictionary<string, string>(
+                    StringComparer.OrdinalIgnoreCase)
+                {
+                    ["SessionId"] = "TEXT NULL",
+                    ["DurationMs"] = "INTEGER NULL",
+                    ["EventDetail"] = "TEXT NULL"
+                };
+
+                if (!allowedDefinitions.TryGetValue(
+                    columnName,
+                    out var expectedDefinition)
+                    || !string.Equals(
+                        expectedDefinition,
+                        definition,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException(
+                        $"Unsupported AcquisitionEvents column '{columnName}'.");
+                }
+
+                var sql = columnName switch
+                {
+                    "SessionId" => "ALTER TABLE AcquisitionEvents ADD COLUMN SessionId TEXT NULL;",
+                    "DurationMs" => "ALTER TABLE AcquisitionEvents ADD COLUMN DurationMs INTEGER NULL;",
+                    "EventDetail" => "ALTER TABLE AcquisitionEvents ADD COLUMN EventDetail TEXT NULL;",
+                    _ => throw new InvalidOperationException(
+                        $"Unsupported AcquisitionEvents column '{columnName}'.")
+                };
+
                 await db.Database.ExecuteSqlRawAsync(
-                    $"ALTER TABLE AcquisitionEvents ADD COLUMN {columnName} {definition};",
+                    sql,
                     cancellationToken);
             }
         }
