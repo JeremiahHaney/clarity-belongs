@@ -15,6 +15,9 @@ public static class AcquisitionEventTypes
     public const string DashboardOpened = "DashboardOpened";
     public const string PageViewed = "PageViewed";
     public const string ProductOpened = "ProductOpened";
+    public const string ActivityStarted = "ActivityStarted";
+    public const string ActivityCompleted = "ActivityCompleted";
+    public const string ActivityFailed = "ActivityFailed";
     public const string FollowFailed = "FollowFailed";
     public const string DownloadClicked = "DownloadClicked";
 }
@@ -104,6 +107,9 @@ public sealed class AcquisitionAnalyticsService(
 
         if (eventType is not AcquisitionEventTypes.PageViewed
             and not AcquisitionEventTypes.ProductOpened
+            and not AcquisitionEventTypes.ActivityStarted
+            and not AcquisitionEventTypes.ActivityCompleted
+            and not AcquisitionEventTypes.ActivityFailed
             and not AcquisitionEventTypes.DownloadClicked)
         {
             throw new InvalidOperationException("Unsupported analytics event.");
