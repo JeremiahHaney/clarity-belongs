@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.21 - 2026-10-09
+
+- Expanded first-party analytics with anonymous session IDs, page views, product opens, download clicks, watch failures, and measured watch-creation duration.
+- Added anonymous journey tracking across normal and enhanced navigation while keeping stored paths query-free so watched targets are not captured from URLs.
+- Excluded configured owner accounts from new browser and authenticated usage analytics.
+- Added 7-day and 30-day retention support for APIT reporting.
+- Added production SQL migration `20261009-001-acquisition-session-journeys.sql` and made it the required production schema version.
+- Kept analytics privacy boundaries: no IP history, browser fingerprinting, precise location, watched target values, or page query strings are stored in the journey stream.
+
 ## 0.6.20 - 2026-10-01
 
 - Replaced automatic production SQL Server schema creation/migration behavior with manual checked-in SQL migrations under `database/migrations`.
