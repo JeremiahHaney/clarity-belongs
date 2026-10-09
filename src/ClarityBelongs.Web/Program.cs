@@ -8,11 +8,38 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logDirectory = Path.Combine(
+    AppContext.BaseDirectory,
+    "logs");
+Directory.CreateDirectory(logDirectory);
+
+var logPath = Path.Combine(
+    logDirectory,
+    "claritybelongs_app.log");
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override(
+        "Microsoft.EntityFrameworkCore",
+        Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override(
+        "Microsoft",
+        Serilog.Events.LogEventLevel.Warning)
+    .WriteTo.File(
+        logPath,
+        rollingInterval: RollingInterval.Day,
+        shared: true,
+        flushToDiskInterval: TimeSpan.FromSeconds(1))
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 var databaseProvider = builder.Configuration["Database:Provider"]?.Trim();
 if (string.IsNullOrWhiteSpace(databaseProvider))
@@ -162,6 +189,16 @@ builder.Services.AddHostedService<ExpirationAlertWorker>();
 builder.Services.AddHostedService<NotificationDeliveryWorker>();
 
 var app = builder.Build();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation(
+    "Clarity Belongs starting. Version {Version}.",
+    typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown");
+
+app.Lifetime.ApplicationStarted.Register(() =>
+    logger.LogInformation("Clarity Belongs application started."));
+app.Lifetime.ApplicationStopping.Register(() =>
+    logger.LogInformation("Clarity Belongs application stopping."));
 
 var restoreArgumentIndex = Array.FindIndex(
     args,
@@ -938,7 +975,21 @@ app.MapPost(
     .RequireAuthorization()
     .DisableAntiforgery();
 
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception exception)
+{
+    Log.Fatal(
+        exception,
+        "Clarity Belongs terminated unexpectedly.");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 static string SafeLocalReturnUrl(string value)
 {
