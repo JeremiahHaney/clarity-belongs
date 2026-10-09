@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.23 - 2026-10-09
+
+- Added persistent rolling Clarity application logs under `logs\claritybelongs_app*.log`.
+- Added IIS ASP.NET Core stdout logs under `logs\stdout*` for startup and hosting failures.
+- Added a checked-in `web.config` and publish step so the IIS logging configuration is consistently deployed.
+- Fatal process termination is flushed to disk before exit.
+- Logging now matches the Software Belongs / AutoPilot IT server pattern.
+
 ## 0.6.22 - 2026-10-09
 
 - Standardized Clarity Belongs publishing on the same Windows DPAPI-encrypted Web Deploy credential used by Software Belongs and AutoPilot IT.
