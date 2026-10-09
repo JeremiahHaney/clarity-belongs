@@ -6,6 +6,7 @@
 @inject MembershipService Memberships
 @inject AcquisitionAnalyticsService Analytics
 @inject NavigationManager Navigation
+@inject Microsoft.JSInterop.IJSRuntime JS
 @rendermode InteractiveServer
 
 <PageTitle>Watch Something</PageTitle>
@@ -352,6 +353,10 @@
         Saving = true;
         Error = null;
         var analyticsTimer = System.Diagnostics.Stopwatch.StartNew();
+        await JS.InvokeVoidAsync(
+            "clarityAnalytics.activityStarted",
+            product.Slug,
+            "create-watch");
 
         try
         {
@@ -374,6 +379,11 @@
                 (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
                 "follow-created");
 
+            await JS.InvokeVoidAsync(
+                "clarityAnalytics.activityCompleted",
+                product.Slug,
+                "create-watch");
+
             CreatedNames.Clear();
             CreatedNames.Add(product.Name);
             SuccessTitle = $"Now watching {Form.Name}.";
@@ -390,6 +400,10 @@
                 null,
                 (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
                 "follow-create-failed");
+            await JS.InvokeVoidAsync(
+                "clarityAnalytics.activityFailed",
+                product.Slug,
+                "create-watch");
 
             Error = ex.Message;
         }
@@ -423,6 +437,10 @@
         Error = null;
         CreatedNames.Clear();
         var analyticsTimer = System.Diagnostics.Stopwatch.StartNew();
+        await JS.InvokeVoidAsync(
+            "clarityAnalytics.activityStarted",
+            "website-essentials",
+            "create-pack");
 
         try
         {
@@ -459,6 +477,11 @@
                 CreatedNames.Add(product.Name);
             }
 
+            await JS.InvokeVoidAsync(
+                "clarityAnalytics.activityCompleted",
+                "website-essentials",
+                "create-pack");
+
             SuccessTitle = $"{host} is covered.";
             SuccessMessage = "Clarity created the Website Essentials pack and queued the first observations.";
             Recommendations.Clear();
@@ -483,6 +506,10 @@
                 null,
                 (int)Math.Min(int.MaxValue, analyticsTimer.ElapsedMilliseconds),
                 "website-pack-failed");
+            await JS.InvokeVoidAsync(
+                "clarityAnalytics.activityFailed",
+                "website-essentials",
+                "create-pack");
 
             Error = CreatedNames.Count == 0
                 ? ex.Message
