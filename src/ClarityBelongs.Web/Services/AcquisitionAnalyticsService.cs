@@ -31,7 +31,10 @@ public sealed class AcquisitionAnalyticsService(
         CancellationToken cancellationToken = default)
     {
         if (!HttpMethods.IsGet(context.Request.Method)
-            || !IsPublicPath(context.Request.Path))
+            || !IsPublicPath(context.Request.Path)
+            || OwnerAccess.IsOwner(
+                context.User,
+                configuration))
         {
             return;
         }
@@ -241,6 +244,13 @@ public sealed class AcquisitionAnalyticsService(
         long? followId,
         CancellationToken cancellationToken)
     {
+        if (await IsOwnerUserAsync(
+            userId,
+            cancellationToken))
+        {
+            return;
+        }
+
         var visitorId = EnsureVisitorId(context);
         var latest = await db.AcquisitionEvents
             .AsNoTracking()
