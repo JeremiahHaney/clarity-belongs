@@ -43,9 +43,11 @@ BEGIN
           AND name = 'IX_AcquisitionEvents_SessionId'
     )
     BEGIN
-        CREATE INDEX IX_AcquisitionEvents_SessionId
-            ON dbo.AcquisitionEvents(SessionId)
-            WHERE SessionId IS NOT NULL;
+        EXEC(N'
+            CREATE INDEX IX_AcquisitionEvents_SessionId
+                ON dbo.AcquisitionEvents(SessionId)
+                WHERE SessionId IS NOT NULL;
+        ');
     END;
 
     INSERT INTO dbo.SchemaMigrations(MigrationId)
