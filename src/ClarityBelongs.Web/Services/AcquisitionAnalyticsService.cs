@@ -85,7 +85,9 @@ public sealed class AcquisitionAnalyticsService(
         HttpContext context,
         string sessionId,
         string eventType,
+        string path,
         string? productSlug,
+        string? referrer,
         int? durationMs,
         string? eventDetail,
         CancellationToken cancellationToken = default)
@@ -110,15 +112,19 @@ public sealed class AcquisitionAnalyticsService(
             .OrderByDescending(x => x.OccurredAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
+        var normalizedReferrerSource = ReferrerSource(referrer);
+
         db.AcquisitionEvents.Add(new AcquisitionEvent
         {
             VisitorId = visitorId,
             SessionId = sessionId,
             UserId = TryGetUserId(context.User),
             EventType = eventType,
-            Path = Clean(context.Request.Path.Value, 500),
+            Path = Clean(path, 500),
             ProductSlug = Clean(productSlug, 100),
-            Source = latest?.Source ?? "direct",
+            Source = latest?.Source is null or "direct"
+                ? normalizedReferrerSource ?? "direct"
+                : latest.Source,
             Medium = latest?.Medium,
             Campaign = latest?.Campaign,
             DurationMs = durationMs,
@@ -365,6 +371,25 @@ public sealed class AcquisitionAnalyticsService(
             out var userId)
             ? userId
             : null;
+    }
+
+    private static string? ReferrerSource(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)
+            || !Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            || string.IsNullOrWhiteSpace(uri.Host))
+        {
+            return null;
+        }
+
+        if (uri.Host.EndsWith(
+            "claritybelongs.com",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return Clean(uri.Host, 100);
     }
 
     private static string? Clean(
