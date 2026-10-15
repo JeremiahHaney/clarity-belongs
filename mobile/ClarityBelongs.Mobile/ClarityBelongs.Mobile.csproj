@@ -14,7 +14,7 @@
     <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\clarity_belongs_icon.svg" />
+    <MauiIcon Include="Resources\AppIcon\clarity_logo.png" BaseSize="256,256" />
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#F4F7F7" BaseSize="128,128" />
     <MauiImage Include="Resources\Images\*.svg" />
   </ItemGroup>
