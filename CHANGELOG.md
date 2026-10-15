@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.28 - 2026-10-15
+
+- Fixed Android manifest launcher icon references to use generated appicon/appicon_round instead of obsolete splash/splash_round resources.
+
 ## 0.6.27 - 2026-10-15
 
 - Removed the splash.svg-based adaptive launcher icon configuration responsible for MAUIR0001.
