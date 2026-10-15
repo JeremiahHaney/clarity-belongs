@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.26 - 2026-10-15
+
+- Added explicit intrinsic SVG dimensions to the Android icon and splash sources to address SkiaSharp Resizetizer failures on viewBox-only SVG assets.
+
 ## 0.6.25 - 2026-10-15
 
 - Restored the known-working SVG splash source after the branded PNG splash caused MAUI Resizetizer MAUIR0004 during Android builds.
