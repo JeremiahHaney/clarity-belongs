@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.27 - 2026-10-15
+
+- Removed the splash.svg-based adaptive launcher icon configuration responsible for MAUIR0001.
+- Use the original complete CB appicon.svg as the sole launcher source instead of layering an unverified PNG foreground.
+- Added explicit dimensions to the selected SVG.
+
 ## 0.6.26 - 2026-10-15
 
 - Added explicit intrinsic SVG dimensions to the Android icon and splash sources to address SkiaSharp Resizetizer failures on viewBox-only SVG assets.
