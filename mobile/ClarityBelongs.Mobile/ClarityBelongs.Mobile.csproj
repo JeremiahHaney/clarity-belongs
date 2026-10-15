@@ -10,7 +10,7 @@
     <ApplicationTitle>Clarity Belongs</ApplicationTitle>
     <ApplicationId>com.claritybelongs.mobile</ApplicationId>
     <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationVersion>2</ApplicationVersion>
     <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
