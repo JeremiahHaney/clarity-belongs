@@ -10,12 +10,12 @@
     <ApplicationTitle>Clarity Belongs</ApplicationTitle>
     <ApplicationId>com.claritybelongs.mobile</ApplicationId>
     <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>2</ApplicationVersion>
+    <ApplicationVersion>3</ApplicationVersion>
     <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
-    <MauiIcon Include="Resources\Splash\splash.svg" ForegroundFile="Resources\AppIcon\clarity_foreground.svg" ForegroundScale="0.65" Color="#F4F7F7" BaseSize="128,128" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#F4F7F7" BaseSize="128,128" />
+    <MauiIcon Include="Resources\Splash\splash.svg" ForegroundFile="Resources\AppIcon\cb_launcher_icon.png" ForegroundScale="0.65" Color="#F4F7F7" BaseSize="512,512" />
+    <MauiSplashScreen Include="Resources\AppIcon\cb_launcher_icon.png" Color="#F4F7F7" BaseSize="256,256" />
     <MauiImage Include="Resources\Images\*.svg" />
   </ItemGroup>
   <ItemGroup>
