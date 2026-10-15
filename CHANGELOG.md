@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.25 - 2026-10-15
+
+- Restored the known-working SVG splash source after the branded PNG splash caused MAUI Resizetizer MAUIR0004 during Android builds.
+- Retained the separate branded launcher foreground while isolating splash processing from PNG rasterization.
+
 ## 0.6.24 - 2026-10-15
 
 - Aligned Android launcher icon and splash resources with the working AutoPilot IT MAUI packaging pattern.
