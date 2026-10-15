@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.24 - 2026-10-15
+
+- Aligned Android launcher icon and splash resources with the working AutoPilot IT MAUI packaging pattern.
+- Set the existing CB branded PNG as the icon foreground and splash artwork instead of using the simplified SVG foreground.
+- Declared generated Android launcher and round icon resources explicitly in the manifest.
+- Incremented the Android application build version to 3 to distinguish the rebuilt package.
+
 ## 0.6.23 - 2026-10-09
 
 - Added persistent rolling Clarity application logs under `logs\claritybelongs_app*.log`.
