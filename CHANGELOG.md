@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.29 - 2026-10-30
+
+- Reconcile ten standalone PowerShell utility distribution labels with their authoritative `products/scripts/catalog.json` states: built, testing required rather than functionally verified released.
+- Retain the existing scripts and intended download URLs but explicitly mark download availability and workflow operation as unverified pending real tests.
+- No changes to monitoring, membership, billing, or existing deployment configuration.
+
 ## 0.6.28 - 2026-10-15
 
 - Fixed Android manifest launcher icon references to use generated appicon/appicon_round instead of obsolete splash/splash_round resources.
