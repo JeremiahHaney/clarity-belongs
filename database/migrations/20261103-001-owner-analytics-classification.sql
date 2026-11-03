@@ -19,9 +19,11 @@ BEGIN TRY
           AND name = N'IX_AcquisitionEvents_OwnerVisitorId'
     )
     BEGIN
-        CREATE INDEX IX_AcquisitionEvents_OwnerVisitorId
-            ON dbo.AcquisitionEvents(VisitorId)
-            WHERE IsOwnerActivity = 1;
+        EXEC sys.sp_executesql N'
+            CREATE INDEX IX_AcquisitionEvents_OwnerVisitorId
+                ON dbo.AcquisitionEvents(VisitorId)
+                WHERE IsOwnerActivity = 1;
+        ';
     END;
 
     IF NOT EXISTS
