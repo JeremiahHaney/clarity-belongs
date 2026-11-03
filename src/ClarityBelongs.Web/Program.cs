@@ -285,12 +285,8 @@ app.MapPost(
         if (!SameOriginRequestValidator.IsAllowed(context.Request))
             return Results.BadRequest();
 
-        if (OwnerAccess.IsOwner(
-            context.User,
-            configuration))
-        {
-            return Results.NoContent();
-        }
+        // Authenticated owner events are saved with a server-derived owner flag.
+        // Do not trust any client-supplied owner indicator.
 
         var clientKey = SecurityThrottle.ClientKey(context);
 
