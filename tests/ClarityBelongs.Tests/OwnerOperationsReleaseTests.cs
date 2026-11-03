@@ -147,8 +147,8 @@ public sealed class OwnerOperationsReleaseTests
         {
             TargetId = seeded.Target.Id,
             SourceDefinitionId = seeded.Source.Id,
-            StartedAtUtc = now.AddMinutes(-5),
-            CompletedAtUtc = now.AddMinutes(-5),
+            StartedAtUtc = seeded.Follow.CreatedAtUtc.AddMinutes(1),
+            CompletedAtUtc = seeded.Follow.CreatedAtUtc.AddMinutes(1),
             Status = ObservationStatuses.Succeeded
         });
         await store.Db.SaveChangesAsync();
