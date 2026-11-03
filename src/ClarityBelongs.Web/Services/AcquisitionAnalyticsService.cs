@@ -34,10 +34,7 @@ public sealed class AcquisitionAnalyticsService(
         CancellationToken cancellationToken = default)
     {
         if (!HttpMethods.IsGet(context.Request.Method)
-            || !IsPublicPath(context.Request.Path)
-            || OwnerAccess.IsOwner(
-                context.User,
-                configuration))
+            || !IsPublicPath(context.Request.Path))
         {
             return;
         }
@@ -77,6 +74,7 @@ public sealed class AcquisitionAnalyticsService(
         {
             VisitorId = visitorId,
             UserId = userId,
+            IsOwnerActivity = OwnerAccess.IsOwner(context.User, configuration),
             EventType = AcquisitionEventTypes.Visit,
             Path = Clean(context.Request.Path.Value, 500),
             Source = attribution.Source,
@@ -129,6 +127,7 @@ public sealed class AcquisitionAnalyticsService(
             VisitorId = visitorId,
             SessionId = sessionId,
             UserId = TryGetUserId(context.User),
+            IsOwnerActivity = OwnerAccess.IsOwner(context.User, configuration),
             EventType = eventType,
             Path = NormalizePath(path),
             ProductSlug = Clean(productSlug, 100),
