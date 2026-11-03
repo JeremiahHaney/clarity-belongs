@@ -1,0 +1,55 @@
+name: Owner security Gitleaks inventory
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '18 9 * * *'
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: owner-security-gitleaks-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      APIT_SECURITY_INGEST_KEY: ${{ secrets.APIT_SECURITY_INGEST_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Install pinned Gitleaks
+        run: go install github.com/gitleaks/gitleaks/v8@v8.24.3
+
+      - name: Scan Git history
+        shell: bash
+        run: |
+          "$(go env GOPATH)/bin/gitleaks" git . \
+            --report-format json \
+            --report-path "$RUNNER_TEMP/gitleaks.json" \
+            --exit-code 0 \
+            --no-banner
+          if [ ! -f "$RUNNER_TEMP/gitleaks.json" ]; then
+            echo '[]' > "$RUNNER_TEMP/gitleaks.json"
+          fi
+
+      - name: Send sanitized findings
+        if: ${{ env.APIT_SECURITY_INGEST_KEY != '' }}
+        run: python3 .github/scripts/send-owner-security-gitleaks.py "$RUNNER_TEMP/gitleaks.json"
+
+      - name: Explain missing ingestion configuration
+        if: ${{ env.APIT_SECURITY_INGEST_KEY == '' }}
+        run: |
+          echo "::warning::Configure the APIT_SECURITY_INGEST_KEY repository secret and matching server OwnerSecurity__IngestKey to enable private ingestion."
