@@ -109,7 +109,8 @@ public static class AcquisitionAnalyticsSchema
                 {
                     ["SessionId"] = "TEXT NULL",
                     ["DurationMs"] = "INTEGER NULL",
-                    ["EventDetail"] = "TEXT NULL"
+                    ["EventDetail"] = "TEXT NULL",
+                    ["IsOwnerActivity"] = "INTEGER NOT NULL DEFAULT 0"
                 };
 
                 if (!allowedDefinitions.TryGetValue(
