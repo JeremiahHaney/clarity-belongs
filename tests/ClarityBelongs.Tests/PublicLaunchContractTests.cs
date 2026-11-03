@@ -194,7 +194,8 @@ public sealed class PublicLaunchContractTests
         var analytics = File.ReadAllText(
             Path.Combine(root, "src/ClarityBelongs.Web/Services/AcquisitionAnalyticsService.cs"));
 
-        Assert.Contains("TrackPublicVisitAsync", program, StringComparison.Ordinal);
+        Assert.Contains("UseMiddleware<AcquisitionAnalyticsMiddleware>", program, StringComparison.Ordinal);
+        Assert.Contains("TrackPublicVisitAsync", analytics, StringComparison.Ordinal);
         Assert.Contains("RecordSignupCompletedAsync", program, StringComparison.Ordinal);
         Assert.Contains("RecordLoginCompletedAsync", program, StringComparison.Ordinal);
         Assert.Contains("AcquisitionEventTypes.FollowStarted", addFollow, StringComparison.Ordinal);
