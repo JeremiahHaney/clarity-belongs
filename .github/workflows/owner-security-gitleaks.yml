@@ -17,8 +17,6 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      APIT_SECURITY_INGEST_KEY: ${{ secrets.APIT_SECURITY_INGEST_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,11 +41,12 @@ jobs:
             echo '[]' > "$RUNNER_TEMP/gitleaks.json"
           fi
 
-      - name: Send sanitized findings
-        if: ${{ env.APIT_SECURITY_INGEST_KEY != '' }}
-        run: python3 .github/scripts/send-owner-security-gitleaks.py "$RUNNER_TEMP/gitleaks.json"
-
-      - name: Explain missing ingestion configuration
-        if: ${{ env.APIT_SECURITY_INGEST_KEY == '' }}
+      - name: Send sanitized findings if configured
+        env:
+          APIT_SECURITY_INGEST_KEY: ${{ secrets.APIT_SECURITY_INGEST_KEY }}
         run: |
-          echo "::warning::Configure the APIT_SECURITY_INGEST_KEY repository secret and matching per-repository server OwnerSecurity configuration key to enable private ingestion."
+          if [ -z "$APIT_SECURITY_INGEST_KEY" ]; then
+            echo "::warning::Configure APIT_SECURITY_INGEST_KEY and the matching repository-scoped APIT server setting to enable ingestion."
+            exit 0
+          fi
+          python3 .github/scripts/send-owner-security-gitleaks.py "$RUNNER_TEMP/gitleaks.json"
