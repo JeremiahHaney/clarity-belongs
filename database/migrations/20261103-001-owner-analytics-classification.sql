@@ -14,6 +14,18 @@ BEGIN TRY
                 CONSTRAINT DF_AcquisitionEvents_IsOwnerActivity DEFAULT (0);
     IF NOT EXISTS
     (
+        SELECT 1 FROM sys.indexes
+        WHERE object_id = OBJECT_ID(N'dbo.AcquisitionEvents')
+          AND name = N'IX_AcquisitionEvents_OwnerVisitorId'
+    )
+    BEGIN
+        CREATE INDEX IX_AcquisitionEvents_OwnerVisitorId
+            ON dbo.AcquisitionEvents(VisitorId)
+            WHERE IsOwnerActivity = 1;
+    END;
+
+    IF NOT EXISTS
+    (
         SELECT 1 FROM dbo.SchemaMigrations
         WHERE MigrationId = N'20261103-001-owner-analytics-classification'
     )
