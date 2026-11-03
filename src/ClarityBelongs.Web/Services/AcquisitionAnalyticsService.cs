@@ -197,12 +197,9 @@ public sealed class AcquisitionAnalyticsService(
         string? eventDetail = null,
         CancellationToken cancellationToken = default)
     {
-        if (await IsOwnerUserAsync(
+        var isOwner = await IsOwnerUserAsync(
             userId,
-            cancellationToken))
-        {
-            return;
-        }
+            cancellationToken);
 
         var attribution = await LatestUserAttributionAsync(
             userId,
@@ -226,6 +223,7 @@ public sealed class AcquisitionAnalyticsService(
             VisitorId = visitorId,
             UserId = userId,
             WorkspaceId = workspaceId,
+            IsOwnerActivity = isOwner,
             EventType = eventType,
             ProductSlug = Clean(productSlug, 100),
             FollowId = followId,
@@ -249,12 +247,9 @@ public sealed class AcquisitionAnalyticsService(
         long? followId,
         CancellationToken cancellationToken)
     {
-        if (await IsOwnerUserAsync(
+        var isOwner = await IsOwnerUserAsync(
             userId,
-            cancellationToken))
-        {
-            return;
-        }
+            cancellationToken);
 
         var visitorId = EnsureVisitorId(context);
         var latest = await db.AcquisitionEvents
@@ -268,6 +263,7 @@ public sealed class AcquisitionAnalyticsService(
             VisitorId = visitorId,
             UserId = userId,
             WorkspaceId = workspaceId,
+            IsOwnerActivity = isOwner,
             EventType = eventType,
             Path = Clean(context.Request.Path.Value, 500),
             ProductSlug = Clean(productSlug, 100),
