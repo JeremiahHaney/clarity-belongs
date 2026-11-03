@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.30 - 2026-11-03
+
+- Record signed-in owner page views, public visits and product interactions with a server-derived IsOwnerActivity flag.
+- Stop discarding authenticated owner browser events; keep public and owner visits separate in first-party reporting.
+- Add SQL Server migration 20261103-001-owner-analytics-classification and SQLite column upgrade; require the migration for production.
+- Add owner identity regression coverage. Source-only, pending schema apply, build and live verification.
+
+
 ## 0.6.29 - 2026-10-30
 
 - Reconcile ten standalone PowerShell utility distribution labels with their authoritative `products/scripts/catalog.json` states: built, testing required rather than functionally verified released.
