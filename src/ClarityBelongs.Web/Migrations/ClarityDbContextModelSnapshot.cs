@@ -61,6 +61,13 @@ namespace ClarityBelongs.Web.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("DurationMs")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EventDetail")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EventType")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -68,6 +75,11 @@ namespace ClarityBelongs.Web.Migrations
 
                     b.Property<long?>("FollowId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsOwnerActivity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Medium")
                         .HasMaxLength(100)
@@ -82,6 +94,10 @@ namespace ClarityBelongs.Web.Migrations
 
                     b.Property<string>("ProductSlug")
                         .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Source")
