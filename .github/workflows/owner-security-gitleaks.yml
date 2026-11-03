@@ -5,8 +5,6 @@ on:
     - cron: '18 9 * * *'
   push:
     branches: [main]
-    paths-ignore:
-      - '**/*.md'
 
 permissions:
   contents: read
@@ -52,4 +50,4 @@ jobs:
       - name: Explain missing ingestion configuration
         if: ${{ env.APIT_SECURITY_INGEST_KEY == '' }}
         run: |
-          echo "::warning::Configure the APIT_SECURITY_INGEST_KEY repository secret and matching server OwnerSecurity__IngestKey to enable private ingestion."
+          echo "::warning::Configure the APIT_SECURITY_INGEST_KEY repository secret and matching per-repository server OwnerSecurity configuration key to enable private ingestion."
