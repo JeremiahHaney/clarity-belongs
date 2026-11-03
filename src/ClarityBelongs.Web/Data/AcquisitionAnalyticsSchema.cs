@@ -35,6 +35,11 @@ public static class AcquisitionAnalyticsSchema
             "EventDetail",
             "TEXT NULL",
             cancellationToken);
+        await EnsureSqliteColumnAsync(
+            db,
+            "IsOwnerActivity",
+            "INTEGER NOT NULL DEFAULT 0",
+            cancellationToken);
     }
 
     private static async Task VerifySqlServerSchemaAsync(
@@ -124,6 +129,7 @@ public static class AcquisitionAnalyticsSchema
                     "SessionId" => "ALTER TABLE AcquisitionEvents ADD COLUMN SessionId TEXT NULL;",
                     "DurationMs" => "ALTER TABLE AcquisitionEvents ADD COLUMN DurationMs INTEGER NULL;",
                     "EventDetail" => "ALTER TABLE AcquisitionEvents ADD COLUMN EventDetail TEXT NULL;",
+                    "IsOwnerActivity" => "ALTER TABLE AcquisitionEvents ADD COLUMN IsOwnerActivity INTEGER NOT NULL DEFAULT 0;",
                     _ => throw new InvalidOperationException(
                         $"Unsupported AcquisitionEvents column '{columnName}'.")
                 };
@@ -156,6 +162,7 @@ public static class AcquisitionAnalyticsSchema
             Campaign TEXT NULL,
             DurationMs INTEGER NULL,
             EventDetail TEXT NULL,
+            IsOwnerActivity INTEGER NOT NULL DEFAULT 0,
             OccurredAtUtc TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_SessionId
