@@ -119,6 +119,8 @@ namespace ClarityBelongs.Web.Migrations
 
                     b.HasIndex("EventType", "OccurredAtUtc");
 
+                    b.HasIndex("SessionId");
+
                     b.HasIndex("UserId", "OccurredAtUtc");
 
                     b.HasIndex("VisitorId", "OccurredAtUtc");
