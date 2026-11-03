@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.33 - 2026-11-03
+
+- Stabilize owner acquisition regression test so the successful observation occurs after follow creation, consistent with report eligibility rules.
+- No production SQL migration changes.
+
+
 ## 0.6.32 - 2026-11-03
 
 - Complete EF snapshot alignment for first-party acquisition session indexing, used by owner classification and SQLite startup migration validation.
