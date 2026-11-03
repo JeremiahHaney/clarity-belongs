@@ -187,6 +187,10 @@ public sealed class ClarityDbContext(DbContextOptions<ClarityDbContext> options)
             .HasMaxLength(64);
 
         modelBuilder.Entity<AcquisitionEvent>()
+            .Property(x => x.IsOwnerActivity)
+            .HasDefaultValue(false);
+
+        modelBuilder.Entity<AcquisitionEvent>()
             .Property(x => x.EventType)
             .HasMaxLength(64);
 
