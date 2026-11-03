@@ -22,3 +22,6 @@ deployment/publish-settings.local.ps1
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Local Windows shortcuts
+*.lnk
