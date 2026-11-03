@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import pathlib
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -20,9 +21,11 @@ for item in raw:
     # Never copy Secret, Match, Line, Description, or raw snippets to the API.
     name = pathlib.PurePosixPath(str(item.get("File", "")).replace("\\", "/")).name[:260]
     rule = str(item.get("RuleID", ""))[:100]
-    commit = str(item.get("Commit", ""))[:64]
+    commit = str(item.get("Commit") or "")[:64]
+    if commit and not re.fullmatch(r"[0-9a-fA-F]{1,64}", commit):
+        commit = ""
     line = item.get("StartLine")
-    if not name or not rule:
+    if not name or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}", rule):
         continue
     line = line if isinstance(line, int) and line > 0 else None
     identity = "\0".join((os.environ["GITHUB_REPOSITORY"], rule, str(item.get("File", "")), str(line), commit))
