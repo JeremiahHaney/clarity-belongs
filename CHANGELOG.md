@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.32 - 2026-11-03
+
+- Complete EF snapshot alignment for first-party acquisition session indexing, used by owner classification and SQLite startup migration validation.
+- Follow-up to 0.6.31; production SQL migration unchanged.
+
+
 ## 0.6.31 - 2026-11-03
 
 - Repair owner analytics EF Core model consistency: synchronize the model snapshot with previously manually managed acquisition fields and IsOwnerActivity; record a no-op EF migration because SQLite schema extension remains managed by AcquisitionAnalyticsSchema and production SQL by database/migrations.
