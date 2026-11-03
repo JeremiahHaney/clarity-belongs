@@ -201,6 +201,7 @@ public sealed class AcquisitionEvent
     public long Id { get; set; }
     public string VisitorId { get; set; } = string.Empty;
     public string? SessionId { get; set; }
+    public bool IsOwnerActivity { get; set; }
     public long? UserId { get; set; }
     public long? WorkspaceId { get; set; }
     public string EventType { get; set; } = string.Empty;
