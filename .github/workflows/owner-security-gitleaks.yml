@@ -27,7 +27,7 @@ jobs:
           go-version: '1.23'
 
       - name: Install pinned Gitleaks
-        run: go install github.com/gitleaks/gitleaks/v8@v8.24.3
+        run: go install github.com/zricethezav/gitleaks/v8@v8.24.3
 
       - name: Scan Git history
         shell: bash
