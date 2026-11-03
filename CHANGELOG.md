@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.31 - 2026-11-03
+
+- Repair owner analytics EF Core model consistency: synchronize the model snapshot with previously manually managed acquisition fields and IsOwnerActivity; record a no-op EF migration because SQLite schema extension remains managed by AcquisitionAnalyticsSchema and production SQL by database/migrations.
+- Correct first-party acquisition regression test to validate the actual middleware registration and service method.
+- Follow-up to 0.6.30 owner-activity classification; deployment and live verification remain pending.
+
+
 ## 0.6.30 - 2026-11-03
 
 - Record signed-in owner page views, public visits and product interactions with a server-derived IsOwnerActivity flag.
