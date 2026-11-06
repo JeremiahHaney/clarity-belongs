@@ -1,48 +1,1366 @@
 {
-  "schema": 1,
-  "warning": "Source inventory only; not proof of behavior, QA, deployment or release.",
+  "schema": 2,
+  "evidence_only": true,
+  "warning": "Declarations are navigation evidence, not evidence of QA, correct behavior, deployment, or release.",
   "projects": [
     {
       "path": "mobile/ClarityBelongs.Mobile/ClarityBelongs.Mobile.csproj",
-      "references": [],
       "frameworks": [
         "net10.0-android"
+      ],
+      "references": [],
+      "packages": [
+        "Microsoft.Maui.Controls"
       ]
     },
     {
       "path": "src/Belongs.Shared/Belongs.Shared.csproj",
-      "references": [],
       "frameworks": [
         "net8.0"
-      ]
+      ],
+      "references": [],
+      "packages": []
     },
     {
       "path": "src/ClarityBelongs.Web/ClarityBelongs.Web.csproj",
-      "references": [
-        "..\\Belongs.Shared\\Belongs.Shared.csproj"
-      ],
       "frameworks": [
         "net10.0"
+      ],
+      "references": [
+        "../Belongs.Shared/Belongs.Shared.csproj"
+      ],
+      "packages": [
+        "Microsoft.EntityFrameworkCore.Design",
+        "Microsoft.EntityFrameworkCore.SqlServer",
+        "Microsoft.EntityFrameworkCore.Sqlite",
+        "SQLitePCLRaw.lib.e_sqlite3",
+        "Serilog",
+        "Serilog.AspNetCore",
+        "Serilog.Sinks.File"
       ]
     },
     {
       "path": "tests/ClarityBelongs.Tests/ClarityBelongs.Tests.csproj",
-      "references": [
-        "..\\..\\src\\ClarityBelongs.Web\\ClarityBelongs.Web.csproj"
-      ],
       "frameworks": [
         "net10.0"
+      ],
+      "references": [
+        "../../src/ClarityBelongs.Web/ClarityBelongs.Web.csproj"
+      ],
+      "packages": [
+        "Microsoft.NET.Test.Sdk",
+        "xunit",
+        "xunit.runner.visualstudio"
       ]
     }
   ],
-  "changelogs": [
+  "routes": [
     {
-      "path": "CHANGELOG.md",
-      "latest_version_in_file": "0.6.33"
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 94,
+      "pattern": "/api/mobile"
+    }
+  ],
+  "type_declarations": [
+    {
+      "path": "mobile/ClarityBelongs.Mobile/App.cs",
+      "line": 3,
+      "symbol": "App"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MainPage.cs",
+      "line": 3,
+      "symbol": "MainPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MauiProgram.cs",
+      "line": 3,
+      "symbol": "MauiProgram"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 7,
+      "symbol": "MobileApiClient"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 191,
+      "symbol": "MobileLoginRequest"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 192,
+      "symbol": "MobileLoginResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 193,
+      "symbol": "MobileErrorResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 194,
+      "symbol": "MobileDashboardResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 202,
+      "symbol": "MobileFollowSummary"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 213,
+      "symbol": "MobileChangeSummary"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 222,
+      "symbol": "MobileNotificationSummary"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 230,
+      "symbol": "MobileAccountResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 241,
+      "symbol": "MobileProductResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 250,
+      "symbol": "MobileCreateFollowRequest"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 256,
+      "symbol": "MobileCreateFollowResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 257,
+      "symbol": "MobileFollowDetailResponse"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileApiClient.cs",
+      "line": 269,
+      "symbol": "MobilePauseRequest"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/MobileBrand.cs",
+      "line": 3,
+      "symbol": "MobileBrand"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 3,
+      "symbol": "LoginPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 119,
+      "symbol": "ClarityTabbedPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 157,
+      "symbol": "WatchesPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 259,
+      "symbol": "AlertsPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 342,
+      "symbol": "HistoryPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 420,
+      "symbol": "AccountPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 486,
+      "symbol": "AddWatchPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Pages.cs",
+      "line": 606,
+      "symbol": "FollowDetailPage"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Platforms/Android/MainActivity.cs",
+      "line": 17,
+      "symbol": "MainActivity"
+    },
+    {
+      "path": "mobile/ClarityBelongs.Mobile/Platforms/Android/MainApplication.cs",
+      "line": 7,
+      "symbol": "MainApplication"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 11,
+      "symbol": "HttpProbeResult"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 19,
+      "symbol": "TlsProbeResult"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 26,
+      "symbol": "DomainProbeResult"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 30,
+      "symbol": "PublicEndpointGuard"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 178,
+      "symbol": "PublicHttpMessageHandlerFactory"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 229,
+      "symbol": "HttpObservationEngine"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 312,
+      "symbol": "ITlsCertificateProbe"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 320,
+      "symbol": "SystemTlsCertificateProbe"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 375,
+      "symbol": "TlsObservationEngine"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 413,
+      "symbol": "IDnsAddressResolver"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 420,
+      "symbol": "SystemDnsAddressResolver"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 432,
+      "symbol": "DnsObservationEngine"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 486,
+      "symbol": "DomainObservationEngine"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 544,
+      "symbol": "SchedulingEngine"
+    },
+    {
+      "path": "src/Belongs.Shared/Observation/SharedObservationEngines.cs",
+      "line": 565,
+      "symbol": "NotificationEngine"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Components/Pages/AddFollow.razor",
+      "line": 631,
+      "symbol": "AddFollowForm"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Components/Pages/Tools.razor",
+      "line": 54,
+      "symbol": "Tool"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/AcquisitionAnalyticsSchema.cs",
+      "line": 5,
+      "symbol": "AcquisitionAnalyticsSchema"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/ClarityDbContext.cs",
+      "line": 6,
+      "symbol": "ClarityDbContext"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/ClarityDesignTimeDbContextFactory.cs",
+      "line": 6,
+      "symbol": "ClarityDesignTimeDbContextFactory"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 7,
+      "symbol": "DatabaseStorageOptions"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 13,
+      "symbol": "DatabaseOperationalStatus"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 21,
+      "symbol": "DatabaseRuntimeState"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 40,
+      "symbol": "DatabasePathProvider"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 142,
+      "symbol": "DatabaseBackupResult"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 147,
+      "symbol": "SqliteBackupService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseInfrastructure.cs",
+      "line": 254,
+      "symbol": "DatabaseStartupService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/DatabaseSchemaService.cs",
+      "line": 7,
+      "symbol": "DatabaseSchemaService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Data/ProductionSchema.cs",
+      "line": 5,
+      "symbol": "ProductionSchema"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 3,
+      "symbol": "MembershipPlans"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 10,
+      "symbol": "MembershipStatuses"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 20,
+      "symbol": "Membership"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 37,
+      "symbol": "PasswordResetToken"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 47,
+      "symbol": "PlanDefinition"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Accounts.cs",
+      "line": 57,
+      "symbol": "PlanCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/DeliveryAndBillingState.cs",
+      "line": 3,
+      "symbol": "DigestDeliveryStatuses"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/DeliveryAndBillingState.cs",
+      "line": 11,
+      "symbol": "DigestDeliveryState"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/DeliveryAndBillingState.cs",
+      "line": 25,
+      "symbol": "StripeWebhookEvent"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 3,
+      "symbol": "FollowStatuses"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 12,
+      "symbol": "ObservationStatuses"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 21,
+      "symbol": "NotificationStatuses"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 31,
+      "symbol": "ChangeSeverities"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 39,
+      "symbol": "AdapterTypes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 48,
+      "symbol": "AppUser"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 59,
+      "symbol": "Workspace"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 67,
+      "symbol": "Target"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 79,
+      "symbol": "SourceDefinition"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 90,
+      "symbol": "Follow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 109,
+      "symbol": "ObservationRun"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 124,
+      "symbol": "Snapshot"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 137,
+      "symbol": "Change"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 153,
+      "symbol": "AlertRule"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 165,
+      "symbol": "FollowChange"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 176,
+      "symbol": "Notification"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/Entities.cs",
+      "line": 199,
+      "symbol": "AcquisitionEvent"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Domain/FeedbackSubmission.cs",
+      "line": 3,
+      "symbol": "FeedbackSubmission"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20260905183011_InitialClarityBaseline.Designer.cs",
+      "line": 15,
+      "symbol": "InitialClarityBaseline"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20260905183011_InitialClarityBaseline.cs",
+      "line": 9,
+      "symbol": "InitialClarityBaseline"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20260905185427_HardenBillingAndEmailDelivery.Designer.cs",
+      "line": 15,
+      "symbol": "HardenBillingAndEmailDelivery"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20260905185427_HardenBillingAndEmailDelivery.cs",
+      "line": 9,
+      "symbol": "HardenBillingAndEmailDelivery"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20260919210000_AddAcquisitionAnalytics.cs",
+      "line": 11,
+      "symbol": "AddAcquisitionAnalytics"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/20261103192500_RegisterOwnerAnalyticsSchema.cs",
+      "line": 15,
+      "symbol": "RegisterOwnerAnalyticsSchema"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Migrations/ClarityDbContextModelSnapshot.cs",
+      "line": 13,
+      "symbol": "ClarityDbContextModelSnapshot"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/DnsRecordObservationAdapter.cs",
+      "line": 7,
+      "symbol": "DnsRecordObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/DnsRecordObservationAdapter.cs",
+      "line": 104,
+      "symbol": "observation"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/DnsRecordObservationAdapter.cs",
+      "line": 108,
+      "symbol": "could"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 11,
+      "symbol": "ObservationResult"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 26,
+      "symbol": "IObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 36,
+      "symbol": "HttpObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 130,
+      "symbol": "TlsObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 247,
+      "symbol": "DnsObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationAdapters.cs",
+      "line": 312,
+      "symbol": "DomainObservationAdapter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationEngine.cs",
+      "line": 9,
+      "symbol": "ObservationEngine"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/ObservationWorker.cs",
+      "line": 8,
+      "symbol": "ObservationWorker"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Observation/PublicEndpointGuard.cs",
+      "line": 3,
+      "symbol": "PublicEndpointGuard"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Program.cs",
+      "line": 1045,
+      "symbol": "BrowserAnalyticsRequest"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Program.cs",
+      "line": 1054,
+      "symbol": "CreateFollowRequest"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Program.cs",
+      "line": 1065,
+      "symbol": "Program"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AccountService.cs",
+      "line": 13,
+      "symbol": "AccountSession"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AccountService.cs",
+      "line": 21,
+      "symbol": "CurrentAccountService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AccountService.cs",
+      "line": 74,
+      "symbol": "AccountService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AcquisitionAnalyticsService.cs",
+      "line": 8,
+      "symbol": "AcquisitionEventTypes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AcquisitionAnalyticsService.cs",
+      "line": 25,
+      "symbol": "AcquisitionAnalyticsService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AcquisitionAnalyticsService.cs",
+      "line": 503,
+      "symbol": "AcquisitionAnalyticsMiddleware"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/AntiforgeryEndpointExtensions.cs",
+      "line": 5,
+      "symbol": "AntiforgeryEndpointExtensions"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/ClarityProductCatalog.cs",
+      "line": 6,
+      "symbol": "ClarityProduct"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/ClarityProductCatalog.cs",
+      "line": 23,
+      "symbol": "ClarityProductCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/ClarityProductCatalog.cs",
+      "line": 263,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/ClarityProductCatalog.cs",
+      "line": 274,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 11,
+      "symbol": "EmailOptions"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 30,
+      "symbol": "EmailConfiguration"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 155,
+      "symbol": "IClarityEmailSender"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 166,
+      "symbol": "SmtpClarityEmailSender"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 280,
+      "symbol": "NotificationDeliveryCoordinator"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 851,
+      "symbol": "DeliveryAccount"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/EmailNotificationService.cs",
+      "line": 856,
+      "symbol": "NotificationDeliveryWorker"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/ExpirationAlertWorker.cs",
+      "line": 8,
+      "symbol": "ExpirationAlertWorker"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/FollowManagementService.cs",
+      "line": 7,
+      "symbol": "CreateFollowInput"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/FollowManagementService.cs",
+      "line": 18,
+      "symbol": "FollowDetailModel"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/FollowManagementService.cs",
+      "line": 26,
+      "symbol": "FollowManagementService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 3,
+      "symbol": "LearnEntry"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 13,
+      "symbol": "LearnContentCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 79,
+      "symbol": "404"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 133,
+      "symbol": "expiration"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 188,
+      "symbol": "order"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 199,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 201,
+      "symbol": "change"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 207,
+      "symbol": "set"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 212,
+      "symbol": "set"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 217,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 219,
+      "symbol": "monitor"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 235,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 236,
+      "symbol": "and"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 237,
+      "symbol": "monitor"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 246,
+      "symbol": "you"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 249,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 253,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 254,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnContentCatalog.cs",
+      "line": 255,
+      "symbol": "monitor"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 3,
+      "symbol": "LearnFaq"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 7,
+      "symbol": "LearnEditorialContent"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 13,
+      "symbol": "LearnEditorialContentCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 37,
+      "symbol": "whether"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 55,
+      "symbol": "where"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 73,
+      "symbol": "the"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 77,
+      "symbol": "expiration"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 100,
+      "symbol": "its"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 105,
+      "symbol": "order"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 115,
+      "symbol": "set"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 127,
+      "symbol": "its"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 133,
+      "symbol": "and"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/LearnEditorialContentCatalog.cs",
+      "line": 145,
+      "symbol": "whether"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MembershipService.cs",
+      "line": 7,
+      "symbol": "MembershipSummary"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MembershipService.cs",
+      "line": 13,
+      "symbol": "MembershipService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 11,
+      "symbol": "MobileSession"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 16,
+      "symbol": "MobileSessionTokenService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 90,
+      "symbol": "MobileApiEndpoints"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 616,
+      "symbol": "MobileLoginRequest"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 620,
+      "symbol": "MobileLoginResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 625,
+      "symbol": "MobileErrorResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 628,
+      "symbol": "MobileDashboardResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 637,
+      "symbol": "MobileFollowSummary"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 649,
+      "symbol": "MobileChangeSummary"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 659,
+      "symbol": "MobileNotificationSummary"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 668,
+      "symbol": "MobileAccountResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 680,
+      "symbol": "MobileProductResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 690,
+      "symbol": "MobileCreateFollowRequest"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 697,
+      "symbol": "MobileCreateFollowResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 700,
+      "symbol": "MobileFollowDetailResponse"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MobileApiEndpoints.cs",
+      "line": 713,
+      "symbol": "MobilePauseRequest"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MyClarityService.cs",
+      "line": 7,
+      "symbol": "MyClarityFollowSummary"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MyClarityService.cs",
+      "line": 20,
+      "symbol": "MyClarityChangeItem"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MyClarityService.cs",
+      "line": 30,
+      "symbol": "MyClarityDashboard"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/MyClarityService.cs",
+      "line": 36,
+      "symbol": "MyClarityService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 8,
+      "symbol": "FollowExecutionCoordinator"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 30,
+      "symbol": "Claim"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 43,
+      "symbol": "NullClaim"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 52,
+      "symbol": "WorkerHeartbeat"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 59,
+      "symbol": "WorkerRuntimeState"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 121,
+      "symbol": "MutableHeartbeat"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 130,
+      "symbol": "OperationalMetrics"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 139,
+      "symbol": "OperationalMetricsService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OperationalReliability.cs",
+      "line": 196,
+      "symbol": "ObservationRecoveryService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 8,
+      "symbol": "OwnerAccess"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 34,
+      "symbol": "OwnerOverview"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 49,
+      "symbol": "OwnerUserRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 60,
+      "symbol": "OwnerFollowRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 78,
+      "symbol": "OwnerFailedObservationRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 89,
+      "symbol": "OwnerNotificationRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 100,
+      "symbol": "OwnerMessageRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 108,
+      "symbol": "OwnerAcquisitionRow"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/OwnerOperationsService.cs",
+      "line": 119,
+      "symbol": "OwnerOperationsService"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicClarityProductCatalog.cs",
+      "line": 3,
+      "symbol": "PublicClarityProductCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 3,
+      "symbol": "PublicProductFaq"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 7,
+      "symbol": "PublicProductContent"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 18,
+      "symbol": "PublicProductContentCatalog"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 129,
+      "symbol": "the"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 143,
+      "symbol": "type"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 171,
+      "symbol": "set"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 205,
+      "symbol": "for"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 207,
+      "symbol": "can"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 215,
+      "symbol": "but"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 225,
+      "symbol": "can"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicProductContentCatalog.cs",
+      "line": 237,
+      "symbol": "changes"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicSiteSeoPolicy.cs",
+      "line": 3,
+      "symbol": "PublicSeoMetadata"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/PublicSiteSeoPolicy.cs",
+      "line": 9,
+      "symbol": "PublicSiteSeoPolicy"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/SecurityServices.cs",
+      "line": 6,
+      "symbol": "SecurityThrottle"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/SecurityServices.cs",
+      "line": 51,
+      "symbol": "WindowCounter"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/SecurityServices.cs",
+      "line": 58,
+      "symbol": "LoginAttemptProtector"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/SecurityServices.cs",
+      "line": 130,
+      "symbol": "LoginState"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/SecurityServices.cs",
+      "line": 138,
+      "symbol": "SameOriginRequestValidator"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/StripeBillingService.cs",
+      "line": 13,
+      "symbol": "StripeOptions"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/StripeBillingService.cs",
+      "line": 28,
+      "symbol": "StripeConfiguration"
+    },
+    {
+      "path": "src/ClarityBelongs.Web/Services/StripeBillingService.cs",
+      "line": 109,
+      "symbol": "StripeBillingService"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/BillingEmailReleaseTests.cs",
+      "line": 14,
+      "symbol": "BillingEmailReleaseTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/BillingEmailReleaseTests.cs",
+      "line": 509,
+      "symbol": "RecordingEmailSender"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/BillingEmailReleaseTests.cs",
+      "line": 536,
+      "symbol": "EmailMessage"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DatabaseInfrastructureTests.cs",
+      "line": 12,
+      "symbol": "DatabaseInfrastructureTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DatabaseInfrastructureTests.cs",
+      "line": 300,
+      "symbol": "TestDatabaseHarness"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DatabaseInfrastructureTests.cs",
+      "line": 390,
+      "symbol": "TestHostEnvironment"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DnsObservationTests.cs",
+      "line": 9,
+      "symbol": "DnsObservationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DnsRecordObservationTests.cs",
+      "line": 9,
+      "symbol": "DnsRecordObservationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/DomainObservationTests.cs",
+      "line": 7,
+      "symbol": "DomainObservationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/HttpObservationTests.cs",
+      "line": 9,
+      "symbol": "HttpObservationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/LearnSearchDiscoveryTests.cs",
+      "line": 5,
+      "symbol": "LearnSearchDiscoveryTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/ObservationLifecycleTests.cs",
+      "line": 7,
+      "symbol": "ObservationLifecycleTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/OperationalReliabilityTests.cs",
+      "line": 11,
+      "symbol": "OperationalReliabilityTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/OperationalReliabilityTests.cs",
+      "line": 239,
+      "symbol": "BlockingObservationAdapter"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/OperationalReliabilityTests.cs",
+      "line": 258,
+      "symbol": "RecordingEmailSender"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/OwnerAnalyticsClassificationTests.cs",
+      "line": 7,
+      "symbol": "OwnerAnalyticsClassificationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/OwnerOperationsReleaseTests.cs",
+      "line": 9,
+      "symbol": "OwnerOperationsReleaseTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/PersistenceIsolationAndSchedulingTests.cs",
+      "line": 11,
+      "symbol": "PersistenceIsolationAndSchedulingTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/Phase1CatalogContractTests.cs",
+      "line": 7,
+      "symbol": "Phase1CatalogContractTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/PublicContentDifferentiationTests.cs",
+      "line": 5,
+      "symbol": "PublicContentDifferentiationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/PublicLaunchContractTests.cs",
+      "line": 5,
+      "symbol": "PublicLaunchContractTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SecurityHardeningTests.cs",
+      "line": 15,
+      "symbol": "SecurityHardeningTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SecurityHardeningTests.cs",
+      "line": 159,
+      "symbol": "RedirectHandler"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SecurityHardeningTests.cs",
+      "line": 174,
+      "symbol": "FakeEmailSender"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SecurityHardeningTests.cs",
+      "line": 196,
+      "symbol": "AccountFixture"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SeoReleaseContractTests.cs",
+      "line": 6,
+      "symbol": "SeoReleaseContractTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/SqlServerModelCompatibilityTests.cs",
+      "line": 6,
+      "symbol": "SqlServerModelCompatibilityTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 12,
+      "symbol": "StubHttpMessageHandler"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 23,
+      "symbol": "SequenceObservationAdapter"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 50,
+      "symbol": "FakeDnsAddressResolver"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 66,
+      "symbol": "ObservationStatusInterceptor"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 105,
+      "symbol": "SqliteTestStore"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 146,
+      "symbol": "SeededFollow"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TestSupport.cs",
+      "line": 154,
+      "symbol": "TestData"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TlsObservationTests.cs",
+      "line": 11,
+      "symbol": "TlsObservationTests"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TlsObservationTests.cs",
+      "line": 157,
+      "symbol": "QueueTlsProbe"
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/TlsObservationTests.cs",
+      "line": 171,
+      "symbol": "ThrowingTlsProbe"
     }
   ],
   "tests": [
     "tests/ClarityBelongs.Tests/BillingEmailReleaseTests.cs",
+    "tests/ClarityBelongs.Tests/ClarityBelongs.Tests.csproj",
     "tests/ClarityBelongs.Tests/DatabaseInfrastructureTests.cs",
     "tests/ClarityBelongs.Tests/DnsObservationTests.cs",
     "tests/ClarityBelongs.Tests/DnsRecordObservationTests.cs",
@@ -64,14 +1382,27 @@
     "tests/ClarityBelongs.Tests/TestSupport.cs",
     "tests/ClarityBelongs.Tests/TlsObservationTests.cs"
   ],
-  "entrypoints": [
+  "changelogs": [
+    {
+      "path": "CHANGELOG.md",
+      "first_version_in_file": "0.6.33"
+    }
+  ],
+  "entry_documents": [
     "AGENTS.md",
     "AI_CONTEXT.md",
     "README.md",
     "database/migrations/README.md",
     "distribution/README.md"
   ],
-  "solution_files": [
+  "solutions": [
     "ClarityBelongs.slnx"
-  ]
+  ],
+  "status_sources": [],
+  "counts": {
+    "projects": 4,
+    "routes_indexed": 1,
+    "tests_indexed": 22,
+    "changelogs": 1
+  }
 }
