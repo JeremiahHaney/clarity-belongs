@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "warning": "Source inventory only; not proof of behavior, QA, deployment or release.",
+  "projects": [
+    {
+      "path": "mobile/ClarityBelongs.Mobile/ClarityBelongs.Mobile.csproj",
+      "references": [],
+      "frameworks": [
+        "net10.0-android"
+      ]
+    },
+    {
+      "path": "src/Belongs.Shared/Belongs.Shared.csproj",
+      "references": [],
+      "frameworks": [
+        "net8.0"
+      ]
+    },
+    {
+      "path": "src/ClarityBelongs.Web/ClarityBelongs.Web.csproj",
+      "references": [
+        "..\\Belongs.Shared\\Belongs.Shared.csproj"
+      ],
+      "frameworks": [
+        "net10.0"
+      ]
+    },
+    {
+      "path": "tests/ClarityBelongs.Tests/ClarityBelongs.Tests.csproj",
+      "references": [
+        "..\\..\\src\\ClarityBelongs.Web\\ClarityBelongs.Web.csproj"
+      ],
+      "frameworks": [
+        "net10.0"
+      ]
+    }
+  ],
+  "changelogs": [
+    {
+      "path": "CHANGELOG.md",
+      "latest_version_in_file": "0.6.33"
+    }
+  ],
+  "tests": [
+    "tests/ClarityBelongs.Tests/BillingEmailReleaseTests.cs",
+    "tests/ClarityBelongs.Tests/DatabaseInfrastructureTests.cs",
+    "tests/ClarityBelongs.Tests/DnsObservationTests.cs",
+    "tests/ClarityBelongs.Tests/DnsRecordObservationTests.cs",
+    "tests/ClarityBelongs.Tests/DomainObservationTests.cs",
+    "tests/ClarityBelongs.Tests/GlobalUsings.cs",
+    "tests/ClarityBelongs.Tests/HttpObservationTests.cs",
+    "tests/ClarityBelongs.Tests/LearnSearchDiscoveryTests.cs",
+    "tests/ClarityBelongs.Tests/ObservationLifecycleTests.cs",
+    "tests/ClarityBelongs.Tests/OperationalReliabilityTests.cs",
+    "tests/ClarityBelongs.Tests/OwnerAnalyticsClassificationTests.cs",
+    "tests/ClarityBelongs.Tests/OwnerOperationsReleaseTests.cs",
+    "tests/ClarityBelongs.Tests/PersistenceIsolationAndSchedulingTests.cs",
+    "tests/ClarityBelongs.Tests/Phase1CatalogContractTests.cs",
+    "tests/ClarityBelongs.Tests/PublicContentDifferentiationTests.cs",
+    "tests/ClarityBelongs.Tests/PublicLaunchContractTests.cs",
+    "tests/ClarityBelongs.Tests/SecurityHardeningTests.cs",
+    "tests/ClarityBelongs.Tests/SeoReleaseContractTests.cs",
+    "tests/ClarityBelongs.Tests/SqlServerModelCompatibilityTests.cs",
+    "tests/ClarityBelongs.Tests/TestSupport.cs",
+    "tests/ClarityBelongs.Tests/TlsObservationTests.cs"
+  ],
+  "entrypoints": [
+    "AGENTS.md",
+    "AI_CONTEXT.md",
+    "README.md",
+    "database/migrations/README.md",
+    "distribution/README.md"
+  ],
+  "solution_files": [
+    "ClarityBelongs.slnx"
+  ]
+}
