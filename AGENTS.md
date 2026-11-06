@@ -13,3 +13,6 @@ The strategy and product-identity authority is [free-software-for-the-people/00_
 5. Record exact location, dependency boundaries, acceptance test, safety implications and smallest viable diff. Run meaningful tests before claiming validation. Increment project version using its **latest actual changelog entry**, not a remembered version.
 6. Update relevant status/docs for actual changes; update portfolio Atlas only for durable identity/dependency/strategic changes. Avoid duplicating the Atlas in prose.
 
+
+## Automatic repository index
+GitHub Actions maintains `AI_CAPABILITIES.generated.json` on pushes to `main` and weekly. Read it before broad code searches to locate tracked project files, references, tests, changelogs and source entrypoints. It is evidence of repository structure, not verification that a capability is functional or deployed. The workflow is `.github/workflows/ai-repository-index.yml`; no developer command is required.
