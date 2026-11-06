@@ -1,39 +1,56 @@
-name: Refresh AI repository index
+name: Maintain AI code context
 on:
   push:
     branches: [main]
     paths-ignore:
       - AI_CAPABILITIES.generated.json
+      - AI_INDEX.generated.md
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '23 9 * * 1'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: ai-repository-index
+  group: ai-context-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  refresh:
+  index:
     runs-on: ubuntu-latest
+    permissions:
+      contents: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          persist-credentials: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
+          persist-credentials: ${{ github.event_name != 'pull_request' }}
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Generate source index
+      - name: Generate evidence-only indexes
         run: python scripts/generate-ai-index.py
-      - name: Commit index only when changed
+      - name: Validate determinism and schema
         run: |
-          if git diff --quiet -- AI_CAPABILITIES.generated.json && [ -z "$(git ls-files --others --exclude-standard -- AI_CAPABILITIES.generated.json)" ]; then
-            echo "Index unchanged."
+          python scripts/generate-ai-index.py --check
+          python -c "import json,pathlib; d=json.loads(pathlib.Path('AI_CAPABILITIES.generated.json').read_text(encoding='utf-8')); assert d['schema']==2 and d['evidence_only'] is True; assert isinstance(d['projects'],list) and isinstance(d['routes'],list)"
+      - name: Upload PR index preview
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-context-preview
+          path: |
+            AI_CAPABILITIES.generated.json
+            AI_INDEX.generated.md
+      - name: Commit updated indexes on main
+        if: github.event_name != 'pull_request'
+        run: |
+          git add AI_CAPABILITIES.generated.json AI_INDEX.generated.md
+          if git diff --cached --quiet; then
+            echo "AI index unchanged."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add AI_CAPABILITIES.generated.json
-          git commit -m "docs: refresh AI source inventory [skip ci]"
-          git push
+          git commit -m "docs: refresh AI evidence index [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
