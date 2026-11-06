@@ -27,6 +27,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Test AI index generator
+        run: python scripts/test-ai-index.py
       - name: Generate evidence-only indexes
         run: python scripts/generate-ai-index.py
       - name: Validate determinism and schema
