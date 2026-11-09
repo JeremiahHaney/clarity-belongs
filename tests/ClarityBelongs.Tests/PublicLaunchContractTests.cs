@@ -140,13 +140,19 @@ public sealed class PublicLaunchContractTests
         var root = FindRepositoryRoot();
         var layout = File.ReadAllText(
             Path.Combine(root, "src/ClarityBelongs.Web/Components/Layout/MainLayout.razor"));
+        var styles = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/wwwroot/csp-layout.css"));
+        var app = File.ReadAllText(
+            Path.Combine(root, "src/ClarityBelongs.Web/Components/App.razor"));
 
         Assert.Contains("site-nav-menu", layout, StringComparison.Ordinal);
-        Assert.Contains("max-width: 1050px", layout, StringComparison.Ordinal);
-        Assert.Contains("max-width: 820px", layout, StringComparison.Ordinal);
-        Assert.Contains("max-width: 430px", layout, StringComparison.Ordinal);
-        Assert.Contains("flex-direction: row", layout, StringComparison.Ordinal);
-        Assert.Contains("width: min(320px, calc(100vw - 32px))", layout, StringComparison.Ordinal);
+        Assert.DoesNotContain("<style", layout, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("csp-layout.css", app, StringComparison.Ordinal);
+        Assert.Contains("max-width: 1050px", styles, StringComparison.Ordinal);
+        Assert.Contains("max-width: 820px", styles, StringComparison.Ordinal);
+        Assert.Contains("max-width: 430px", styles, StringComparison.Ordinal);
+        Assert.Contains("flex-direction: row", styles, StringComparison.Ordinal);
+        Assert.Contains("width: min(320px, calc(100vw - 32px))", styles, StringComparison.Ordinal);
     }
 
     [Fact]

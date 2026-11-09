@@ -1,3 +1,9 @@
+## 0.6.36 - 2026-11-09
+
+- Move MainLayout inline CSS into external csp-layout.css for strict style-src compatibility.
+- Reference existing share/clarity.svg as the favicon instead of allowing default /favicon.ico requests.
+- Keep CSP enforcement gated behind Report-Only browser validation.
+
 ## 0.6.35 - 2026-11-09
 
 - Fix preexisting SQLite legacy adoption failures exposed by the CSP validation run: stamp the acquisition migration when its table already exists and create acquisition indexes only after missing columns are added.
