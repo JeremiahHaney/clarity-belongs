@@ -106,7 +106,8 @@ try
         "-enableRule:DoNotDeleteRule",
         "-enableRule:AppOffline",
         # Preserve production ASP.NET Core environment settings across deployments.
-        '-skip:objectName=filePath,absolutePath=web\.config
+        '-skip:objectName=filePath,absolutePath=web[.]config'
+    )
 
     if ($AllowUntrusted)
     {
