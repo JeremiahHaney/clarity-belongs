@@ -1,3 +1,4 @@
+using ClarityBelongs.Web.Security;
 using ClarityBelongs.Web.Components;
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
@@ -262,11 +263,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseMiddleware<SiteCspMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AcquisitionAnalyticsMiddleware>();
 app.UseAntiforgery();
+if (app.Configuration.GetValue<bool>("Security:Csp:ReportOnlyEnabled")
+    || app.Configuration.GetValue<bool>("Security:Csp:EnforceEnabled"))
+{
+    app.MapPost(SiteCsp.ReportPath, SiteCsp.HandleReportAsync);
+}
+
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
