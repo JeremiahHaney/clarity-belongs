@@ -105,10 +105,8 @@ try
         "-dest:contentPath=$SiteName,computerName=$DeployServer,userName=$DeployUsername,password=$DeployPassword,authType=Basic,includeAcls=False",
         "-enableRule:DoNotDeleteRule",
         "-enableRule:AppOffline",
-        # Keep production IIS settings, including CSP and other environment variables.
-        # Deployment must not overwrite the existing site web.config.
+        # Preserve production ASP.NET Core environment settings across deployments.
         '-skip:objectName=filePath,absolutePath=web\.config
-    )
 
     if ($AllowUntrusted)
     {
