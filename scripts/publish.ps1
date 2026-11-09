@@ -104,7 +104,9 @@ try
         "-source:contentPath=$publishRoot",
         "-dest:contentPath=$SiteName,computerName=$DeployServer,userName=$DeployUsername,password=$DeployPassword,authType=Basic,includeAcls=False",
         "-enableRule:DoNotDeleteRule",
-        "-enableRule:AppOffline"
+        "-enableRule:AppOffline",
+        # Preserve production IIS web.config and its environment settings.
+        '-skip:objectName=filePath,absolutePath=web[.]config'
     )
 
     if ($AllowUntrusted)

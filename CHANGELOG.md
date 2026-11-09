@@ -1,3 +1,7 @@
+## 0.6.37 - 2026-11-09
+
+- Preserve production IIS web.config in Web Deploy to retain CSP flags and existing environment settings between site publications.
+
 ## 0.6.36 - 2026-11-09
 
 - Move MainLayout inline CSS into external csp-layout.css for strict style-src compatibility.
