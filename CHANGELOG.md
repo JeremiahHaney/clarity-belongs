@@ -1,3 +1,9 @@
+## 0.6.34 - 2026-11-09
+
+- Add opt-in CSP Report-Only/enforcement middleware with per-response nonces and bounded, sanitized reporting; disabled by default.
+- Move application-shell inline CSS to a versioned external stylesheet and add CSP unit tests.
+- No production deployment or enforcement; verify Blazor interactive views, authentication, monitoring, charts and Stripe test flows with a browser before rollout.
+
 # Changelog
 
 ## 0.6.33 - 2026-11-03
