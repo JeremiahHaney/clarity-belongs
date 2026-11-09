@@ -31,6 +31,8 @@ jobs:
         shell: bash
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          Stripe__Enabled: 'false'
+          Stripe__PublicPaidPlansEnabled: 'false'
           CLARITY_DB_PATH: /tmp/clarity-smoke/clarity.db
           CLARITY_BACKUP_DIR: /tmp/clarity-smoke/backups
         run: |

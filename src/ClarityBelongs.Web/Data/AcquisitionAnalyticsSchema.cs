@@ -40,6 +40,11 @@ public static class AcquisitionAnalyticsSchema
             "IsOwnerActivity",
             "INTEGER NOT NULL DEFAULT 0",
             cancellationToken);
+
+        // Indexes must follow additions when upgrading a legacy database.
+        await db.Database.ExecuteSqlRawAsync(
+            SqliteIndexes,
+            cancellationToken);
     }
 
     private static async Task VerifySqlServerSchemaAsync(
@@ -166,6 +171,10 @@ public static class AcquisitionAnalyticsSchema
             IsOwnerActivity INTEGER NOT NULL DEFAULT 0,
             OccurredAtUtc TEXT NOT NULL
         );
+        """;
+
+    private const string SqliteIndexes =
+        """
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_SessionId
             ON AcquisitionEvents (SessionId);
         CREATE INDEX IF NOT EXISTS IX_AcquisitionEvents_VisitorId_OccurredAtUtc

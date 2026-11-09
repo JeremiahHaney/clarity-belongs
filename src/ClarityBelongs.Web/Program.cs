@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.RateLimiting;
+using ClarityBelongs.Web.Security;
 using ClarityBelongs.Web.Components;
 using ClarityBelongs.Web.Data;
 using ClarityBelongs.Web.Domain;
@@ -188,6 +190,17 @@ builder.Services.AddHostedService<ObservationWorker>();
 builder.Services.AddHostedService<ExpirationAlertWorker>();
 builder.Services.AddHostedService<NotificationDeliveryWorker>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("csp-report", rule =>
+    {
+        rule.PermitLimit = 30;
+        rule.Window = TimeSpan.FromMinutes(1);
+        rule.QueueLimit = 0;
+        rule.AutoReplenishment = true;
+    });
+});
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -262,11 +275,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseMiddleware<SiteCspMiddleware>();
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AcquisitionAnalyticsMiddleware>();
 app.UseAntiforgery();
+if (app.Configuration.GetValue<bool>("Security:Csp:ReportOnlyEnabled")
+    || app.Configuration.GetValue<bool>("Security:Csp:EnforceEnabled"))
+{
+    app.MapPost(SiteCsp.ReportPath, SiteCsp.HandleReportAsync)
+        .RequireRateLimiting("csp-report");
+}
+
 app.MapStaticAssets();
 
 app.MapRazorComponents<App>()

@@ -1,3 +1,14 @@
+## 0.6.35 - 2026-11-09
+
+- Fix preexisting SQLite legacy adoption failures exposed by the CSP validation run: stamp the acquisition migration when its table already exists and create acquisition indexes only after missing columns are added.
+- Preserve existing rows and production SQL Server migration boundaries. Validation rerun pending.
+
+## 0.6.34 - 2026-11-09
+
+- Add opt-in CSP Report-Only/enforcement middleware with per-response nonces and bounded, sanitized reporting; disabled by default.
+- Move application-shell inline CSS to a versioned external stylesheet and add CSP unit tests.
+- No production deployment or enforcement; verify Blazor interactive views, authentication, monitoring, charts and Stripe test flows with a browser before rollout.
+
 # Changelog
 
 ## 0.6.33 - 2026-11-03

@@ -8,6 +8,7 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
 {
     public const string BaselineMigrationId = "20260905183011_InitialClarityBaseline";
     public const string BillingEmailMigrationId = "20260905185427_HardenBillingAndEmailDelivery";
+    public const string AcquisitionAnalyticsMigrationId = "20260919210000_AddAcquisitionAnalytics";
     private const string EfProductVersion = "10.0.0";
 
     public async Task PrepareForMigrationsAsync(CancellationToken cancellationToken = default)
@@ -32,6 +33,17 @@ public sealed class DatabaseSchemaService(ClarityDbContext db)
             {
                 await StampMigrationAsync(
                     BillingEmailMigrationId,
+                    cancellationToken);
+            }
+
+            // EnsureCreated legacy schemas can already contain this table.
+            // Stamp the corresponding EF migration instead of recreating it.
+            if (await TableExistsAsync(
+                    "AcquisitionEvents",
+                    cancellationToken))
+            {
+                await StampMigrationAsync(
+                    AcquisitionAnalyticsMigrationId,
                     cancellationToken);
             }
         }
