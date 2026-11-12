@@ -1,3 +1,9 @@
+## 0.6.40 - 2026-11-12
+
+- Override the vulnerable transitive System.Security.Cryptography.Pkcs 9.0.4 package with patched 10.0.14 for the .NET 10 web application (GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7).
+- Clarify that the production migration publisher notice is a verification reminder, not proof that SQL schema is missing. Do not automatically apply migrations.
+- Requires NuGet restore, Release tests, publish, and production verification; source change alone does not establish deployment.
+
 ## 0.6.39 - 2026-11-12
 
 - Bind Stripe configuration flags before startup validation so development/CI can explicitly disable billing without exposing secrets or changing production defaults.
