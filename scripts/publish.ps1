@@ -75,7 +75,7 @@ $latestMigration = Get-ChildItem -Path $migrationRoot -Filter "*.sql" -File |
 if ($null -ne $latestMigration)
 {
     Write-Host ""
-    Write-Host "DATABASE: apply production SQL through $($latestMigration.Name) before publishing this build." -ForegroundColor Yellow
+    Write-Host "DATABASE: verify production dbo.SchemaMigrations includes $($latestMigration.BaseName). Application startup checks the required migration; this message is not evidence that it is missing." -ForegroundColor Yellow
     Write-Host "Path    : $($latestMigration.FullName)" -ForegroundColor Yellow
 }
 
