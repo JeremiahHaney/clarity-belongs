@@ -139,6 +139,7 @@ builder.Services
     });
 builder.Services
     .AddOptions<StripeOptions>()
+    .BindConfiguration("Stripe")
     .Configure(options =>
     {
         options.SecretKey =
