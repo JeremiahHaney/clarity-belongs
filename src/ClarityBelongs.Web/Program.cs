@@ -275,6 +275,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseMiddleware<CanonicalHostMiddleware>();
 app.UseMiddleware<SiteCspMiddleware>();
 app.UseHttpsRedirection();
 app.UseRateLimiter();
