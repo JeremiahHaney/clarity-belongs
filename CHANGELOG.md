@@ -1,3 +1,13 @@
+## 0.6.39 - 2026-11-12
+
+- Bind Stripe configuration flags before startup validation so development/CI can explicitly disable billing without exposing secrets or changing production defaults.
+- Correct the CI smoke-test startup failure discovered while validating canonical host redirects in 0.6.38.
+
+## 0.6.38 - 2026-11-12
+
+- Permanently redirect the public www host to https://claritybelongs.com, preserving request paths and queries, without changing non-www, local, or private hosts.
+- Add canonical-host middleware regression coverage; deploy and verify both hostnames to confirm IIS/CDN binding and redirect behavior.
+
 ## 0.6.37 - 2026-11-09
 
 - Preserve production IIS web.config in Web Deploy to retain CSP flags and existing environment settings between site publications.

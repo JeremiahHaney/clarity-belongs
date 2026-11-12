@@ -139,6 +139,7 @@ builder.Services
     });
 builder.Services
     .AddOptions<StripeOptions>()
+    .BindConfiguration("Stripe")
     .Configure(options =>
     {
         options.SecretKey =
@@ -275,6 +276,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseMiddleware<CanonicalHostMiddleware>();
 app.UseMiddleware<SiteCspMiddleware>();
 app.UseHttpsRedirection();
 app.UseRateLimiter();
